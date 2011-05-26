@@ -19,6 +19,10 @@ Basic advection Riemann solvers of the form (1d)
 #                     http://www.opensource.org/licenses/
 # ============================================================================
 
+# Riemann solver constants
+meqn = 1
+mwaves = 1
+
 import numpy as np
 
 def rp_advection_1d(q_l,q_r,aux_l,aux_r,aux_global):
@@ -31,10 +35,6 @@ def rp_advection_1d(q_l,q_r,aux_l,aux_r,aux_global):
     
     :Version: 1.0 (2008-2-20)
     """
-    
-    # Riemann solver constants
-    meqn = 1
-    mwaves = 1
     
     # Number of Riemann problems we are solving
     nrp = q_l.shape[1]

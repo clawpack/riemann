@@ -17,6 +17,9 @@ Riemann solvers for Burgers equation
 #                     http://www.opensource.org/licenses/
 # ============================================================================
 
+meqn = 1
+mwaves = 1
+
 import numpy as np
 
 def rp_burgers_1d(q_l,q_r,aux_l,aux_r,aux_global):
@@ -33,9 +36,6 @@ def rp_burgers_1d(q_l,q_r,aux_l,aux_r,aux_global):
     """
         
     nrp = q_l.shape[1]
-    meqn = 1
-    mwaves = 1
-    
     # Output arrays
     wave = np.empty( (meqn, mwaves, nrp) )
     s = np.empty( (mwaves, nrp) )

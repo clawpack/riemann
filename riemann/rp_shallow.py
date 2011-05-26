@@ -38,6 +38,9 @@ is the gravitational acceleration.
 
 import numpy as np
 
+meqn = 2
+mwaves = 2
+
 def rp_shallow_roe_1d(q_l,q_r,aux_l,aux_r,aux_global):
     r"""
     Roe shallow water solver in 1d::
@@ -64,8 +67,6 @@ def rp_shallow_roe_1d(q_l,q_r,aux_l,aux_r,aux_global):
     
     # Array shapes
     nrp = q_l.shape[1]
-    meqn = 2
-    mwaves = 2
     
     # Output arrays
     wave = np.empty( (meqn, mwaves, nrp) )

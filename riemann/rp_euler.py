@@ -41,6 +41,9 @@ Unless otherwise noted, the ideal gas equation of state is used:
 
 import numpy as np
 
+meqn = 3
+mwaves = 3
+
 def rp_euler_roe_1d(q_l,q_r,aux_l,aux_r,aux_global):
     r"""
     Roe Euler solver in 1d
@@ -56,8 +59,6 @@ def rp_euler_roe_1d(q_l,q_r,aux_l,aux_r,aux_global):
     """
     
     # Problem dimensions
-    meqn = 3
-    mwaves = 3
     nrp = q_l.shape[1]
 
     # Return values

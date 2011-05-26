@@ -33,7 +33,8 @@ to calculate the impedence :math:`= Z` and speed of sound `= c`.
 #                     http://www.opensource.org/licenses/
 # ============================================================================
 
-import numpy as np
+meqn = 2
+mwaves = 2
 
 def rp_acoustics_1d(q_l,q_r,aux_l,aux_r,aux_global):
     r"""
@@ -47,9 +48,8 @@ def rp_acoustics_1d(q_l,q_r,aux_l,aux_r,aux_global):
     
     :Version: 1.0 (2009-02-03)
     """
-    
-    meqn = 2
-    mwaves = 2
+    import numpy as np
+
     # Convenience
     nrp = np.size(q_l,1)
 

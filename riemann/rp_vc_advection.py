@@ -16,6 +16,10 @@ Variable coefficient 1D advection Riemann solver
 
 import numpy as np
 
+# Riemann solver constants
+meqn = 1
+mwaves = 1
+
 def rp_vc_advection_1d(q_l,q_r,aux_l,aux_r,aux_global):
     r"""Basic 1d advection riemann solver
     
@@ -26,10 +30,6 @@ def rp_vc_advection_1d(q_l,q_r,aux_l,aux_r,aux_global):
     
     :Version: 1.0 (2010-10-10)
     """
-    
-    # Riemann solver constants
-    meqn = 1
-    mwaves = 1
     
     # Number of Riemann problems we are solving
     nrp = q_l.shape[1]
