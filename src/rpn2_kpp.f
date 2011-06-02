@@ -23,14 +23,19 @@
 !     #                                    and right state ql(i,:)
 !     # From the basic clawpack routines, this routine is called with ql = qr
 
-      implicit double precision (a-h,o-z)
-      dimension wave(meqn,mwaves,1-mbc:maxm+mbc)
-      dimension    s(mwaves,1-mbc:maxm+mbc)
-      dimension   ql(meqn,1-mbc:maxm+mbc)
-      dimension   qr(meqn,1-mbc:maxm+mbc)
-      dimension apdq(meqn,1-mbc:maxm+mbc)
-      dimension amdq(meqn,1-mbc:maxm+mbc)
-      
+!      implicit none
+
+      double precision ul, ur, fl, fr, fedge, pi, reml, remr
+      integer i, ixy, maxm, meqn, mwaves, mbc, mx
+
+      double precision wave(meqn,mwaves,1-mbc:maxm+mbc)
+      double precision    s(mwaves,     1-mbc:maxm+mbc)
+      double precision   ql(meqn,       1-mbc:maxm+mbc)
+      double precision   qr(meqn,       1-mbc:maxm+mbc)
+      double precision apdq(meqn,       1-mbc:maxm+mbc)
+      double precision amdq(meqn,       1-mbc:maxm+mbc)
+
+
       pi=4.d0*datan(1.d0)
 
       do i=2-mbc,mx+mbc

@@ -8,7 +8,7 @@ c
 c     # solve Riemann problems for the 1D advection equation q_t + u*q_x = 0.
 c     # For constant advection velocity u, passed in common block.
 c
-c     # The advection speed u is passed in the common block comrp
+c     # The advection speed u is passed in the common block cparam
 c     # On input, ql contains the state vector at the left edge of each cell
 c     #           qr contains the state vector at the right edge of each cell
 c     # On output, wave contains the waves,
@@ -28,7 +28,7 @@ c
       dimension   apdq( meqn,1-mbc:maxmx+mbc)
       dimension    s(mwaves,1-mbc:maxmx+mbc)
       dimension wave(meqn, mwaves,1-mbc:maxmx+mbc)
-      common /comrp/ u
+      common /cparam/ u
 c
 c
       do 30 i=2-mbc,mx+mbc

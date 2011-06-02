@@ -20,7 +20,7 @@ c
       dimension bmasdq(meqn,1-mbc:maxm+mbc)
       dimension bpasdq(meqn,1-mbc:maxm+mbc)
       parameter (maxm2 = 502)
-      common /comrp/ ubar,vbar
+      common /cparam/ ubar,vbar
 c
 c     # transverse wave speeds have been computed in rpn2
 c     # maux=0 and aux arrays are unused in this example.

@@ -31,7 +31,7 @@ c     # maux=0 and aux arrays are unused in this example.
 c
 c
       implicit double precision (a-h,o-z)
-      common /comrp/ ubar,vbar
+      common /cparam/ ubar,vbar
 c
       dimension wave(meqn, mwaves, 1-mbc:maxm+mbc)
       dimension    s(mwaves, 1-mbc:maxm+mbc)
