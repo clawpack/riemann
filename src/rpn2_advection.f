@@ -31,7 +31,7 @@ c     # maux=0 and aux arrays are unused in this example.
 c
 c
       implicit double precision (a-h,o-z)
-      common /cparam/ ubar,vbar
+      common /cparam/ u,v
 c
       dimension wave(meqn, mwaves, 1-mbc:maxm+mbc)
       dimension    s(mwaves, 1-mbc:maxm+mbc)
@@ -45,9 +45,9 @@ c$$$      do 30 i = 2-mbc, mx+mbc-1
       do 30 i = 2-mbc, mx+mbc
          wave(1,1,i) = ql(1,i) - qr(1,i-1)
          if (ixy.eq.1) then
-             s(1,i) = ubar
+             s(1,i) = u
            else
-             s(1,i) = vbar
+             s(1,i) = v
            endif
 c
 c        # flux differences:

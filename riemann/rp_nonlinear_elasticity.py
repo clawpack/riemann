@@ -30,7 +30,7 @@ and the flux vector is
 
 import numpy as np
 
-def rp_nel_1d(q_l,q_r,aux_l,aux_r,aux_global):
+def rp_nonlinear_elasticity_1d(q_l,q_r,aux_l,aux_r,aux_global):
     r"""
     1d nonlinear elasticity riemann solver
     
@@ -82,8 +82,8 @@ def rp_nel_1d(q_l,q_r,aux_l,aux_r,aux_global):
     
     # Compute the left going and right going fluctuations
     for m in xrange(meqn):
-        amdq[:,m] = fwave[m,0,:]
-        apdq[:,m] = fwave[m,1,:]
+        amdq[m,:] = fwave[m,0,:]
+        apdq[m,:] = fwave[m,1,:]
     
     return fwave, s, amdq, apdq
 

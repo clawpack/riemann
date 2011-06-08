@@ -20,15 +20,15 @@ c
       dimension bmasdq(meqn,1-mbc:maxm+mbc)
       dimension bpasdq(meqn,1-mbc:maxm+mbc)
       parameter (maxm2 = 502)
-      common /cparam/ ubar,vbar
+      common /cparam/ u,v
 c
 c     # transverse wave speeds have been computed in rpn2
 c     # maux=0 and aux arrays are unused in this example.
 c
       if (ixy.eq.1) then
-             stran = vbar
+             stran = v
            else
-             stran = ubar
+             stran = u
            endif
 
       stranm = dmin1(stran, 0.d0)

@@ -52,7 +52,7 @@ c     ------------
 c
       data efix /.true./    !# use entropy fix for transonic rarefactions
 c
-      if (-1.gt.1-mbc .or. maxm2 .lt. maxm+mbc) then
+      if (-1 .gt. 1-mbc .or. maxm2 .lt. maxm+mbc) then
          write(6,*) 'need to increase maxm2 in rpn'
          stop
          endif

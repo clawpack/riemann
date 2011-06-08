@@ -20,4 +20,4 @@ from rp_acoustics import rp_acoustics_1d
 from rp_burgers import rp_burgers_1d
 from rp_shallow import rp_shallow_roe_1d, rp_shallow_hll_1d, rp_shallow_exact_1d
 from rp_euler import rp_euler_roe_1d
-from rp_nonlinear_elasticity import rp_nel_1d
+from rp_nonlinear_elasticity import rp_nonlinear_elasticity_1d
