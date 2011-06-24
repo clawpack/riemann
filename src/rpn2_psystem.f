@@ -40,8 +40,8 @@ c     # From the basic clawpack routines, this routine is called with ql = qr
       dimension   qr(meqn,1-mbc:maxm+mbc)
       dimension apdq(meqn,1-mbc:maxm+mbc)
       dimension amdq(meqn,1-mbc:maxm+mbc)
-      dimension auxl(3,1-mbc:maxm+mbc)
-      dimension auxr(3,1-mbc:maxm+mbc)
+      dimension auxl(4,1-mbc:maxm+mbc)
+      dimension auxr(4,1-mbc:maxm+mbc)
       
       do 10 i=2-mbc,mx+mbc
 c material properties
@@ -49,7 +49,6 @@ c material properties
          pi=auxl(1,i)
          Eim=auxr(2,i-1)
          Ei=auxl(2,i)
-         
 c solution eps, urho and vrho 
          epsi=ql(1,i)
          urhoi=ql(2,i)
@@ -57,29 +56,23 @@ c solution eps, urho and vrho
          epsim=qr(1,i-1)
          urhoim=qr(2,i-1)
          vrhoim=qr(3,i-1)
-
 c linearity of material (for cell i and for cell im)
          linearity_mati=auxl(3,i)
          linearity_matim=auxr(3,i-1)
-
-         !print *,pi,Ei,linearity_mati
 c sigma
          sigmai=sigma(epsi,Ei,linearity_mati)
          sigmaim=sigma(epsim,Eim,linearity_matim)
-
 c sigmap
          sigmapi=sigmap(epsi,Ei,linearity_mati)
          sigmapim=sigmap(epsim,Eim,linearity_matim)
-
 c computation of components of eigenvectors 
          r11=1/dsqrt(sigmapim*pim)
          r13=-1/dsqrt(sigmapi*pi)
-
 c shock speeds
          s(1,i)=-dsqrt(sigmapim/pim)  !lambda_1
          s(2,i)=dsqrt(sigmapi/pi)     !lambda_2
-         
-         if(ixy.eq.1) then      !x dimension
+     
+         if(ixy.eq.1) then      !x direction
 c compute jump in flux
             dF1=-(urhoi/pi-urhoim/pim)
             dF2=-(sigmai-sigmaim)
@@ -93,7 +86,7 @@ c compute f-waves
             fwave(1,2,i)=beta3*r13
             fwave(2,2,i)=beta3*1
             fwave(3,2,i)=beta3*0
-         else                   !y dimension
+         else                   !y direction
 c compute jump in flux
             dF1=-(vrhoi/pi-vrhoim/pim)
             dF3=-(sigmai-sigmaim)
@@ -108,7 +101,6 @@ c compute f-waves
             fwave(2,2,i)=beta3*0
             fwave(3,2,i)=beta3*1
          endif
-
 c computation of the fluctuations
          amdq(1,i)=fwave(1,1,i)
          amdq(2,i)=fwave(2,1,i)
