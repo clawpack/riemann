@@ -9,7 +9,7 @@ c     =====================================================
 c
 c     # Riemann solver in the transverse direction for the advection equation.
 c
-      dimension     ql(meqn,1-mbc:maxm+mbc)
+      dimension     ql(meqn, 1-mbc:maxm+mbc)
       dimension     qr(meqn, 1-mbc:maxm+mbc)
       dimension   asdq(meqn, 1-mbc:maxm+mbc)
       dimension bmasdq(meqn, 1-mbc:maxm+mbc)
@@ -17,7 +17,6 @@ c
       dimension   aux1(3, 1-mbc:maxm+mbc)
       dimension   aux2(3, 1-mbc:maxm+mbc)
       dimension   aux3(3, 1-mbc:maxm+mbc)
-c
 c
       kv = 3-ixy  !#  = 1 if ixy=2  or  = 2 if ixy=1
       do 10 i=2-mbc,mx+mbc
