@@ -14,9 +14,9 @@ c
       dimension   asdq(meqn, 1-mbc:maxm+mbc)
       dimension bmasdq(meqn, 1-mbc:maxm+mbc)
       dimension bpasdq(meqn, 1-mbc:maxm+mbc)
-      dimension   aux1(2, 1-mbc:maxm+mbc)
-      dimension   aux2(2, 1-mbc:maxm+mbc)
-      dimension   aux3(2, 1-mbc:maxm+mbc)
+      dimension   aux1(3, 1-mbc:maxm+mbc)
+      dimension   aux2(3, 1-mbc:maxm+mbc)
+      dimension   aux3(3, 1-mbc:maxm+mbc)
 c
 c
       kv = 3-ixy  !#  = 1 if ixy=2  or  = 2 if ixy=1
