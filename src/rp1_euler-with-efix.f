@@ -28,11 +28,11 @@ c
 c
 c     # local storage
 c     ---------------
-      parameter (max2 = 2002)  !# assumes at most 2000 grid points with mbc=2
       dimension delta(3)
-      dimension u(-1:max2),enth(-1:max2),a(-1:max2)
+      dimension u(1-mbc:maxmx+mbc),enth(1-mbc:maxmx+mbc)
+      dimension a(1-mbc:maxmx+mbc)
       logical efix
-      common /param/  gamma,gamma1
+      common /cparam/  gamma,gamma1
 c
       data efix /.true./    !# use entropy fix for transonic rarefactions
 c
