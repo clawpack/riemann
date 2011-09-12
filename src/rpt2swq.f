@@ -22,27 +22,27 @@ c
       dimension   asdq(meqn, 1-mbc:maxm+mbc)
       dimension bmasdq(meqn, 1-mbc:maxm+mbc)
       dimension bpasdq(meqn, 1-mbc:maxm+mbc)
-      dimension   aux1(*, 1-mbc:maxm+mbc)
-      dimension   aux2(*, 1-mbc:maxm+mbc)
-      dimension   aux3(*, 1-mbc:maxm+mbc)
+      dimension   aux1(16, 1-mbc:maxm+mbc)
+      dimension   aux2(16, 1-mbc:maxm+mbc)
+      dimension   aux3(16, 1-mbc:maxm+mbc)
 c
-      parameter (maxm2 = 1002)  !# assumes at most 1000x1000 grid with mbc=2
-      dimension u(-1:maxm2),v(-1:maxm2),a(-1:maxm2),h(-1:maxm2)
-      dimension wave(4, 3, -1:maxm2)
-      dimension    s(3, -1:maxm2)
-      dimension enx(-1:maxm2), eny(-1:maxm2), enz(-1:maxm2)
-      dimension etx(-1:maxm2), ety(-1:maxm2), etz(-1:maxm2)
-      dimension gamma(-1:maxm2)
+c      parameter (maxm2 = 1002)  !# assumes at most 1000x1000 grid with mbc=2
+      dimension u(-1:1002),v(-1:1002),a(-1:1002),h(-1:1002)
+      dimension wave(4, 3, -1:1002)
+      dimension    s(3, -1:1002)
+      dimension enx(-1:1002), eny(-1:1002), enz(-1:1002)
+      dimension etx(-1:1002), ety(-1:1002), etz(-1:1002)
+      dimension gamma(-1:1002)
      
       dimension delta(4)
       common /sw/  g
       common /comxyt/ dtcom,dxcom,dycom,tcom,icom,jcom
 
 c
-      if (-1.gt.1-mbc .or. maxm2 .lt. maxm+mbc) then
-	 write(6,*) 'need to increase maxm2 in rpB'
-	 stop
-      endif
+c      if (-1.gt.1-mbc .or. maxm2 .lt. maxm+mbc) then
+c	 write(6,*) 'need to increase maxm2 in rpB'
+c	 stop
+c      endif
 
       if(ixy.eq.1) then
         dx = dxcom
@@ -64,11 +64,11 @@ c
          if (imp.eq.1) then
 c            # asdq = amdq, moving to left
              ix1 = 2-mbc
-	     ixm1 = mx+mbc
+         ixm1 = mx+mbc
            else
 c            # asdq = apdq, moving to right
              ix1 = 1-mbc
-	     ixm1 = mx+mbc
+         ixm1 = mx+mbc
            endif
 c
 c        --------------
@@ -104,7 +104,7 @@ c
      &                / h(i)
            v(i) = (etx(i)*ql(2,i1)+ety(i)*ql(3,i1)+etz(i)*ql(4,i1)) 
      &                / h(i)
-	   a(i) = dsqrt(g*h(i))
+           a(i) = dsqrt(g*h(i))
            enddo
 c
 c
@@ -147,10 +147,10 @@ c    --------------------------------
 c
       do 40 m=1,meqn
          do 40 i=ix1,ixm1
-	    bpasdq(m,i) = 0.d0
-	    do 30 mw=1,mwaves
-	       bpasdq(m,i) = bpasdq(m,i) 
-     &	           + dmax1(s(mw,i),0.d0)*wave(m,mw,i)
+        bpasdq(m,i) = 0.d0
+        do 30 mw=1,mwaves
+           bpasdq(m,i) = bpasdq(m,i) 
+     &                      + dmax1(s(mw,i),0.d0)*wave(m,mw,i)
    30          continue
    40       continue
 c
@@ -247,10 +247,10 @@ c    --------------------------------
 c
       do 100 m=1,meqn
          do 100 i=ix1,ixm1
-	    bmasdq(m,i) = 0.d0
-	    do 90 mw=1,mwaves
-	       bmasdq(m,i) = bmasdq(m,i) 
-     &	                    + dmin1(s(mw,i), 0.d0)*wave(m,mw,i)
+        bmasdq(m,i) = 0.d0
+        do 90 mw=1,mwaves
+           bmasdq(m,i) = bmasdq(m,i) 
+     &                      + dmin1(s(mw,i), 0.d0)*wave(m,mw,i)
    90          continue
   100       continue
 c     # project momentum component of bmasdq to tangent plane:

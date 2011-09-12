@@ -3,7 +3,7 @@ c
 c
 c     =====================================================
       subroutine rpn2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr,
-     &			wave,s,amdq,apdq)
+     &                wave,s,amdq,apdq)
 c     =====================================================
 c
 c     # Roe-solver for the 2D shallow water equations
@@ -33,7 +33,7 @@ c
       implicit double precision (a-h,o-z)
 c
       dimension wave(meqn, mwaves,1-mbc:maxm+mbc)
-      dimension    s(waves, 1-mbc:maxm+mbc)
+      dimension    s(mwaves, 1-mbc:maxm+mbc)
       dimension   ql(meqn, 1-mbc:maxm+mbc)
       dimension   qr(meqn, 1-mbc:maxm+mbc)
       dimension  apdq(meqn, 1-mbc:maxm+mbc)
@@ -43,20 +43,20 @@ c
 c
 c     local arrays -- common block comroe is passed to rpt2
 c     ------------
-      parameter (maxm2 = 1002)  !# assumes at most 1000x1000 grid with mbc=2
+c      parameter (1002 = 1002)  !# assumes at most 1000x1000 grid with mbc=2
       dimension delta(3)
       logical efix
 
       common /sw/  g
-      common /comroe/ u(-1:maxm2),v(-1:maxm2),a(-1:maxm2),h(-1:maxm2)
+      common /comroe/ u(-1:1002),v(-1:1002),a(-1:1002),h(-1:1002)
       common /comxyt/ dtcom,dxcom,dycom,tcom,icom,jcom
 c
       data efix /.true./    !# use entropy fix for transonic rarefactions
 c
-      if (-1.gt.1-mbc .or. maxm2 .lt. maxm+mbc) then
-	 write(6,*) 'need to increase maxm2 in rpA'
-	 stop
-	 endif
+c      if (-1.gt.1-mbc .or. maxm2 .lt. maxm+mbc) then
+c	 write(6,*) 'need to increase maxm2 in rpA'
+c	 stop
+c	 endif
       
       if(ixy.eq.1) then
         dy = dycom
@@ -171,14 +171,14 @@ c     # apdq = SUM s*wave   over right-going waves
 c
       do 100 m=1,meqn
          do 100 i=2-mbc, mx+mbc
-	    amdq(m,i) = 0.d0
-	    apdq(m,i) = 0.d0
-	    do 90 mw=1,mwaves
-	       if (s(mw,i) .lt. 0.d0) then
-		   amdq(m,i) = amdq(m,i) + s(mw,i)*wave(m,mw,i)
-		 else
-		   apdq(m,i) = apdq(m,i) + s(mw,i)*wave(m,mw,i)
-		 endif
+        amdq(m,i) = 0.d0
+        apdq(m,i) = 0.d0
+        do 90 mw=1,mwaves
+           if (s(mw,i) .lt. 0.d0) then
+           amdq(m,i) = amdq(m,i) + s(mw,i)*wave(m,mw,i)
+         else
+           apdq(m,i) = apdq(m,i) + s(mw,i)*wave(m,mw,i)
+         endif
    90          continue
   100       continue
 c
@@ -261,8 +261,8 @@ c              1-wave is rightgoing
 c           check 2-wave
             if (s(2,i).gt.0.0d0) then
 c	       #2 and 3 waves are right-going
-	       go to 200 
-	       endif
+           go to 200 
+           endif
 
             do 140 m=1,4
                amdq(m,i) = amdq(m,i) + s(2,i)*wave(m,2,i)
