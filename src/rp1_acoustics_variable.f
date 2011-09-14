@@ -1,5 +1,5 @@
 c     =====================================================
-      subroutine rp(maxm,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr,
+      subroutine rp1(maxm,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr,
      &                  wave,s,amdq,apdq)
 c     =====================================================
 c
@@ -68,7 +68,6 @@ c
          s(2,i) = auxl(2,i)
 c
    20    continue
-c
 c
 c     # compute the leftgoing and rightgoing fluctuations:
 c     # Note s(1,i) < 0   and   s(2,i) > 0.
