@@ -216,6 +216,10 @@ c    # Incorporate entropy fix by adding a modified fraction of wave
 c    # if s should change sign.
 c
          do 200 i=2-mbc,mx+mbc
+            do m=1, meqn
+                amdq(i,m) = 0.d0
+                apdq(i,m) = 0.d0
+            enddo
             enx =   auxl(ioff+1,i)
             eny =   auxl(ioff+2,i)
             enz =   auxl(ioff+3,i)
@@ -270,7 +274,7 @@ c	       #2 and 3 waves are right-going
 c
 c           check 3-wave
 c
-            hi = ql(i,1)
+            hi = ql(1,i)
             s03 = (hunl/hi + dsqrt(g*hi)) * gamma/dy
             h3=ql(1,i)-wave(1,3,i)
             hu3=hunl-(enx*wave(2,3,i)+eny*wave(3,3,i)+enz*wave(4,3,i))
