@@ -212,6 +212,10 @@ c    # Incorporate entropy fix by adding a modified fraction of wave
 c    # if s should change sign.
 c
          do 200 i=2-mbc,mx+mbc
+            do m=1, meqn
+                amdq(m,i) = 0.d0
+                apdq(m,i) = 0.d0
+            enddo
             enx =   auxl(ioff+1,i)
             eny =   auxl(ioff+2,i)
             enz =   auxl(ioff+3,i)
@@ -230,7 +234,7 @@ c           check 1-wave
             him1 = qr(1,i-1)
             s0 =  (hunr/him1 - dsqrt(g*him1)) * gamma / dy
 c           check for fully supersonic case :
-            if (s0.gt.0.0d0.and.s(i,1).gt.0.0d0) then
+            if (s0.gt.0.0d0.and.s(1,i).gt.0.0d0) then
                do 60 m=1,4
                   amdq(m,i)=0.0d0
    60          continue
@@ -266,7 +270,7 @@ c	       #2 and 3 waves are right-going
 c
 c           check 3-wave
 c
-            hi = ql(i,1)
+            hi = ql(1,i)
             s03 = (hunl/hi + dsqrt(g*hi)) * gamma/dy
             h3=ql(1,i)-wave(1,3,i)
             hu3=hunl-(enx*wave(2,3,i)+eny*wave(3,3,i)+enz*wave(4,3,i))
@@ -316,6 +320,7 @@ c
                   apdq(4,i) = apdq(4,i) - apn*erz
 
   220          continue
+
 
   900 continue
       return
