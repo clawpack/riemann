@@ -41,7 +41,6 @@ c     # for the interleaved indices
 
 c     # Gravity constant set in the shallow1D.py file      
       common /cparam/ grav
-
 c
 c     # Local storage
 c     ---------------
@@ -49,8 +48,6 @@ c     ---------------
       logical efix
 
       data efix /.true./    !# Use entropy fix for transonic rarefactions
-
-
 
 
 c     # Main loop of the Riemann solver. 

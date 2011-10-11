@@ -41,21 +41,24 @@ c
 c
 c     local arrays -- common block comroe is passed to rpt2eu
 c     ------------
-      parameter (maxm2 = 802)  
-!               # assumes at most 600x600 grid with mbc=2
+      parameter (maxm2 = 1800)  
       dimension delta(4)
       logical efix
       common /cparam/  gamma,gamma1
-      common /comroe/ u2v2(-1:maxm2),
-     &       u(-1:maxm2),v(-1:maxm2),enth(-1:maxm2),a(-1:maxm2),
-     &       g1a2(-1:maxm2),euv(-1:maxm2) 
+c     # assumes at most maxm2 * maxm2 grid with mbc<=3
+      common /comroe/ u2v2(-2:maxm2+3),
+     &       u(-2:maxm2+3),v(-2:maxm2+3),
+     &       enth(-2:maxm2+3),a(-2:maxm2+3),
+     &       g1a2(-2:maxm2+3),euv(-2:maxm2+3) 
+c
+      if (mbc.gt.3 .or. maxm2 .lt. maxm) then
+         write(6,*) 'need to increase maxm2 or 3 in rpn'
+         write(6,*) mbc, maxm
+         stop
+         endif
 c
       data efix /.true./    !# use entropy fix for transonic rarefactions
 c
-      if (-1 .gt. 1-mbc .or. maxm2 .lt. maxm+mbc) then
-         write(6,*) 'need to increase maxm2 in rpn'
-         stop
-         endif
 c
 c     # set mu to point to  the component of the system that corresponds
 c     # to momentum in the direction of this slice, mv to the orthogonal

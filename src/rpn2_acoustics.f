@@ -1,6 +1,3 @@
-
-c
-c
 c     =====================================================
       subroutine rpn2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr,
      &                  auxl,auxr,wave,s,amdq,apdq)

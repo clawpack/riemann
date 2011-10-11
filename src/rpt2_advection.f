@@ -19,7 +19,6 @@ c
       dimension   asdq(meqn,1-mbc:maxm+mbc)
       dimension bmasdq(meqn,1-mbc:maxm+mbc)
       dimension bpasdq(meqn,1-mbc:maxm+mbc)
-      parameter (maxm2 = 502)
       common /cparam/ u,v
 c
 c     # transverse wave speeds have been computed in rpn2

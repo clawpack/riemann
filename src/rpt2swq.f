@@ -14,9 +14,6 @@ c     # Split asdq (= A^* \Delta q, where * = + or -)
 c     # into down-going flux difference bmasdq (= B^- A^* \Delta q)
 c     #    and up-going flux difference bpasdq (= B^+ A^* \Delta q)
 c
-c     # Uses Roe averages and other quantities which were
-c     # computed in rpn2sh and stored in the common block comroe.
-c
       dimension     ql(meqn, 1-mbc:maxm+mbc)
       dimension     qr(meqn, 1-mbc:maxm+mbc)
       dimension   asdq(meqn, 1-mbc:maxm+mbc)
@@ -27,12 +24,15 @@ c
       dimension   aux3(16, 1-mbc:maxm+mbc)
 c
 c      parameter (maxm2 = 1002)  !# assumes at most 1000x1000 grid with mbc=2
-      dimension u(-1:1002),v(-1:1002),a(-1:1002),h(-1:1002)
-      dimension wave(4, 3, -1:1002)
-      dimension    s(3, -1:1002)
-      dimension enx(-1:1002), eny(-1:1002), enz(-1:1002)
-      dimension etx(-1:1002), ety(-1:1002), etz(-1:1002)
-      dimension gamma(-1:1002)
+      dimension u(1-mbc:maxm+mbc),v(1-mbc:maxm+mbc),a(1-mbc:maxm+mbc),
+     &                                          h(1-mbc:maxm+mbc)
+      dimension wave(meqn, mwaves, 1-mbc:maxm+mbc)
+      dimension    s(3, 1-mbc:maxm+mbc)
+      dimension enx(1-mbc:maxm+mbc), eny(1-mbc:maxm+mbc), 
+     &                                  enz(1-mbc:maxm+mbc)
+      dimension etx(1-mbc:maxm+mbc), ety(1-mbc:maxm+mbc), 
+     &                                  etz(1-mbc:maxm+mbc)
+      dimension gamma(1-mbc:maxm+mbc)
      
       dimension delta(4)
       common /sw/  g

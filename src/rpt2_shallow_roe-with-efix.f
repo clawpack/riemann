@@ -23,7 +23,8 @@ c
       dimension bpasdq(meqn, 1-mbc:maxm+mbc)
 
       dimension waveb(3,3),sb(3)
-      common /comroe/ u(-2:603),v(-2:603),a(-2:603) 
+      parameter (maxm2 = 1800)  
+      common /comroe/ u(-2:maxm2+3),v(-2:maxm2+3),a(-2:maxm2+3),h(-2:maxm2+3)
 
 
       if (ixy.eq.1) then

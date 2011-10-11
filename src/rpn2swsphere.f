@@ -41,23 +41,19 @@ c
       dimension auxl(16, 1-mbc:maxm+mbc)
       dimension auxr(16, 1-mbc:maxm+mbc)
 c
-c     local arrays -- common block comroe is passed to rpt2
+c     local arrays
 c     ------------
-c      parameter (1002 = 1002)  !# assumes at most 1000x1000 grid with mbc=2
       dimension delta(3)
       logical efix
 
+      parameter (maxm2 = 1800)  
       common /sw/  g
-      common /comroe/ u(-1:1002),v(-1:1002),a(-1:1002),h(-1:1002)
+      dimension u(1-mbc:maxm+mbc),v(1-mbc:maxm+mbc),a(1-mbc:maxm+mbc),
+     &                                          h(1-mbc:maxm+mbc)
       common /comxyt/ dtcom,dxcom,dycom,tcom,icom,jcom
 c
       data efix /.true./    !# use entropy fix for transonic rarefactions
 c
-c      if (-1.gt.1-mbc .or. maxm2 .lt. maxm+mbc) then
-c	 write(6,*) 'need to increase maxm2 in rpA'
-c	 stop
-c	 endif
-      
       if(ixy.eq.1) then
         dy = dycom
       else

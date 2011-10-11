@@ -24,14 +24,15 @@ c
 c
       common /cparam/  gamma,gamma1
       dimension waveb(5,4),sb(4)
-      parameter (maxm2 = 802)  
-c     # assumes at most 600x600 grid with mbc=2
-      common /comroe/ u2v2(-1:maxm2),
-     &       u(-1:maxm2),v(-1:maxm2),enth(-1:maxm2),a(-1:maxm2),
-     &       g1a2(-1:maxm2),euv(-1:maxm2) 
+      parameter (maxm2 = 1800)  
+c     # assumes at most 800x600 grid with mbc<=3
+      common /comroe/ u2v2(-2:maxm2+3),
+     &       u(-2:maxm2+3),v(-2:maxm2+3),
+     &       enth(-2:maxm2+3),a(-2:maxm2+3),
+     &       g1a2(-2:maxm2+3),euv(-2:maxm2+3) 
 c
-      if (-1.gt.1-mbc .or. maxm2 .lt. maxm+mbc) then
-         write(6,*) 'need to increase maxm2 in rpt'
+      if (mbc.gt.3 .or. maxm2 .lt. maxm) then
+         write(6,*) 'need to increase maxm2 or 3 in rpt'
          stop
          endif
 c

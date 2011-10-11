@@ -49,8 +49,8 @@ c     # Gravity constant set in the shallow1D.py file
 c     # Roe averages quantities of each interface
 c     # These arrays are used afterwards in the transverse Riemann
 c     # solver, i.e. rpt2sw.f
-      common /comroe/ u(-2:603),v(-2:603),a(-2:603),h(-2:603)
-
+      parameter (maxm2 = 1800)  
+      common /comroe/ u(-2:maxm2+3),v(-2:maxm2+3),a(-2:maxm2+3),h(-2:maxm2+3)
 
 c
 c     local arrays
