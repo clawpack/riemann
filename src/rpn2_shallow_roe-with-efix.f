@@ -50,7 +50,8 @@ c     # Roe averages quantities of each interface
 c     # These arrays are used afterwards in the transverse Riemann
 c     # solver, i.e. rpt2sw.f
       parameter (maxm2 = 1800)  
-      common /comroe/ u(-2:maxm2+3),v(-2:maxm2+3),a(-2:maxm2+3),h(-2:maxm2+3)
+      common /comroe/ u(-6:maxm2+7),v(-6:maxm2+7),a(-6:maxm2+7),
+     &                 h(-6:maxm2+7)
 
 c
 c     local arrays

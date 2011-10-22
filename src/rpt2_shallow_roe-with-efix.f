@@ -24,7 +24,8 @@ c
 
       dimension waveb(3,3),sb(3)
       parameter (maxm2 = 1800)  
-      common /comroe/ u(-2:maxm2+3),v(-2:maxm2+3),a(-2:maxm2+3),h(-2:maxm2+3)
+      common /comroe/ u(-6:maxm2+7),v(-6:maxm2+7),a(-6:maxm2+7),
+     &                 h(-6:maxm2+7)
 
 
       if (ixy.eq.1) then
