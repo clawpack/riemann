@@ -1,104 +1,121 @@
 #
-#       Makefile for the clawpack code:
+# Makefile.common for the clawpack code
+# This file is generally "included" in Makefiles for libraries or apps.
 #
-#       For this help summary, type:              make help
-#
-#       To make all object files, type:           make .objs
-#
-#       To compile a single file.f:               make file.o
-#
-#       To make the executable, type:             make .exe
-#
-#       To make data files by running 
-#       setrun.py:                                make .data
-#
-#       To make and run code putting results
-#       in subdirectory named output:             make .output
-#
-#       To make and run code and then plot        
-#       results from subdirectory output
-#       into subdirectory named plots:            make .plots
-#
-#       To make a single program file from all
-#       sources and library source files:         make .program
-#
-#       To create html files from the program
-#       and data files using clawcode2html:       make .htmls
-#
-#       To clean up files created by make:        make clean
-#       Deletes *.o, x*, .htmls
-#
-#       To clean up output and graphics files:    make clobber
-#
+# See the end of this file for a summary, or type "make help".
+
+
+# General makefile settings
+SHELL = /bin/sh
+INSTALL_PROGRAM ?= $(INSTALL)
+INSTALL_DATA ?= $(INSTALL) -m 644
 
 # Fortran compiler:  FC may be set as an environment variable or in make
 # file that 'includes' this one.
 FC ?= gfortran
-LINK ?= $(FC)
-
-# Flags for compiling and linking:
-FFLAGS ?=  
-LFLAGS ?= $(FFLAGS)
+CLAW_FC ?= $(FC)
+LINK ?= $(CLAW_FC)
 
 # Path to version of python to use:  May need to use something other than
-# the system default in order for plotting to work.  Can set PY as
+# the system default in order for plotting to work.  Can set CLAW_PYTHON as
 # environment variable or in make file that 'includes' this one.
-PY ?= python
-PYTHON = $(PY)
-
-
-# Targets that do not correspond to file names:
-.PHONY: .objs .exe clean clobber new all output plots;
+PYTHON ?= python
+CLAW_PYTHON ?= $(PYTHON)
 
 # Variables below should be set in Makefile that "includes" this one.
 # Default values if not set:
-CLAW_EXE ?= xclaw
+EXECUTABLE ?= xclaw
 CLAW_PKG ?= classic
-CLAW_OUTDIR ?= _output
-CLAW_PLOTDIR ?= _plots
-#CLAW_LIB ?= $(CURDIR)/
-CLAW_OVERWRITE ?= True
-CLAW_RESTART ?= False
-
+OUT_DIR ?= _output
+PLOT_DIR ?= _plots
+LIB_PATHS ?= $(CURDIR)/
+OVERWRITE ?= True
+RESTART ?= False
+SETRUN_FILE ?= ./setrun.py
+SETPLOT_FILE ?= ./setplot.py
 
 #----------------------------------------------------------------------------
+# Lists of source, modules, and objects
+# These should be set in the including Makefile
+SOURCES ?=
+MODULES ?=
 
-# how to make .o files from .f or .f90 files, and .mod files from .f90:
+# Make list of .o files required from the sources above:
+OBJECTS = $(subst .f,.o, $(subst .f90,.o, $(SOURCES)))
+MODULE_FILES = $(subst .f90,.mod, $(MODULES))
+MODULE_PATHS = $(dir $(MODULE_FILES))
+MODULE_OBJECTS = $(subst .f90,.o, $(MODULES))
+
+#----------------------------------------------------------------------------
+# Compiling, linking, and include flags
+# User set flags, empty if not set
+INCLUDE ?=
+FFLAGS ?=
+LFLAGS ?= $(FFLAGS)
+
+# These will be included in all actual compilation and linking, one could
+# actually overwrite these before hand but that is not the intent of these
+# variables
+ALL_INCLUDE ?=
+ALL_FFLAGS ?=
+ALL_LFLAGS ?=
+
+# Add includes, the module search paths and library search paths are appended
+# at the end of the ALL_INCLUDE variable so that INCLUDE can override any of
+# the default settings
+ALL_INCLUDE += $(INCLUDE)
+ALL_INCLUDE += $(addprefix -I,$(MODULE_PATHS)) $(addprefix -I,$(LIB_PATHS))
+
+# ALL_FFLAGS and ALL_LFLAGS currently only includes the user defined flags
+ALL_FFLAGS += $(FFLAGS)
+ALL_LFLAGS += $(LFLAGS)
+
+# Module flag setting, please add other compilers here as necessary
+ifeq ($(CLAW_FC),gfortran)
+	# There should be no space between this flag and the argument
+	MODULE_FLAG = -J
+else ifeq ($(CLAW_FC),ifort)
+	# Note that there shoud be a space after this flag
+	MODULE_FLAG = -module 
+else
+	@echo "WARNING: Unknown Fortran compiler $(CLAW_FC), cannot set module include flag."
+endif
+
+#----------------------------------------------------------------------------
+# Targets that do not correspond to file names:
+.PHONY: .objs .exe clean clobber new all output plots;
+
+# Reset suffixes that we understand
+.SUFFIXES:
 .SUFFIXES: .f90 .f .mod .o
-%.o : %.f90 ; $(FC) -c $(CLAW_INCLUDE_PATH) $< -o $@ $(FFLAGS)
-%.o : %.f ; $(FC) -c $(CLAW_INCLUDE_PATH) $< -o $@ $(FFLAGS) 
-%.mod : %.f90 ; $(FC) -c -J$(@D) $< -o $*.o $(FFLAGS)
 
-
-# make list of .o files required from the sources above:
-CLAW_OBJECTS = $(subst .f,.o, $(subst .f90,.o, $(CLAW_SOURCES)))
-CLAW_MOD_FILES = $(subst .f90,.mod, $(CLAW_MODULES))
-CLAW_MOD_OBJECTS = $(subst .f90,.o, $(CLAW_MODULES))
+# Default Rules, the module rule should be executed first in most instances,
+# this way the .mod file ends up always in the correct spot
+%.mod : %.f90 ; $(CLAW_FC) -c $< $(MODULE_FLAG)$(@D) $(ALL_INCLUDE) $(ALL_FFLAGS) -o $*.o
+%.o : %.f90 ;   $(CLAW_FC) -c $< 					$(ALL_INCLUDE) $(ALL_FFLAGS) -o $@
+%.o : %.f ;     $(CLAW_FC) -c $< 					$(ALL_INCLUDE) $(ALL_FFLAGS) -o $@
 
 #----------------------------------------------------------------------------
 # Executable:
 
-.objs:  $(CLAW_MOD_FILES) $(CLAW_OBJECTS);
-	echo $(CLAW_LIB)
+.objs:  $(MODULE_FILES) $(OBJECTS);
 
+# The order here is to again build the module files correctly
+$(EXECUTABLE): $(MODULE_FILES) $(MODULE_OBJECTS) $(OBJECTS) $(MAKEFILE_LIST) ;
+	$(LINK) $(MODULE_OBJECTS) $(OBJECTS) $(ALL_INCLUDE) $(ALL_LFLAGS) -o $(EXECUTABLE)
 
-$(CLAW_EXE): $(CLAW_MOD_FILES) $(CLAW_OBJECTS) $(MAKEFILE_LIST);
-	$(LINK) $(LFLAGS) $(CLAW_MOD_OBJECTS) $(CLAW_OBJECTS) \
-            $(CLAW_INCLUDE_PATH) -o $(CLAW_EXE)
-
-.exe: $(CLAW_EXE) ;
-	# for debugging:
-	@echo 'CLAW_SOURCES:'
-	@echo $(CLAW_SOURCES)
-	@echo 'CLAW_MODULES:'
-	@echo $(CLAW_MODULES)
-	@echo 'CLAW_MOD_FILES:'
-	@echo $(CLAW_MOD_FILES)
+debug:
+	@echo 'debugging -- MODULES:'
+	@echo $(MODULES)
+	@echo 'debugging -- MODULE_FILES:'
+	@echo $(MODULE_FILES)
+	@echo 'debugging -- MODULE_PATHS:'
+	@echo $(MODULE_PATHS)
 
 #----------------------------------------------------------------------------
 
 # Command to create *.html files from *.f etc:
-CC2HTML = $(PYTHON) $(CLAW)/doc/clawcode2html.py --force 
+CC2HTML = $(CLAW_PYTHON) $(CLAW)/doc/clawcode2html.py --force 
 
 # make list of html files to be created by 'make .htmls':
 HTML = \
@@ -130,52 +147,53 @@ Makefile.html : Makefile ; $(CC2HTML) $<
 #----------------------------------------------------------------------------
 
 # Make data files needed by Fortran code:
-.data: $(CLAW_setrun_file) $(MAKEFILE_LIST) ;
-	$(PYTHON) $(CLAW_setrun_file) $(CLAW_PKG)
+.data: $(SETRUN_FILE) $(MAKEFILE_LIST) ;
+	$(CLAW_PYTHON) $(SETRUN_FILE) $(CLAW_PKG)
 	touch .data
 
 #----------------------------------------------------------------------------
 # Run the code and put fort.* files into subdirectory named output:
 # runclaw will execute setrun.py to create data files and determine
 # what executable to run, e.g. xclaw or xamr.
-
-RUNCMD := $(PYTHON) $(CLAW)/clawutil/src/python/runclaw.py
-
-.output: $(CLAW_EXE) .data $(MAKEFILE_LIST);
-	@echo $(CLAW_OUTDIR) > .output
-	$(RUNCMD) $(CLAW_EXE) $(CLAW_OUTDIR) $(CLAW_OVERWRITE) $(CLAW_RESTART)
+.output: $(EXECUTABLE) .data $(MAKEFILE_LIST);
+	@echo $(OUT_DIR) > .output
+	$(CLAW_PYTHON) $(CLAW)/clawutil/src/python/runclaw.py  $(EXECUTABLE) $(OUT_DIR)\
+	$(OVERWRITE) $(RESTART)
 
 #----------------------------------------------------------------------------
 # Run the code without checking dependencies:
 output: 
-	$(RUNCMD) $(CLAW_EXE) $(CLAW_OUTDIR) $(CLAW_OVERWRITE) $(CLAW_RESTART)
+	$(CLAW_PYTHON) $(CLAW_DIR)/python/pyclaw/runclaw.py $(EXECUTABLE) $(OUT_DIR) \
+	$(OVERWRITE) $(RESTART)
 
 #----------------------------------------------------------------------------
 
 # Python command to create plots:
 
-# Removed Cygwin stuff...
-PLOTCMD := $(PYTHON) $(CLAW)/visclaw/src/visclaw/plotters/plotclaw.py
+# (Removed Cygwin stuff...)
+# Plotting command
+PLOTCMD ?= $(CLAW_PYTHON) $(CLAW)/python/pyclaw/plotters/plotclaw.py
 
-# Rule to make the plots into subdirectory specified by CLAW_PLOTDIR,
-# using data in subdirectory specified by CLAW_OUTDIR and the plotting
-# commands specified in CLAW_setplot_file.
+# Rule to make the plots into subdirectory specified by PLOT_DIR,
+# using data in subdirectory specified by OUT_DIR and the plotting
+# commands specified in CLAW_SETPLOT.
 
-.plots: .output $(CLAW_setplot_file) $(MAKEFILE_LIST) ;
-	$(PLOTCMD) $(CLAW_OUTDIR) $(CLAW_PLOTDIR) $(CLAW_setplot_file)
-	@echo $(CLAW_PLOTDIR) > .plots
+.plots: .output $(SETPLOT_FILE) $(MAKEFILE_LIST) ;
+	$(PLOTCMD) $(OUT_DIR) $(PLOT_DIR) $(SETPLOT_FILE)
+	@echo $(PLOT_DIR) > .plots
 
 # Make the plots without checking dependencies:
 plots:
-	$(PLOTCMD) $(CLAW_OUTDIR) $(CLAW_PLOTDIR) $(CLAW_setplot_file)
+	$(PLOTCMD) $(OUT_DIR) $(PLOT_DIR) $(SETPLOT_FILE)
 
 #----------------------------------------------------------------------------
 
 # Rule to make full program by catenating all source files.
 # Sometimes useful for debugging:
+# Note that this will probably not compile due to mixed source forms
 
-.program:  $(CLAW_MODULES) $(CLAW_SOURCES) $(MAKEFILE_LIST);
-	cat  $(CLAW_MODULES) $(CLAW_SOURCES) claw_program.f
+.program:  $(MODULES) $(SOURCES) $(MAKEFILE_LIST);
+	cat  $(MODULES) $(SOURCES) claw_program.f90
 	touch .program
 
 #----------------------------------------------------------------------------
@@ -183,25 +201,25 @@ plots:
 # Recompile everything:
 
 new: 
-	-rm -f  $(CLAW_OBJECTS)
-	-rm -f  $(CLAW_MOD_OBJECTS)
-	-rm -f  $(CLAW_MOD_FILES)
-	$(MAKE) .exe
+	-rm -f  $(OBJECTS)
+	-rm -f  $(MODULE_OBJECTS)
+	-rm -f  $(MODULE_FILES)
+	-rm -f  $(EXECUTABLE)
+	$(MAKE) $(EXECUTABLE)
 
 
 # Clean up options:
-
 clean:
-	-rm -f $(CLAW_EXE) $(HTML) 
+	-rm -f $(EXECUTABLE) $(HTML)
 	-rm -f .data .output .plots .htmls 
 
 clobber:
 	$(MAKE) clean
-	-rm -f $(CLAW_OBJECTS)
-	-rm -f  $(CLAW_MOD_OBJECTS)
-	-rm -f  $(CLAW_MOD_FILES)
+	-rm -f $(OBJECTS)
+	-rm -f $(MODULE_OBJECTS)
+	-rm -f $(MODULE_FILES)
 	-rm -f fort.*  *.pyc pyclaw.log 
-	-rm -f -r _plots* _output* 
+	-rm -f -r $(OUT_DIR) $(PLOT_DIR)
 
 #----------------------------------------------------------------------------
 
