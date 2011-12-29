@@ -24,7 +24,7 @@ CLAW_PYTHON ?= $(PYTHON)
 
 # Variables below should be set in Makefile that "includes" this one.
 # Default values if not set:
-EXECUTABLE ?= xclaw
+CLAW_EXE ?= xclaw
 CLAW_PKG ?= classic
 OUT_DIR ?= _output
 PLOT_DIR ?= _plots
@@ -41,10 +41,10 @@ SOURCES ?=
 MODULES ?=
 
 # Make list of .o files required from the sources above:
-OBJECTS = $(subst .F $(subst .F90,.mod, $(subst .f,.o, $(subst .f90,.o, $(SOURCES)))))
-MODULE_FILES = $(subst .F $(subst .F90,.mod, $(subst .f,.mod, $(subst .f90,.mod, $(MODULES)))))
+OBJECTS = $(subst .F,.o, $(subst .F90,.o, $(subst .f,.o, $(subst .f90,.o, $(SOURCES)))))
+MODULE_FILES = $(subst .F,.mod, $(subst .F90,.mod, $(subst .f,.mod, $(subst .f90,.mod, $(MODULES)))))
 MODULE_PATHS = $(dir $(MODULE_FILES))
-MODULE_OBJECTS = $(subst .f90,.o, $(MODULES))
+MODULE_OBJECTS = $(subst .F,.o, $(subst .F90,.o, $(subst .f,.o, $(subst .f90,.o, $(MODULES)))))
 
 #----------------------------------------------------------------------------
 # Compiling, linking, and include flags
@@ -101,8 +101,10 @@ endif
 .objs:  $(MODULE_FILES) $(OBJECTS);
 
 # The order here is to again build the module files correctly
-$(EXECUTABLE): $(MODULE_FILES) $(MODULE_OBJECTS) $(OBJECTS) $(MAKEFILE_LIST) ;
-	$(LINK) $(MODULE_OBJECTS) $(OBJECTS) $(ALL_INCLUDE) $(ALL_LFLAGS) -o $(EXECUTABLE)
+$(CLAW_EXE): $(MODULE_FILES) $(MODULE_OBJECTS) $(OBJECTS) $(MAKEFILE_LIST) ;
+	$(LINK) $(MODULE_OBJECTS) $(OBJECTS) $(ALL_INCLUDE) $(ALL_LFLAGS) -o $(CLAW_EXE)
+
+.exe: $(CLAW_EXE)
 
 debug:
 	@echo 'debugging -- MODULES:'
@@ -155,15 +157,15 @@ Makefile.html : Makefile ; $(CC2HTML) $<
 # Run the code and put fort.* files into subdirectory named output:
 # runclaw will execute setrun.py to create data files and determine
 # what executable to run, e.g. xclaw or xamr.
-.output: $(EXECUTABLE) .data $(MAKEFILE_LIST);
+.output: $(CLAW_EXE) .data $(MAKEFILE_LIST);
 	@echo $(OUT_DIR) > .output
-	$(CLAW_PYTHON) $(CLAW)/clawutil/src/python/runclaw.py  $(EXECUTABLE) $(OUT_DIR)\
+	$(CLAW_PYTHON) $(CLAW)/clawutil/src/python/runclaw.py  $(CLAW_EXE) $(OUT_DIR)\
 	$(OVERWRITE) $(RESTART)
 
 #----------------------------------------------------------------------------
 # Run the code without checking dependencies:
 output: 
-	$(CLAW_PYTHON) $(CLAW_DIR)/python/pyclaw/runclaw.py $(EXECUTABLE) $(OUT_DIR) \
+	$(CLAW_PYTHON) $(CLAW_DIR)/python/pyclaw/runclaw.py $(CLAW_EXE) $(OUT_DIR) \
 	$(OVERWRITE) $(RESTART)
 
 #----------------------------------------------------------------------------
@@ -203,13 +205,13 @@ plots:
 new: 
 	-rm -f  $(OBJECTS)
 	-rm -f  $(MODULE_OBJECTS)
-	-rm -f  $(EXECUTABLE)
-	$(MAKE) $(EXECUTABLE)
+	-rm -f  $(CLAW_EXE)
+	$(MAKE) $(CLAW_EXE)
 
 
 # Clean up options:
 clean:
-	-rm -f $(EXECUTABLE) $(HTML)
+	-rm -f $(CLAW_EXE) $(HTML)
 	-rm -f .data .output .plots .htmls 
 
 clobber:
