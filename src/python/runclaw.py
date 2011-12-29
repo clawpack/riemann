@@ -21,7 +21,7 @@ def runclaw(xclawcmd=None, outdir=None, overwrite=True, restart=False,
     is given, data files are copied from there instead.
     """
 
-    import os,glob,shutil
+    import os,glob,shutil,time
     verbose = False
     xclawout = None
     xclawerr = None
