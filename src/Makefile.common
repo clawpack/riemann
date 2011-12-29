@@ -41,8 +41,8 @@ SOURCES ?=
 MODULES ?=
 
 # Make list of .o files required from the sources above:
-OBJECTS = $(subst .f,.o, $(subst .f90,.o, $(SOURCES)))
-MODULE_FILES = $(subst .f90,.mod, $(MODULES))
+OBJECTS = $(subst .F $(subst .F90,.mod, $(subst .f,.o, $(subst .f90,.o, $(SOURCES)))))
+MODULE_FILES = $(subst .F $(subst .F90,.mod, $(subst .f,.mod, $(subst .f90,.mod, $(MODULES)))))
 MODULE_PATHS = $(dir $(MODULE_FILES))
 MODULE_OBJECTS = $(subst .f90,.o, $(MODULES))
 
@@ -203,7 +203,6 @@ plots:
 new: 
 	-rm -f  $(OBJECTS)
 	-rm -f  $(MODULE_OBJECTS)
-	-rm -f  $(MODULE_FILES)
 	-rm -f  $(EXECUTABLE)
 	$(MAKE) $(EXECUTABLE)
 
@@ -217,7 +216,6 @@ clobber:
 	$(MAKE) clean
 	-rm -f $(OBJECTS)
 	-rm -f $(MODULE_OBJECTS)
-	-rm -f $(MODULE_FILES)
 	-rm -f fort.*  *.pyc pyclaw.log 
 	-rm -f -r $(OUT_DIR) $(PLOT_DIR)
 
