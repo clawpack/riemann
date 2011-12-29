@@ -71,7 +71,7 @@ ALL_FFLAGS += $(FFLAGS)
 ALL_LFLAGS += $(LFLAGS)
 
 # Module flag setting, please add other compilers here as necessary
-ifeq ($(CLAW_FC),gfortran)
+ifeq ($(findstring gfortran,$(CLAW_FC)),gfortran)
 	# There should be no space between this flag and the argument
 	MODULE_FLAG = -J
 else ifeq ($(CLAW_FC),ifort)
@@ -92,6 +92,7 @@ endif
 # Default Rules, the module rule should be executed first in most instances,
 # this way the .mod file ends up always in the correct spot
 %.mod : %.f90 ; $(CLAW_FC) -c $< $(MODULE_FLAG)$(@D) $(ALL_INCLUDE) $(ALL_FFLAGS) -o $*.o
+%.mod : %.f   ; $(CLAW_FC) -c $< $(MODULE_FLAG)$(@D) $(ALL_INCLUDE) $(ALL_FFLAGS) -o $*.o
 %.o : %.f90 ;   $(CLAW_FC) -c $< 					$(ALL_INCLUDE) $(ALL_FFLAGS) -o $@
 %.o : %.f ;     $(CLAW_FC) -c $< 					$(ALL_INCLUDE) $(ALL_FFLAGS) -o $@
 
@@ -159,7 +160,7 @@ Makefile.html : Makefile ; $(CC2HTML) $<
 # what executable to run, e.g. xclaw or xamr.
 .output: $(CLAW_EXE) .data $(MAKEFILE_LIST);
 	@echo $(OUT_DIR) > .output
-	$(CLAW_PYTHON) $(CLAW)/clawutil/src/python/runclaw.py  $(CLAW_EXE) $(OUT_DIR)\
+	$(CLAW_PYTHON) $(CLAW)/clawutil/src/python/runclaw.py  $(CLAW_EXE) $(OUT_DIR) \
 	$(OVERWRITE) $(RESTART)
 
 #----------------------------------------------------------------------------
