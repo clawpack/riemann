@@ -220,7 +220,7 @@ class ClawInputData(ClawData):
         self.add_attribute('dt_variable',1)
         self.add_attribute('cfl_desired',0.9)
         self.add_attribute('cfl_max',1.0)
-        self.add_attribute('max_steps',50000)
+        self.add_attribute('steps_max',50000)
         self.add_attribute('order',2)
         self.add_attribute('order_trans',0)
         self.add_attribute('dimensional_split',False)
@@ -228,31 +228,35 @@ class ClawInputData(ClawData):
         self.add_attribute('verbosity_regrid',0)
         self.add_attribute('src_split',0)
         self.add_attribute('mcapa',0)
-        self.add_attribute('mthlim',[4])
+        self.add_attribute('limiter',[4])
         self.add_attribute('t0',0.)
         self.add_attribute('xlower',0.)
         self.add_attribute('xupper',1.)
         self.add_attribute('mbc',2)
-        self.add_attribute('mthbc_xlower',1)
-        self.add_attribute('mthbc_xupper',1)
+        self.add_attribute('bc_xlower',1)
+        self.add_attribute('bc_xupper',1)
         self.add_attribute('restart',0)
         self.add_attribute('restart_frame',0)
         self.add_attribute('fwave',False)
+        self.add_attribute('restart',False)
+        self.add_attribute('restart_file','')
+        self.add_attribute('regions',[])
+        self.add_attribute('gauges',[])
 
 
         if ndim >= 2:
             self.add_attribute('my',100)
             self.add_attribute('ylower',0.)
             self.add_attribute('yupper',1.)
-            self.add_attribute('mthbc_ylower',1)
-            self.add_attribute('mthbc_yupper',1)       
+            self.add_attribute('bc_ylower',1)
+            self.add_attribute('bc_yupper',1)       
 
         if ndim == 3:
             self.add_attribute('mz',100)
             self.add_attribute('zlower',0.)
             self.add_attribute('zupper',1.)
-            self.add_attribute('mthbc_zlower',1)
-            self.add_attribute('mthbc_zupper',1)       
+            self.add_attribute('bc_zlower',1)
+            self.add_attribute('bc_zupper',1)       
 
         if ndim not in [1,2,3]:
             raise ValueError("Only ndim=1, 2, or 3 supported ")
@@ -273,12 +277,11 @@ class AmrclawInputData(ClawInputData):
         # Some defaults are inherited from ClawInputData:
         super(AmrclawInputData,self).__init__(ndim)
         
-        self.add_attribute('max_allowed_levels',1)
+        self.add_attribute('amrlevels_max',1)
         self.add_attribute('refinement_ratio_x',[1])
         self.add_attribute('refinement_ratio_t',[1])
         self.add_attribute('auxtype',[])
-        self.add_attribute('restart',False)
-        self.add_attribute('restart_file','')
+
         self.add_attribute('checkpt_style',3)
         self.add_attribute('checkpt_step_interval',1000)
         self.add_attribute('checkpt_time_interval',1000.)
@@ -292,8 +295,7 @@ class AmrclawInputData(ClawInputData):
         self.add_attribute('regrid_step_interval',2)
         self.add_attribute('regrid_buffer_width',3)
         self.add_attribute('clustering_cutoff',0.7)
-        self.add_attribute('regions',[])
-        self.add_attribute('gauges',[])
+
         
         # debugging flags:
         self.add_attribute('dprint',False)
@@ -311,12 +313,12 @@ class AmrclawInputData(ClawInputData):
         
         if ndim == 1:
             
-            # attributes needed only since 1d AMR is done using 2d amrclaw:
+            # attributes needed only because 1d AMR is done using 2d amrclaw:
             self.add_attribute('my',1)
             self.add_attribute('ylower',0.)
             self.add_attribute('yupper',1.)
-            self.add_attribute('mthbc_ylower',1)
-            self.add_attribute('mthbc_yupper',1)
+            self.add_attribute('bc_ylower',1)
+            self.add_attribute('bc_yupper',1)
             self.add_attribute('refinement_ratio_y',[1,1,1,1,1,1])
 
         elif ndim >= 2:
@@ -406,7 +408,7 @@ def data_write(file, dataobj, name=None, descr=''):
 def make_clawdatafile(clawdata):
     r"""
     Take the data specified in clawdata and write it to claw.data in the
-    form required by the Fortran code lib/main.f95.
+    form required by the Fortran code classic/src/Nd/??.
     """
 
 
@@ -474,7 +476,7 @@ def make_clawdatafile(clawdata):
     data_write(file, clawdata, 'dt_max', '(max allowable dt)')
     data_write(file, clawdata, 'cfl_max', '(max allowable Courant number)')
     data_write(file, clawdata, 'cfl_desired', '(desired Courant number)')
-    data_write(file, clawdata, 'max_steps', '(max time steps per call to claw)')
+    data_write(file, clawdata, 'steps_max', '(max time steps per call to claw)')
     data_write(file, clawdata, None)
     data_write(file, clawdata, 'dt_variable', '(1 for variable dt, 0 for fixed)')
     data_write(file, clawdata, 'order', '(1 or 2)')
@@ -490,7 +492,7 @@ def make_clawdatafile(clawdata):
     data_write(file, clawdata, 'mcapa', '(aux index for capacity fcn)')
     data_write(file, clawdata, None)
 
-    data_write(file, clawdata, 'mthlim', '(limiter choice for each wave)')
+    data_write(file, clawdata, 'limiter', '(limiter choice for each wave)')
     data_write(file, clawdata, None)
 
     data_write(file, clawdata, 't0', '(initial time)')
@@ -507,24 +509,24 @@ def make_clawdatafile(clawdata):
     data_write(file, clawdata, 'mbc', '(number of ghost cells)')
     
     for bdry in ['xlower','xupper','ylower','yupper','zlower','zupper']:
-        bc = getattr(clawdata, 'mthbc_'+bdry, None) 
+        bc = getattr(clawdata, 'bc_'+bdry, None) 
         if bc == 'user':
-            setattr(clawdata, 'mthbc_'+bdry, 0)
+            setattr(clawdata, 'bc_'+bdry, 0)
         if bc == 'extrap':
-            setattr(clawdata, 'mthbc_'+bdry, 1)
+            setattr(clawdata, 'bc_'+bdry, 1)
         if bc == 'periodic':
-            setattr(clawdata, 'mthbc_'+bdry, 2)
+            setattr(clawdata, 'bc_'+bdry, 2)
         if bc == 'wall':
-            setattr(clawdata, 'mthbc_'+bdry, 3)
+            setattr(clawdata, 'bc_'+bdry, 3)
             
-    data_write(file, clawdata, 'mthbc_xlower', '(type of BC at xlower)')
-    data_write(file, clawdata, 'mthbc_xupper', '(type of BC at xupper)')
+    data_write(file, clawdata, 'bc_xlower', '(type of BC at xlower)')
+    data_write(file, clawdata, 'bc_xupper', '(type of BC at xupper)')
     if ndim > 1:
-        data_write(file, clawdata, 'mthbc_ylower', '(type of BC at ylower)')
-        data_write(file, clawdata, 'mthbc_yupper', '(type of BC at yupper)')
+        data_write(file, clawdata, 'bc_ylower', '(type of BC at ylower)')
+        data_write(file, clawdata, 'bc_yupper', '(type of BC at yupper)')
     if ndim == 3:
-        data_write(file, clawdata, 'mthbc_zlower', '(type of BC at zlower)')
-        data_write(file, clawdata, 'mthbc_zupper', '(type of BC at zupper)')
+        data_write(file, clawdata, 'bc_zlower', '(type of BC at zlower)')
+        data_write(file, clawdata, 'bc_zupper', '(type of BC at zupper)')
 
     data_write(file, clawdata, None)
     data_write(file, clawdata, 'restart', '(T to restart from a past run)')
@@ -550,23 +552,23 @@ def make_amrclawdatafile(clawdata):
     if ndim == 3:
         data_write(file, clawdata, 'mz', '(cells in z direction)')
 
-    data_write(file, clawdata, 'max_allowed_levels', '(max number of grid levels)')
-    if len(clawdata.refinement_ratio_x) < max(abs(clawdata.max_allowed_levels)-1, 1):
+    data_write(file, clawdata, 'amrlevels_max', '(max number of grid levels)')
+    if len(clawdata.refinement_ratio_x) < max(abs(clawdata.amrlevels_max)-1, 1):
         raise ValueError("*** Error in data parameter: " + \
-              "require len(refinement_ratio_x) >= %s " % max(abs(clawdata.max_allowed_levels) - 1, 1))
-    if len(clawdata.refinement_ratio_y) < max(abs(clawdata.max_allowed_levels)-1, 1):
+              "require len(refinement_ratio_x) >= %s " % max(abs(clawdata.amrlevels_max) - 1, 1))
+    if len(clawdata.refinement_ratio_y) < max(abs(clawdata.amrlevels_max)-1, 1):
         raise ValueError("*** Error in data parameter: " + \
-              "require len(refinement_ratio_y) >= %s " % max(abs(clawdata.max_allowed_levels) - 1, 1))
+              "require len(refinement_ratio_y) >= %s " % max(abs(clawdata.amrlevels_max) - 1, 1))
     data_write(file, clawdata, 'refinement_ratio_x', '(refinement ratios)')
     data_write(file, clawdata, 'refinement_ratio_y', '(refinement ratios)')
     if ndim == 3:
-        if len(clawdata.refinement_ratio_z) < max(abs(clawdata.max_allowed_levels)-1, 1):
+        if len(clawdata.refinement_ratio_z) < max(abs(clawdata.amrlevels_max)-1, 1):
                 raise ValueError("*** Error in data parameter: " + \
-                  "require len(refinement_ratio_z) >= %s " % max(abs(clawdata.max_allowed_levels) - 1, 1))
+                  "require len(refinement_ratio_z) >= %s " % max(abs(clawdata.amrlevels_max) - 1, 1))
         data_write(file, clawdata, 'refinement_ratio_z', '(refinement ratios)')
-    if len(clawdata.refinement_ratio_t) < max(abs(clawdata.max_allowed_levels)-1, 1):
+    if len(clawdata.refinement_ratio_t) < max(abs(clawdata.amrlevels_max)-1, 1):
         raise ValueError("*** Error in data parameter: " + \
-              "require len(refinement_ratio_t) >= %s " % max(abs(clawdata.max_allowed_levels) - 1, 1))
+              "require len(refinement_ratio_t) >= %s " % max(abs(clawdata.amrlevels_max) - 1, 1))
     data_write(file, clawdata, 'refinement_ratio_t', '(refinement ratios)')
 
     data_write(file, clawdata, None)  # writes blank line
@@ -596,7 +598,7 @@ def make_amrclawdatafile(clawdata):
     data_write(file, clawdata, 'dt_max', '(max allowable dt)')
     data_write(file, clawdata, 'cfl_max', '(max allowable Courant number)')
     data_write(file, clawdata, 'cfl_desired', '(desired Courant number)')
-    data_write(file, clawdata, 'max_steps', '(max time steps per call to claw)')
+    data_write(file, clawdata, 'steps_max', '(max time steps per call to claw)')
     data_write(file, clawdata, None)
     data_write(file, clawdata, 'dt_variable', '(1 for variable dt, 0 for fixed)')
     data_write(file, clawdata, 'order', '(1 or 2)')
@@ -620,7 +622,7 @@ def make_amrclawdatafile(clawdata):
 
     data_write(file, clawdata, 'meqn', '(number of equations)')
     data_write(file, clawdata, 'mwaves', '(number of waves)')
-    data_write(file, clawdata, 'mthlim', '(limiter choice for each wave)')
+    data_write(file, clawdata, 'limiter', '(limiter choice for each wave)')
     if clawdata.fwave:
         clawdata.add_attribute('ifwave',1)
     else:
@@ -638,24 +640,24 @@ def make_amrclawdatafile(clawdata):
     data_write(file, clawdata, None)
 
     for bdry in ['xlower','xupper','ylower','yupper','zlower','zupper']:
-        bc = getattr(clawdata, 'mthbc_'+bdry, None) 
+        bc = getattr(clawdata, 'bc_'+bdry, None) 
         if bc == 'user':
-            setattr(clawdata, 'mthbc_'+bdry, 0)
+            setattr(clawdata, 'bc_'+bdry, 0)
         if bc == 'extrap':
-            setattr(clawdata, 'mthbc_'+bdry, 1)
+            setattr(clawdata, 'bc_'+bdry, 1)
         if bc == 'periodic':
-            setattr(clawdata, 'mthbc_'+bdry, 2)
+            setattr(clawdata, 'bc_'+bdry, 2)
         if bc == 'wall':
-            setattr(clawdata, 'mthbc_'+bdry, 3)
+            setattr(clawdata, 'bc_'+bdry, 3)
 
     data_write(file, clawdata, 'mbc', '(number of ghost cells)')
-    data_write(file, clawdata, 'mthbc_xlower', '(type of BC at xlower)')
-    data_write(file, clawdata, 'mthbc_xupper', '(type of BC at xupper)')
-    data_write(file, clawdata, 'mthbc_ylower', '(type of BC at ylower)')
-    data_write(file, clawdata, 'mthbc_yupper', '(type of BC at yupper)')
+    data_write(file, clawdata, 'bc_xlower', '(type of BC at xlower)')
+    data_write(file, clawdata, 'bc_xupper', '(type of BC at xupper)')
+    data_write(file, clawdata, 'bc_ylower', '(type of BC at ylower)')
+    data_write(file, clawdata, 'bc_yupper', '(type of BC at yupper)')
     if ndim == 3:
-        data_write(file, clawdata, 'mthbc_zlower', '(type of BC at zlower)')
-        data_write(file, clawdata, 'mthbc_zupper', '(type of BC at zupper)')
+        data_write(file, clawdata, 'bc_zlower', '(type of BC at zlower)')
+        data_write(file, clawdata, 'bc_zupper', '(type of BC at zupper)')
     data_write(file, clawdata, None)
 
     data_write(file, clawdata, 'restart', '(1 to restart from a past run)')
@@ -697,22 +699,23 @@ def make_amrclawdatafile(clawdata):
     
     if clawdata.output_q_components=='all':
         clawdata.output_q_components = range(1,clawdata.meqn+1)
+
     nq_components = len(clawdata.output_q_components)
     clawdata.add_attribute('output_nq_components',nq_components)
     data_write(file, clawdata, 'output_nq_components', '(number of q vals to print)')
     if clawdata.output_nq_components > 0:
         data_write(file, clawdata, 'output_q_components', '(which components of q)')
-        
+    
     if clawdata.output_aux_components=='all':
-        clawdata.output_aux_components = range(1,maux+1)
+        clawdata.output_aux_components = range(1,clawdata.maux+1)
+        
     naux_components = len(clawdata.output_aux_components)
     clawdata.add_attribute('output_naux_components',naux_components)
     data_write(file, clawdata, 'output_naux_components', '(number of aux vals to print)')
     if clawdata.output_naux_components > 0:
         data_write(file, clawdata, 'output_aux_components', '(which components of aux)')
     data_write(file, clawdata, 'output_aux_onlyonce', '(only at t0?)')
-        
-        
+             
         
     data_write(file, clawdata, None)
 
