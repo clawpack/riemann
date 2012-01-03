@@ -21,7 +21,7 @@ def runclaw(xclawcmd=None, outdir=None, overwrite=True, restart=False,
     is given, data files are copied from there instead.
     """
 
-    import os,glob,shutil
+    import os,glob,shutil,time
     verbose = False
     xclawout = None
     xclawerr = None
@@ -53,6 +53,8 @@ def runclaw(xclawcmd=None, outdir=None, overwrite=True, restart=False,
     outdir = os.path.abspath(outdir)
     print '== runclaw: Will write output to ',outdir
     
+    import pdb; pdb.set_trace()
+    
     
     #returncode = clawjob.runxclaw()
 
@@ -62,9 +64,7 @@ def runclaw(xclawcmd=None, outdir=None, overwrite=True, restart=False,
         outdir = os.path.abspath(outdir)
         rundir = os.path.abspath(rundir)
         xclawcmd = os.path.join(xdir,xclawcmd)
-    
-        #import pdb; pdb.set_trace()
-    
+        
         try:
             os.chdir(xdir)
         except:
