@@ -149,7 +149,7 @@ def write_env_files(claw_path,verbose=True,outfile_base="setenv",**kargs):
     if "clawutil" in available_projects:
         print "  CLAWUTIL = %s" % available_projects["clawutil"]
         write_environment_variable(csh_file,bash_file,"CLAWUTIL",available_projects["clawutil"])
-        python_path = ":".join((os.path.join(available_projects["clawutil"],"src"),python_path))
+        python_path = ":".join((os.path.join(available_projects["clawutil"],"src","python"),python_path))
         
     if "classic" in available_projects:
         print "  CLASSICCLAW = %s" % available_projects["classic"]
@@ -165,7 +165,7 @@ def write_env_files(claw_path,verbose=True,outfile_base="setenv",**kargs):
         write_environment_variable(csh_file,bash_file,"GEOCLAW",available_projects["geoclaw"])
 
     if "pyclaw" in available_projects:
-        python_path = ":".join((os.path.join(available_projects["pyclaw"],"src"),python_path))
+        python_path = ":".join((os.path.join(available_projects["pyclaw"],"src","python"),python_path))
         print "  PYCLAW = %s" % available_projects["pyclaw"]
         write_environment_variable(csh_file,bash_file,"PYCLAW",available_projects["pyclaw"])
 
