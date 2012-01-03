@@ -130,12 +130,13 @@ Makefile.html : Makefile ; $(CC2HTML) $<
 # what executable to run, e.g. xclaw or xamr.
 .output: $(CLAW_EXE) .data $(MAKEFILE_LIST);
 	@echo $(CLAW_OUTDIR) > .output
+	@echo $(CLAW) 
 	$(PYTHON) $(CLAW)/clawutil/src/python/runclaw.py  $(CLAW_EXE) $(CLAW_OUTDIR) $(CLAW_OVERWRITE) $(CLAW_RESTART)
 
 #----------------------------------------------------------------------------
 # Run the code without checking dependencies:
 output: 
-	$(PYTHON) $(CLAW)/python/pyclaw/runclaw.py  $(CLAW_EXE) $(CLAW_OUTDIR) $(CLAW_OVERWRITE) $(CLAW_RESTART)
+	$(PYTHON) $(CLAW)/clawutil/src/runclaw.py  $(CLAW_EXE) $(CLAW_OUTDIR) $(CLAW_OVERWRITE) $(CLAW_RESTART)
 
 #----------------------------------------------------------------------------
 
