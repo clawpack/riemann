@@ -151,6 +151,9 @@ Makefile.html : Makefile ; $(CC2HTML) $<
 
 # Make data files needed by Fortran code:
 .data: $(SETRUN_FILE) $(MAKEFILE_LIST) ;
+	$(MAKE) data
+
+data: $(MAKEFILE_LIST);
 	$(CLAW_PYTHON) $(SETRUN_FILE) $(CLAW_PKG)
 	touch .data
 
@@ -159,15 +162,14 @@ Makefile.html : Makefile ; $(CC2HTML) $<
 # runclaw will execute setrun.py to create data files and determine
 # what executable to run, e.g. xclaw or xamr.
 .output: $(CLAW_EXE) .data $(MAKEFILE_LIST);
-	@echo $(OUT_DIR) > .output
-	$(CLAW_PYTHON) $(CLAW)/clawutil/src/python/runclaw.py  $(CLAW_EXE) $(OUT_DIR) \
-	$(OVERWRITE) $(RESTART)
+	$(MAKE) output
 
 #----------------------------------------------------------------------------
 # Run the code without checking dependencies:
-output: 
-	$(CLAW_PYTHON) $(CLAW_DIR)/python/pyclaw/runclaw.py $(CLAW_EXE) $(OUT_DIR) \
+output: $(MAKEFILE_LIST);
+	$(CLAW_PYTHON) $(CLAW)/clawutil/src/python/runclaw.py  $(CLAW_EXE) $(OUT_DIR) \
 	$(OVERWRITE) $(RESTART)
+	@echo $(OUT_DIR) > .output
 
 #----------------------------------------------------------------------------
 
@@ -175,19 +177,19 @@ output:
 
 # (Removed Cygwin stuff...)
 # Plotting command
-PLOTCMD ?= $(CLAW_PYTHON) $(CLAW)/python/pyclaw/plotters/plotclaw.py
+PLOTCMD ?= $(CLAW_PYTHON) $(VISCLAW)/src/visclaw/plotters/plotclaw.py
 
 # Rule to make the plots into subdirectory specified by PLOT_DIR,
 # using data in subdirectory specified by OUT_DIR and the plotting
 # commands specified in CLAW_SETPLOT.
 
 .plots: .output $(SETPLOT_FILE) $(MAKEFILE_LIST) ;
-	$(PLOTCMD) $(OUT_DIR) $(PLOT_DIR) $(SETPLOT_FILE)
-	@echo $(PLOT_DIR) > .plots
+	$(MAKE) plots
 
 # Make the plots without checking dependencies:
-plots:
+plots: $(SETPLOT_FILE) $(MAKEFILE_LIST);
 	$(PLOTCMD) $(OUT_DIR) $(PLOT_DIR) $(SETPLOT_FILE)
+	@echo $(PLOT_DIR) > .plots
 
 #----------------------------------------------------------------------------
 
