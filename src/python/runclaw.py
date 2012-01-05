@@ -53,8 +53,6 @@ def runclaw(xclawcmd=None, outdir=None, overwrite=True, restart=False,
     outdir = os.path.abspath(outdir)
     print '== runclaw: Will write output to ',outdir
     
-    import pdb; pdb.set_trace()
-    
     
     #returncode = clawjob.runxclaw()
 
