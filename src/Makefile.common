@@ -166,7 +166,7 @@ Makefile.html : Makefile ; $(CC2HTML) $<
 #----------------------------------------------------------------------------
 # Run the code without checking dependencies:
 output: 
-	$(CLAW_PYTHON) $(CLAW_DIR)/python/pyclaw/runclaw.py $(CLAW_EXE) $(OUT_DIR) \
+	$(CLAW_PYTHON) $(CLAW)clawutil/src/python/runclaw.py $(CLAW_EXE) $(OUT_DIR) \
 	$(OVERWRITE) $(RESTART)
 
 #----------------------------------------------------------------------------
