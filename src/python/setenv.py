@@ -165,7 +165,7 @@ def write_env_files(claw_path,verbose=True,outfile_base="setenv",**kargs):
         write_environment_variable(csh_file,bash_file,"GEOCLAW",available_projects["geoclaw"])
 
     if "pyclaw" in available_projects:
-        python_path = ":".join((os.path.join(available_projects["pyclaw"],"src","python"),python_path))
+        python_path = ":".join((os.path.join(available_projects["pyclaw"],"src"),python_path))
         print "  PYCLAW = %s" % available_projects["pyclaw"]
         write_environment_variable(csh_file,bash_file,"PYCLAW",available_projects["pyclaw"])
 
