@@ -133,7 +133,7 @@ def write_env_files(claw_path,verbose=True,outfile_base="setenv",**kargs):
     bash_file = open(os.path.join(claw_path,".".join((outfile_base,"bash"))),'w')
     
     # Write out boiler plate
-    boiler_plate = ("# Clawpack environment settings")
+    boiler_plate = ("# Clawpack environment settings\n")
     csh_file.write(boiler_plate)
     bash_file.write(boiler_plate)
     
