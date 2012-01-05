@@ -174,6 +174,11 @@ def write_env_files(claw_path,verbose=True,outfile_base="setenv",**kargs):
 
     if "doc" in available_projects:
         pass
+        
+    if "riemann" in available_projects:
+        python_path = ":".join((os.path.join(available_projects["riemann"],"src","python"),python_path))
+        print "  RIEMANN = %s" % available_projects["riemann"]
+        write_environment_variable(csh_file,bash_file,"RIEMANN",available_projects["riemann"])
 
     if "visclaw" in available_projects:
         python_path = ":".join((os.path.join(available_projects["visclaw"],"src","python"),python_path))
