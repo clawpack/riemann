@@ -224,7 +224,7 @@ class ClawInputData(ClawData):
         self.add_attribute('steps_max',50000)
         self.add_attribute('order',2)
         self.add_attribute('order_trans',0)
-        self.add_attribute('dimensional_split',False)
+        self.add_attribute('dimensional_split',0)
         self.add_attribute('verbosity',0)
         self.add_attribute('verbosity_regrid',0)
         self.add_attribute('src_split',0)
@@ -438,11 +438,11 @@ def make_clawdatafile(clawdata):
         data_write(file, clawdata, 'output_ntimes', '(number of output times)')
         data_write(file, clawdata, 'output_times', '(output times)')
     elif clawdata.output_style == 3:
-        data_write(file, clawdata, 'output_ntimes', '(number of output times)')
         data_write(file, clawdata, 'output_step_interval', '(timesteps between output)')
+        data_write(file, clawdata, 'total_steps', '(number of output times)')
     elif clawdata.output_style == 4:
-        data_write(file, clawdata, 'tfinal', '(final time)')
         data_write(file, clawdata, 'output_time_interval', '(output interval)')
+        data_write(file, clawdata, 'tfinal', '(final time)')
     else:
         print '*** Error: unrecognized output_style'
         raise
@@ -585,7 +585,7 @@ def make_amrclawdatafile(clawdata):
         data_write(file, clawdata, 'output_times', '(output times)')
     elif clawdata.output_style == 3:
         data_write(file, clawdata, 'output_step_interval', '(output every output_step_interval steps)')
-        data_write(file, clawdata, 'nsteps', '(number of steps to take)')
+        data_write(file, clawdata, 'total_steps', '(number of steps to take)')
     elif clawdata.output_style == 4:
         data_write(file, clawdata, 'output_time_interval', '(time between outputs)')
         data_write(file, clawdata, 'tfinal', '(final time)')
@@ -663,18 +663,23 @@ def make_amrclawdatafile(clawdata):
 
     data_write(file, clawdata, 'restart', '(1 to restart from a past run)')
     data_write(file, clawdata, 'checkpt_style', '(how checkpoints specified)')
+    
     if clawdata.checkpt_style == 2:  
         clawdata.checkpt_ntimes = len(clawdata.checkpt_times)
         data_write(file, clawdata, 'checkpt_ntimes', '(number of checkpoint times)')
         data_write(file, clawdata, 'checkpt_times', '(checkpoint times)')
     elif clawdata.checkpt_style == 3:        
-        data_write(file, clawdata, 'checkpt_interval', '(how often to checkpoint)')
-    elif clawdata.checkpt_style == 4:        
-        data_write(file, clawdata, 'checkpt_time_interval', '(how often to checkpoint)')
-    elif clawdata.checkpt_style not in (0,1):
+        data_write(file, clawdata, 'checkpt_interval', '(step interval for checkpoint)')
+    elif clawdata.checkpt_style == 4:  
+        print "*** Error: checkpt_style==4 not yet implemented"
+        raise ValueError("Invalid checkpt_style")      
+        data_write(file, clawdata, 'checkpt_time_interval', '(time interval for checkpoint)')
+    else:
         print "*** Error, unrecognized checkpt_style = ",clawdata.checkpt_style
+        print "*** Require: 0,2,3, or 4"
         raise ValueError("Unrecognized checkpt_style")
         return
+        
     data_write(file, clawdata, None)
 
     data_write(file, clawdata, 'flag_richardson', '(use Richardson extrap?)')
