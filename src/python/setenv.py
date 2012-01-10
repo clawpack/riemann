@@ -195,7 +195,7 @@ def write_env_files(claw_path,verbose=True,outfile_base="setenv",**kargs):
         # python_path
         # = ":".join((os.path.join(available_projects["clawpack-4.x"],"python"),python_path))
         print "  CLAW_4 = %s" % available_projects["clawpack-4.x"]
-        wrote_environment_variable(csh_file,bash_file,"CLAW_4",available_projects["clawpack-4.x"])
+        write_environment_variable(csh_file,bash_file,"CLAW_4",available_projects["clawpack-4.x"])
 
     if len(python_path) > 13:
         print "  PYTHONPATH = %s" % python_path
