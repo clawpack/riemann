@@ -191,6 +191,12 @@ def write_env_files(claw_path,verbose=True,outfile_base="setenv",**kargs):
         print "  SHARPCLAW = %s" % available_projects["sharpclaw"]
         write_environment_variable(csh_file,bash_file,"SHARPCLAW",available_projects["sharpclaw"])
 
+    if "clawpack-4.x" in available_projects:
+        # python_path
+        # = ":".join((os.path.join(available_projects["clawpack-4.x"],"python"),python_path))
+        print "  CLAW_4 = %s" % available_projects["clawpack-4.x"]
+        wrote_environment_variable(csh_file,bash_file,"CLAW_4",available_projects["clawpack-4.x"])
+
     if len(python_path) > 13:
         print "  PYTHONPATH = %s" % python_path
         write_environment_variable(csh_file,bash_file,"PYTHONPATH",python_path)
