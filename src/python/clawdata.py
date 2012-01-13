@@ -516,7 +516,7 @@ class ClawInputData(Data):
             raise AttributeError("Only ndim=1 or 2 supported so far")
 
     def write(self):
-        print 'Creating data file claw.data for use with xclaw'
+        # print 'Creating data file claw.data for use with xclaw'
         make_clawdatafile(self)
 
 
@@ -634,7 +634,7 @@ class AmrclawInputData(Data):
             raise AttributeError("Only ndim=1 or 2 supported so far")
 
     def write(self):
-        print 'Creating data file amr2ez.data for use with xamr'
+        # print 'Creating data file amr2ez.data for use with xamr'
         make_amrclawdatafile(self)
         make_setgauges_datafile(self)
 
@@ -720,7 +720,7 @@ class SharpclawInputData(Data):
             raise AttributeError("Only ndim=1 or 2 supported so far")
 
     def write(self):
-        print 'Creating data file sharpclaw.data for use with xsclaw'
+        # print 'Creating data file sharpclaw.data for use with xsclaw'
         make_sharpclawdatafile(self)
 
 
@@ -1132,7 +1132,7 @@ def make_setgauges_datafile(clawdata):
     gauges = getattr(clawdata,'gauges',[])
     ngauges = len(gauges)
 
-    print 'Creating data file setgauges.data'
+    # print 'Creating data file setgauges.data'
     # open file and write a warning header:
     file = open_datafile('setgauges.data')
     file.write("%4i   =: ngauges\n" % ngauges)
@@ -1242,7 +1242,7 @@ class UserData(Data):
          self.__descr[name] = descr
 
     def write(self):
-         print 'Creating data file %s' % self.__fname
+         # print 'Creating data file %s' % self.__fname
          make_userdatafile(self)
 
 class GaugeData(Data):
@@ -1261,7 +1261,7 @@ class GaugeData(Data):
         self.ngauges = len(self.__gauge_dict)
 
     def write(self):
-        print 'Creating data file gauges.data'
+        # print 'Creating data file gauges.data'
 
         # open file and write a warning header:
         file = open_datafile('gauges.data')
@@ -1314,7 +1314,7 @@ class GeoclawInputData(Data):
 
     def write(self):
 
-        print 'Creating data file setgeo.data'
+        # print 'Creating data file setgeo.data'
         # open file and write a warning header:
         file = open_datafile('setgeo.data')
         data_write(file, self, 'igravity')
@@ -1325,7 +1325,7 @@ class GeoclawInputData(Data):
         data_write(file, self, 'variable_dt_refinement_ratios')
         file.close()
 
-        print 'Creating data file settsunami.data'
+        # print 'Creating data file settsunami.data'
         # open file and write a warning header:
         file = open_datafile('settsunami.data')
         data_write(file, self, 'sealevel')
@@ -1338,7 +1338,7 @@ class GeoclawInputData(Data):
         data_write(file, self, 'frictiondepth')
         file.close()
 
-        print 'Creating data file settopo.data'
+        # print 'Creating data file settopo.data'
         # open file and write a warning header:
         file = open_datafile('settopo.data')
         self.ntopofiles = len(self.topofiles)
@@ -1353,7 +1353,7 @@ class GeoclawInputData(Data):
             file.write("%3i %3i %3i %20.10e %20.10e \n" % tuple(tfile[:-1]))
         file.close()
 
-        print 'Creating data file setdtopo.data'
+        # print 'Creating data file setdtopo.data'
         # open file and write a warning header:
         file = open_datafile('setdtopo.data')
         self.mdtopofiles = len(self.dtopofiles)
@@ -1363,13 +1363,13 @@ class GeoclawInputData(Data):
             try:
                 fname = "'%s'" % os.path.abspath(tfile[-1])
             except:
-                print "*** Error: file not found: ",tfile[-1]
+                # print "*** Error: file not found: ",tfile[-1]
                 raise MissingFile("file not found")
             file.write("\n%s \n" % fname)
             file.write("%3i %3i %3i\n" % tuple(tfile[:-1]))
         file.close()
 
-        print 'Creating data file setqinit.data'
+        # print 'Creating data file setqinit.data'
         # open file and write a warning header:
         file = open_datafile('setqinit.data')
         # self.iqinit tells which component of q is perturbed!
@@ -1379,7 +1379,7 @@ class GeoclawInputData(Data):
             try:
                 fname = "'%s'" % os.path.abspath(tfile[-1])
             except:
-                print "*** Error: file not found: ",tfile[-1]
+                # print "*** Error: file not found: ",tfile[-1]
                 raise MissingFile("file not found")
             file.write("\n%s  \n" % fname)
             file.write("%3i %3i \n" % tuple(tfile[:-1]))
@@ -1406,7 +1406,7 @@ class GeoclawInputData(Data):
 #        file.close()
 
 
-        print 'Creating data file setfixedgrids.data'
+        # print 'Creating data file setfixedgrids.data'
         # open file and write a warning header:
         file = open_datafile('setfixedgrids.data')
         self.nfixedgrids = len(self.fixedgrids)
@@ -1417,7 +1417,7 @@ class GeoclawInputData(Data):
         file.close()
 
 
-        print 'Creating data file setregions.data'
+        # print 'Creating data file setregions.data'
         # open file and write a warning header:
         file = open_datafile('setregions.data')
         self.nregions = len(self.regions)
