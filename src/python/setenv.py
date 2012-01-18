@@ -219,7 +219,7 @@ if __name__ == "__main__":
                  "claw="]
             for proj_name in git_repos:
                 long_options.append("%s=" % proj_name)
-            opts, args = getopt.getopt(argv[1:], "ho:vc",long_options)
+            opts, args = getopt.getopt(argv[1:], "ho:vc:",long_options)
         except getopt.error, msg:
             raise Usage(msg)
             
@@ -234,9 +234,9 @@ if __name__ == "__main__":
         for option, value in opts:
             # Script parameters
             if option in ("-v","--verbose"):
-                key_args["verbose"] = True
+                 verbose = True
             if option in ("-o","--output"):
-                key_args["out_file_base"] = value
+                out_file_base = value
             if option in ("-h","--help"):
                 raise Usage(help_message)
                                 
@@ -251,7 +251,7 @@ if __name__ == "__main__":
         print >> sys.stderr, sys.argv[0].split("/")[-1] + ": " + str(err.msg)
         print >> sys.stderr, "\t for help use --help"
         sys.exit(2)
-                        
+    
     sys.exit(write_env_files(claw_path,verbose=verbose,
                 outfile_base=out_file_base,**project_paths))
                 
