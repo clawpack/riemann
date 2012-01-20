@@ -284,9 +284,9 @@ if __name__ == "__main__":
         for option, value in opts:
             # Script parameters
             if option in ("-v","--verbose"):
-                key_args["verbose"] = True
+                verbose = True
             if option in ("-o","--output"):
-                key_args["out_file_base"] = value
+                out_file_base = value
             if option in ("-s","--shell"):
                 shell_type = value
             if option in ("-h","--help"):
@@ -303,15 +303,7 @@ if __name__ == "__main__":
         print >> sys.stderr, sys.argv[0].split("/")[-1] + ": " + str(err.msg)
         print >> sys.stderr, "\t for help use --help"
         sys.exit(2)
-                        
-    if verbose:
-        print "Basic options:"
-        if 'csh' in shell_type:
-            print "  output = %s" % '.'.join((out_file_base,'csh'))
-        elif 'bash' == shell_type or 'sh' == shell_type:
-            print "  output = %s" % '.'.join((out_file_base,'bash'))
-        elif 'both' == shell_type:
-            print "  output = %s" '.'.join((out_file_base,'{csh,bash}'))
+        
     sys.exit(write_env_files(claw_path,verbose=verbose,
                              outfile_base=out_file_base,shell_type=shell_type,
                              **project_paths))
