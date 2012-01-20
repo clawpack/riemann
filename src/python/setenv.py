@@ -38,7 +38,11 @@ project_dependencies = {"classic":["riemann","clawutil"],
                         "visclaw":["clawutil"],
                         "sharpclaw":["riemann","clawutil"]}
 
+# This was intended to be a prefered means for adding and deleting paths for
+# the resulting output script but we need a csh version before this will really
+# work correctly without adding a lot of complexity to this utility (KTM)
 bash_path_modification_functions = """
+# These are utility functions for manipulating paths
 var_append () {
     # Check to see if the variable exists
     if [ -z "${1}" ]; then
@@ -96,7 +100,7 @@ Command line script parameters:
   -h, --help - Display help message
   -o, --output= (string) - The base name for the output bash and csh files 
                            (default == "setenv")
-  -s, --shel= (string) - Type of shell script to output, valid options include
+  -s, --shell= (string) - Type of shell script to output, valid options include
                          'csh', 'bash', 'sh', or 'both'.  The option 'both'
                          will output both a "csh" and "sh" compatable file.
                          (default == 'both')
@@ -167,21 +171,18 @@ def write_env_files(claw_path,verbose=True,outfile_base="setenv",
             
     # =========================================================================
     #  Write out out_file_base.csh and out_file_base.sh
-    
     # Open output files
+    boiler_plate = ("# Clawpack environment settings\n")
     if "csh" in shell_type:
         csh_file = open(os.path.join(claw_path,".".join((outfile_base,"csh"))),'w')
+        csh_file.write(boiler_plate)
     else:
         csh_file = None
     if "bash" == shell_type or "sh" == shell_type:
         bash_file = open(os.path.join(claw_path,".".join((outfile_base,"bash"))),'w')
+        bash_file.write(boiler_plate)
     else:
         bash_file = None
-    
-    # Write out boiler plate
-    boiler_plate = ("# Clawpack environment settings\n")
-    csh_file.write(boiler_plate)
-    bash_file.write(boiler_plate)
     
     # Write out variables
     python_path = "${PYTHONPATH}"
@@ -252,8 +253,10 @@ def write_env_files(claw_path,verbose=True,outfile_base="setenv",
     print ""
         
     # Close output files
-    csh_file.close()
-    bash_file.close()
+    if csh_file is not None:
+        csh_file.close()
+    if bash_file is not None:
+        bash_file.close()
 
 if __name__ == "__main__":    
     # Parse input arguments
@@ -261,7 +264,7 @@ if __name__ == "__main__":
     project_paths = {}
     try:
         try:
-            long_options = ["help","output=","verbose","shell="
+            long_options = ["help","output=","verbose","shell=",
                  "claw="]
             for proj_name in git_repos:
                 long_options.append("%s=" % proj_name)
@@ -301,6 +304,14 @@ if __name__ == "__main__":
         print >> sys.stderr, "\t for help use --help"
         sys.exit(2)
                         
+    if verbose:
+        print "Basic options:"
+        if 'csh' in shell_type:
+            print "  output = %s" % '.'.join((out_file_base,'csh'))
+        elif 'bash' == shell_type or 'sh' == shell_type:
+            print "  output = %s" % '.'.join((out_file_base,'bash'))
+        elif 'both' == shell_type:
+            print "  output = %s" '.'.join((out_file_base,'{csh,bash}'))
     sys.exit(write_env_files(claw_path,verbose=verbose,
                              outfile_base=out_file_base,shell_type=shell_type,
                              **project_paths))
