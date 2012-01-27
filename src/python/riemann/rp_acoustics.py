@@ -33,14 +33,14 @@ to calculate the impedence :math:`= Z` and speed of sound `= c`.
 #                     http://www.opensource.org/licenses/
 # ============================================================================
 
-meqn = 2
-mwaves = 2
+num_eqn = 2
+num_waves = 2
 
-def rp_acoustics_1d(q_l,q_r,aux_l,aux_r,aux_global):
+def rp_acoustics_1d(q_l,q_r,aux_l,aux_r,problem_data):
     r"""
     Basic 1d acoustics riemann solver, with interleaved arrays
     
-    *aux_global* is expected to contain -
+    *problem_data* is expected to contain -
      - *zz* - (float) Impedence
      - *cc* - (float) Speed of sound
     
@@ -51,34 +51,34 @@ def rp_acoustics_1d(q_l,q_r,aux_l,aux_r,aux_global):
     import numpy as np
 
     # Convenience
-    nrp = np.size(q_l,1)
+    num_rp = np.size(q_l,1)
 
     # Return values
-    wave = np.empty( (meqn, mwaves, nrp) )
-    s = np.empty( (mwaves, nrp) )
-    amdq = np.empty( (meqn, nrp) )
-    apdq = np.empty( (meqn, nrp) )
+    wave = np.empty( (num_eqn, num_waves, num_rp) )
+    s = np.empty( (num_waves, num_rp) )
+    amdq = np.empty( (num_eqn, num_rp) )
+    apdq = np.empty( (num_eqn, num_rp) )
     
     # Local values
     delta = np.empty(np.shape(q_l))
     
     delta = q_r - q_l
-    a1 = (-delta[0,:] + aux_global['zz']*delta[1,:]) / (2.0 * aux_global['zz'])
-    a2 = (delta[0,:] + aux_global['zz']*delta[1,:]) / (2.0 * aux_global['zz'])
+    a1 = (-delta[0,:] + problem_data['zz']*delta[1,:]) / (2.0 * problem_data['zz'])
+    a2 = (delta[0,:] + problem_data['zz']*delta[1,:]) / (2.0 * problem_data['zz'])
         
     # Compute the waves
     # 1-Wave
-    wave[0,0,:] = -a1 * aux_global['zz']
+    wave[0,0,:] = -a1 * problem_data['zz']
     wave[1,0,:] = a1
-    s[0,:] = -aux_global['cc']
+    s[0,:] = -problem_data['cc']
         
     # 2-Wave
-    wave[0,1,:] = a2 * aux_global['zz']
+    wave[0,1,:] = a2 * problem_data['zz']
     wave[1,1,:] = a2
-    s[1,:] = aux_global['cc']
+    s[1,:] = problem_data['cc']
     
     # Compute the left going and right going fluctuations
-    for m in xrange(meqn):
+    for m in xrange(num_eqn):
         amdq[m,:] = s[0,:] * wave[m,0,:]
         apdq[m,:] = s[1,:] * wave[m,1,:]
     

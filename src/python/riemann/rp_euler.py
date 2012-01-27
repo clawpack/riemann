@@ -41,10 +41,10 @@ Unless otherwise noted, the ideal gas equation of state is used:
 
 import numpy as np
 
-meqn = 3
-mwaves = 3
+num_eqn = 3
+num_waves = 3
 
-def rp_euler_roe_1d(q_l,q_r,aux_l,aux_r,aux_global):
+def rp_euler_roe_1d(q_l,q_r,aux_l,aux_r,problem_data):
     r"""
     Roe Euler solver in 1d
     
@@ -59,17 +59,17 @@ def rp_euler_roe_1d(q_l,q_r,aux_l,aux_r,aux_global):
     """
     
     # Problem dimensions
-    nrp = q_l.shape[1]
+    num_rp = q_l.shape[1]
 
     # Return values
-    wave = np.empty( (meqn, mwaves, nrp) )
-    s = np.empty( (mwaves, nrp) )
-    amdq = np.zeros( (meqn, nrp) )
-    apdq = np.zeros( (meqn, nrp) )
+    wave = np.empty( (num_eqn, num_waves, num_rp) )
+    s = np.empty( (num_waves, num_rp) )
+    amdq = np.zeros( (num_eqn, num_rp) )
+    apdq = np.zeros( (num_eqn, num_rp) )
     
     # Solver parameters
-    gamma = aux_global['gamma']
-    gamma1 = aux_global['gamma1']
+    gamma = problem_data['gamma']
+    gamma1 = problem_data['gamma1']
 
     # Calculate Roe averages
     rhsqrtl = np.sqrt(q_l[0,...])
@@ -104,13 +104,13 @@ def rp_euler_roe_1d(q_l,q_r,aux_l,aux_r,aux_global):
     s[2,...] = u + a
     
     # Entropy fix
-    if aux_global['efix']:
+    if problem_data['efix']:
         raise NotImplementedError("Entropy fix has not been implemented!")
     else:
         # Godunov update
-        s_index = np.zeros((2,nrp))
-        for m in xrange(meqn):
-            for mw in xrange(mwaves):
+        s_index = np.zeros((2,num_rp))
+        for m in xrange(num_eqn):
+            for mw in xrange(num_waves):
                 s_index[0,:] = s[mw,:]
                 amdq[m,:] += np.min(s_index,axis=0) * wave[m,mw,:]
                 apdq[m,:] += np.max(s_index,axis=0) * wave[m,mw,:]
