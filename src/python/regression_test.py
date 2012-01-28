@@ -184,6 +184,46 @@ def cmp_dir(outdir, regdir):
     print "To view diffs, open the file ",outdir+'/diffs.html'
         
 
+def compare_plots(outdir, plotdir, regression_plotdir, comparison_plotdir="_plots_comparison", \
+                  setplot="setplot.py", printfigs=True):
+           
+    """
+    Generate plots in plotdir using the setplot module and then
+    create html files showing side-by-side comparison with those in regression_plotdir.
+    If the latter directory does not exist, attempt to fetch from
+    archived regression data.
+    """
+
+    from visclaw.plotters.plotpages import plotclaw2html_compare, plotclaw_driver
+    from visclaw.plotters.data import ClawPlotData
+    from visclaw.plotters.frametools import call_setplot
+
+    plotdata = ClawPlotData()
+    plotdata = call_setplot(setplot, plotdata)
+    plotdata.plotdir = plotdir
+    plotdata.outdir = outdir
+    plotdata.printfigs = printfigs
+    plotdata.setplot = False
+    
+    # Create plots:
+    plotdata = plotclaw_driver(plotdata)
+    #import pdb; pdb.set_trace()
+    
+    if not os.path.isdir(plotdir):
+        print "*** Directory not found: ",plotdir
+        return
+
+    if not os.path.isdir(regression_plotdir):
+        try:
+            regression_plotdir, plotdir_tarfile = fetch_regression_data(plotdir)
+        except:
+            print "*** Directory not found: ",regression_plotdir
+            print "*** Attempt to fetch regression data also failed."
+            return
+
+    plotclaw2html_compare(plotdata, plotdir, regression_plotdir, comparison_plotdir)
+
+
 def fetch_regression_data(outdir):
     import urllib
     
@@ -219,26 +259,55 @@ def fetch_regression_data(outdir):
         raise Exception("*** Problem untarring %s" % tarfile)
     return regdir, tarfile
 
+
+
 #---------------------------------------------------
 
 if __name__=="__main__":
 
-    try:
-        outdir = sys.argv[1]
-    except:
-        raise Exception("*** Must specify output directory, and optionally regression directory")
-    results_file = "regression_results.txt"
-    retrieve = len(sys.argv) == 2
-    if not retrieve:
-        regression_dir = sys.argv[2]
-    else:
+    if sys.argv[1]=="output":
+        
         try:
-            regression_dir, tarfile = fetch_regression_data(outdir)
+            outdir = sys.argv[2]
         except:
-            raise Exception("Error fetching regression data")
+            raise Exception("*** Must specify output directory, and optionally regression directory")
+        results_file = "regression_results.txt"
+        retrieve = len(sys.argv) == 2
+        if not retrieve:
+            regression_dir = sys.argv[3]
+        else:
+            try:
+                regression_dir, tarfile = fetch_regression_data(outdir)
+            except:
+                raise Exception("Error fetching regression data")
 
-    cmp_dir(outdir, regression_dir)
-    
+        cmp_dir(outdir, regression_dir)
+        
+    elif sys.argv[1]=="plots":
+        try:
+            plotdir = sys.argv[2]
+        except:
+            raise Exception("*** Must specify plots directory, and optionally regression directory")
+        comparison_plotdir="_plots_comparison"
+        retrieve = len(sys.argv) == 2
+        if not retrieve:
+            regression_dir = sys.argv[3]
+        else:
+            try:
+                regression_dir, tarfile = fetch_regression_data(plotdir)
+            except:
+                raise Exception("Error fetching regression data")
+        
+        outdir = ""  # Assume plots already exist
+        compare_plots(outdir, plotdir, regression_dir, comparison_plotdir="_plots_comparison", \
+                          setplot="setplot.py", printfigs=False)
+
+    else:
+        print "*** Usage:  "
+        print "    python regression_test.py output <outdir>"
+        print "or  python regression_test.py plots <plotdir>"
+        retrieve = False
+        
     
     if retrieve:
         print "\nDownloaded a tar file and created directory ", regression_dir
