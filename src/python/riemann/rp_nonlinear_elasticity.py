@@ -30,7 +30,7 @@ and the flux vector is
 
 import numpy as np
 
-def rp_nonlinear_elasticity_1d(q_l,q_r,aux_l,aux_r,aux_global):
+def rp_nonlinear_elasticity_1d(q_l,q_r,aux_l,aux_r,problem_data):
     r"""
     1d nonlinear elasticity riemann solver
     
@@ -43,16 +43,16 @@ def rp_nonlinear_elasticity_1d(q_l,q_r,aux_l,aux_r,aux_global):
     :Version: 1.0 (2010-11-06)
     """
     
-    meqn = 2
-    mwaves = 2
+    num_eqn = 2
+    num_waves = 2
     # Convenience
-    nrp = np.size(q_l,1)
+    num_rp = np.size(q_l,1)
 
     # Set up arrays for return values
-    fwave = np.empty( (meqn, mwaves, nrp) )
-    s = np.empty( (mwaves, nrp) )
-    amdq = np.empty( (meqn, nrp) )
-    apdq = np.empty( (meqn, nrp) )
+    fwave = np.empty( (num_eqn, num_waves, num_rp) )
+    s = np.empty( (num_waves, num_rp) )
+    amdq = np.empty( (num_eqn, num_rp) )
+    apdq = np.empty( (num_eqn, num_rp) )
     
     #Linearized bulk modulus, sound speed, and impedance:
     bulkl = sigmap(q_l[0,:],aux_l[1,:])
@@ -81,7 +81,7 @@ def rp_nonlinear_elasticity_1d(q_l,q_r,aux_l,aux_r,aux_global):
     s[1,:] = cr
     
     # Compute the left going and right going fluctuations
-    for m in xrange(meqn):
+    for m in xrange(num_eqn):
         amdq[m,:] = fwave[m,0,:]
         apdq[m,:] = fwave[m,1,:]
     

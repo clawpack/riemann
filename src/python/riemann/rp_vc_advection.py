@@ -12,10 +12,10 @@ Note that this is the color equation, not the conservative advection equation.
 import numpy as np
 
 # Riemann solver constants
-meqn = 1
-mwaves = 1
+num_eqn = 1
+num_waves = 1
 
-def rp_vc_advection_1d(q_l,q_r,aux_l,aux_r,aux_global):
+def rp_vc_advection_1d(q_l,q_r,aux_l,aux_r,problem_data):
     r"""Basic 1d advection riemann solver
     
     *aux(i)* should contain -
@@ -27,13 +27,13 @@ def rp_vc_advection_1d(q_l,q_r,aux_l,aux_r,aux_global):
     """
     
     # Number of Riemann problems we are solving
-    nrp = q_l.shape[1]
+    num_rp = q_l.shape[1]
     
     # Return values
-    wave = np.empty( (meqn,mwaves,nrp) )
-    s = np.empty( (mwaves,nrp) )
-    amdq = np.zeros( (meqn,nrp) )
-    apdq = np.zeros( (meqn,nrp) )
+    wave = np.empty( (num_eqn,num_waves,num_rp) )
+    s = np.empty( (num_waves,num_rp) )
+    amdq = np.zeros( (num_eqn,num_rp) )
+    apdq = np.zeros( (num_eqn,num_rp) )
     
     wave[0,0,:] = q_r[0,:] - q_l[0,:]
 

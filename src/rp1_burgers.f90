@@ -1,5 +1,5 @@
 ! =============================================================================
-	subroutine rp1(maxmx,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
+	subroutine rp1(maxmx,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq,num_aux)
 ! =============================================================================
 !
 ! Riemann problems for the 1D Burgers' equation with entropy fix for 
@@ -13,8 +13,6 @@
 	
     double precision :: ql(meqn,1-mbc:maxmx+mbc)
     double precision :: qr(meqn,1-mbc:maxmx+mbc)
-    double precision :: auxl(1,1-mbc:maxmx+mbc)
-    double precision :: auxr(1,1-mbc:maxmx+mbc)
     double precision :: s(mwaves, 1-mbc:maxmx+mbc)
     double precision :: wave(meqn, mwaves, 1-mbc:maxmx+mbc)
     double precision :: amdq(meqn, 1-mbc:maxmx+mbc)
