@@ -20,7 +20,7 @@
 
     implicit none
 
-    integer :: maxm, meqn, mwaves, mbc, mx, ilr, ixy
+    integer :: maxm, meqn, mwaves, mbc, mx, ilr, ixy, num_aux
     double precision ::    ql(meqn,   1-mbc:maxm+mbc)
     double precision ::    qr(meqn,   1-mbc:maxm+mbc)
     double precision ::     s(mwaves, 1-mbc:maxm+mbc)
