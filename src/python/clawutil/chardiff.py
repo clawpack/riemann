@@ -1,11 +1,16 @@
 import sys,os
 
-def chardiff_file(fname1, fname2, print_all_lines=True):
+def chardiff_file(fname1, fname2, print_all_lines=True, hfile1='', \
+                  hfile2='', verbose=True):
+
+    # html files to create:
+    if hfile1 == "": hfile1 = "diff_all_lines.html"
+    if hfile2 == "": hfile2 = "diff_changed_lines.html"
 
     f1 = open(fname1,'r').readlines()
     f2 = open(fname2,'r').readlines()
 
-    if len(f1) != len(f2):
+    if (len(f1) != len(f2)) and verbose:
         print "*** files have different number of lines"
     flen = min(len(f1), len(f2))
     
@@ -83,10 +88,11 @@ def chardiff_file(fname1, fname2, print_all_lines=True):
 
     numchanges = sum(changed)
 
-    hname = "diffs_all_lines.html"
-    html = open(hname,"w")
-    print "Point your browser to: "
-    print "  all %s lines with diffs: %s" % (flen, hname)
+    html = open(hfile1,"w")
+    if verbose:
+        print "Point your browser to: "
+        print "  all %s lines with diffs: %s" % (flen, hfile1)
+    hf2 = os.path.split(hfile2)[1]
     html.write("""
         <html>
         <style>
@@ -94,13 +100,13 @@ def chardiff_file(fname1, fname2, print_all_lines=True):
         span.red { background-color: #ff8888; }
         span.green { background-color: #88ff88; }
         </style>
-        <h2>All lines of files with highlighted diffs (%s lines)</h2>
+        <h2>All %s lines of files with highlighted diffs on %s lines</h2>
         <h3>
-        See also: <a href="diffs_changed_lines.html">Only changed lines (%s lines)</a>
+        See also: <a href="%s">Only changed lines</a>
         </h3>
         <table style="border-collapse: collapse; padding: 50px;">
         <col span="3" style="padding: 50px; background-color: #FFFFFF;
-        border: 2px solid #000000;" />\n""" % (flen,numchanges))
+        border: 2px solid #000000;" />\n""" % (flen,numchanges,hf2))
     html.write("<td></td><td><b>%s&nbsp;&nbsp;</b></td><td><b>%s&nbsp;&nbsp;</b></td></tr>\n" \
                 % (os.path.abspath(fname1),os.path.abspath(fname2))) 
     html.write("<tr><td></td><td>__________________</td><td>__________________</td></tr>\n") 
@@ -121,9 +127,11 @@ def chardiff_file(fname1, fname2, print_all_lines=True):
     html.close()
        
     # Only changed lines:
-    hname = "diffs_changed_lines.html"
-    html = open(hname,"w")
-    print "  only %s lines with changes: %s" % (numchanges, hname)
+    
+    html = open(hfile2,"w")
+    if verbose:
+        print "  only %s lines with changes: %s" % (numchanges, hfile2)
+    hf1 = os.path.split(hfile1)[1]
     html.write("""
         <html>
         <style>
@@ -131,13 +139,13 @@ def chardiff_file(fname1, fname2, print_all_lines=True):
         span.red { background-color: #ff8888; }
         span.green { background-color: #88ff88; }
         </style>
-        <h2>Displaying only changed lines of files (%s lines)</h2>
+        <h2>Displaying only changed lines of files (%s out of %s lines)</h2>
         <h3>
-        See also: <a href="diffs_all_lines.html">All lines with diffs (%s lines)</a>
+        See also: <a href="%s">All lines with diffs highlighted </a>
         </h3>
         <table style="border-collapse: collapse; padding: 50px;">
         <col span="3" style="padding: 50px; background-color: #FFFFFF;
-        border: 2px solid #000000;" />\n""" % (numchanges,flen))
+        border: 2px solid #000000;" />\n""" % (numchanges,flen,hf1))
     html.write("<td></td><td><b>%s&nbsp;&nbsp;</b></td><td><b>%s&nbsp;&nbsp;</b></td></tr>\n" \
                 % (os.path.abspath(fname1),os.path.abspath(fname2))) 
     html.write("<tr><td></td><td>__________________</td><td>__________________</td></tr>\n") 
@@ -153,10 +161,11 @@ def chardiff_file(fname1, fname2, print_all_lines=True):
         #html.write("<h2>Files disagree after this point --- truncated</h2>\n")
     html.write("</html>\n""")
     html.close()
+    return numchanges
     
     
 
-def chardiff_dir(dir1, dir2, files='all', dir3="diff_dir", overwrite=False, print_all_lines=True):
+def chardiff_dir(dir1, dir2, file_pattern='all', dir3="diff_dir", overwrite=False, print_all_lines=True):
     """
     Run chardiff_file on all common files between dir1 and dir2 that match the patterns in the
     list files.
@@ -164,14 +173,20 @@ def chardiff_dir(dir1, dir2, files='all', dir3="diff_dir", overwrite=False, prin
     import filecmp, glob
     
     # Construct sorted list of files matching in either or both directories:
-    if files=='all':
+    if file_pattern=='all':
         files_both = os.listdir(dir1) + os.listdir(dir2)
     else:
-        files = list(files)  # in case it was a single pattern
-        files_both = []
-        for pattern in files:
-            files_both = files_both + glob.glob("%s/%s" % (dir1,pattern))
-            files_both = files_both + glob.glob("%s/%s" % (dir2,pattern))
+        file_pattern = list(file_pattern)  # in case it was a single pattern
+        files1 = []
+        files2 = []
+        for pattern in file_pattern:
+            files1p = glob.glob("%s/%s" % (dir1,pattern))
+            files1p = [f.replace(dir1+'/','') for f in files1p]
+            files2p = glob.glob("%s/%s" % (dir2,pattern))
+            files2p = [f.replace(dir2+'/','') for f in files2p]
+            files1 = files1 + files1p
+            files2 = files2 + files2p
+        files_both = files1 + files2
     files = []
     for f in files_both:
         if f not in files: files.append(f)
@@ -195,29 +210,37 @@ def chardiff_dir(dir1, dir2, files='all', dir3="diff_dir", overwrite=False, prin
             <h1>Directory comparison</h1>
             Comparing files in the directory: &nbsp; dir1 = %s<br>
             with the directory: &nbsp; dir2 = %s<p>
+            Matching the pattern: %s<p>
+            &nbsp;<p>
+            <h2>Files:</h2>
             <ul>
-            """ % (dir1,dir2))
+            """ % (dir1,dir2,file_pattern))
                     
-    dirinfo = filecmp.dircmp(dir1,dir2)
+    f_equal, f_diff, f_other = filecmp.cmpfiles(dir1,dir2,files,False)
     
     for f in files:
-        hfile.write("<li> %s: " % f)
-        if f in dirinfo.left_only:
+        hfile.write("<li> <b>%s:</b> &nbsp; " % f)
+        if f not in files2:
             hfile.write("Only appears in dir1\n")
-        elif f in dirinfo.right_only:
+        elif f not in files1:
             hfile.write("Only appears in dir2\n")
-        elif f in dirinfo.same_files:
+        elif f in f_equal:
             hfile.write("Are identical in dir1 and dir2\n")
-        elif f in dirinfo.diff_files:
-            numchanges = 3
+        else:
+            hfile1 = "%s_diff_all_lines.html" % f
+            hfile2 = "%s_diff_changed_lines.html" % f
+            
+            numchanges = chardiff_file(os.path.join(dir1,f), \
+                    os.path.join(dir2,f), \
+                    hfile1=os.path.join(dir3,hfile1), \
+                    hfile2=os.path.join(dir3,hfile2), verbose=False)
+                          
             hfile.write("""Differ on %s lines, 
                     view <a href="%s">these lines</a> or
                     <a href="%s">all lines</a>\n""" \
-                    % (numchanges, "diff_changed_lines.html",
-                       "diff_all_lines.html"))
+                    % (numchanges, hfile2,hfile1))
 
-        import pdb; pdb.set_trace()
-        hfile.write("</ul>\n</html>\n")
+    hfile.write("</ul>\n</html>\n")
         
         
         
