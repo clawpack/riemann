@@ -81,20 +81,31 @@ def highlight_diffs_html(fname1, fname2, print_all_lines=True):
             table1.append(table1line)
             table2.append(table2line)
             linenos.append(i)
-            #if i==18:
-                #import pdb; pdb.set_trace()
-            if badline: break
 
-    html = open("compare_output.html","w")
+            # Maybe better not break, might want remainder of file too...
+            #if badline: break
+
+    numchanges = sum(changed)
+
+    hname = "diffs_all_lines.html"
+    html = open(hname,"w")
+    print "Point your browser to: "
+    print "  all %s lines with diffs: %s" % (flen, hname)
     html.write("""
         <html>
         <style>
         span.yellow { background-color: yellow; }
         span.red { background-color: #ff8888; }
+        span.green { background-color: #88ff88; }
         </style>
-        <table style="border-collapse: collapse; ">
-        <col span="3" style="padding: 50px; background-color: #FFFFFF; border: 2px solid #000000;" />\n""")
-    html.write("<td></td><td><b>%s</b></td><td><b>%s</b></td></tr>\n" \
+        <h2>All lines of files with highlighted diffs (%s lines)</h2>
+        <h3>
+        See also: <a href="diffs_changed_lines.html">Only changed lines (%s lines)</a>
+        </h3>
+        <table style="border-collapse: collapse; padding: 50px;">
+        <col span="3" style="padding: 50px; background-color: #FFFFFF;
+        border: 2px solid #000000;" />\n""" % (flen,numchanges))
+    html.write("<td></td><td><b>%s&nbsp;&nbsp;</b></td><td><b>%s&nbsp;&nbsp;</b></td></tr>\n" \
                 % (os.path.abspath(fname1),os.path.abspath(fname2))) 
     html.write("<tr><td></td><td>__________________</td><td>__________________</td></tr>\n") 
 
@@ -103,12 +114,47 @@ def highlight_diffs_html(fname1, fname2, print_all_lines=True):
             html.write("<tr><td><span class=red>Line %s</span></td>" \
                  % (linenos[i]+1))
         else:
-            html.write("<tr><td>Line %s</td>" % (linenos[i]+1))
+            html.write("<tr><td><span class=green>Line %s</span></td>" \
+                 % (linenos[i]+1))
         html.write("<td>%s</td><td>%s</td></tr>\n" % (table1[i],table2[i]))
 
     html.write("</table>\n")
-    if badline:
-        html.write("<h2>Files disagree after this point --- truncated</h2>\n")
+    #if badline:
+        #html.write("<h2>Files disagree after this point --- truncated</h2>\n")
+    html.write("</html>\n""")
+    html.close()
+       
+    # Only changed lines:
+    hname = "diffs_changed_lines.html"
+    html = open(hname,"w")
+    print "  only %s lines with changes: %s" % (numchanges, hname)
+    html.write("""
+        <html>
+        <style>
+        span.yellow { background-color: yellow; }
+        span.red { background-color: #ff8888; }
+        span.green { background-color: #88ff88; }
+        </style>
+        <h2>Displaying only changed lines of files (%s lines)</h2>
+        <h3>
+        See also: <a href="diffs_all_lines.html">All lines with diffs (%s lines)</a>
+        </h3>
+        <table style="border-collapse: collapse; padding: 50px;">
+        <col span="3" style="padding: 50px; background-color: #FFFFFF;
+        border: 2px solid #000000;" />\n""" % (numchanges,flen))
+    html.write("<td></td><td><b>%s&nbsp;&nbsp;</b></td><td><b>%s&nbsp;&nbsp;</b></td></tr>\n" \
+                % (os.path.abspath(fname1),os.path.abspath(fname2))) 
+    html.write("<tr><td></td><td>__________________</td><td>__________________</td></tr>\n") 
+
+    for i in range(len(table1)):
+        if changed[i]:
+            html.write("<tr><td><span class=red>Line %s</span></td>" \
+                 % (linenos[i]+1))
+            html.write("<td>%s</td><td>%s</td></tr>\n" % (table1[i],table2[i]))
+
+    html.write("</table>\n")
+    #if badline:
+        #html.write("<h2>Files disagree after this point --- truncated</h2>\n")
     html.write("</html>\n""")
     html.close()
        
