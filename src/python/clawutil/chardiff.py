@@ -1,11 +1,7 @@
 import sys,os
 
-def highlight_diffs_html(fname1, fname2, print_all_lines=True):
+def chardiff_file(fname1, fname2, print_all_lines=True):
 
-    #print_all_lines = True  # print all lines (including those with no changes)
-
-    #fname1 = "_output/fort.q0010"  #"test1.txt"
-    #fname2 = "_output_old/fort.q0010"  #test2.txt"
     f1 = open(fname1,'r').readlines()
     f2 = open(fname2,'r').readlines()
 
@@ -157,6 +153,76 @@ def highlight_diffs_html(fname1, fname2, print_all_lines=True):
         #html.write("<h2>Files disagree after this point --- truncated</h2>\n")
     html.write("</html>\n""")
     html.close()
+    
+    
+
+def chardiff_dir(dir1, dir2, files='all', dir3="diff_dir", overwrite=False, print_all_lines=True):
+    """
+    Run chardiff_file on all common files between dir1 and dir2 that match the patterns in the
+    list files.
+    """
+    import filecmp, glob
+    
+    # Construct sorted list of files matching in either or both directories:
+    if files=='all':
+        files_both = os.listdir(dir1) + os.listdir(dir2)
+    else:
+        files = list(files)  # in case it was a single pattern
+        files_both = []
+        for pattern in files:
+            files_both = files_both + glob.glob("%s/%s" % (dir1,pattern))
+            files_both = files_both + glob.glob("%s/%s" % (dir2,pattern))
+    files = []
+    for f in files_both:
+        if f not in files: files.append(f)
+    files.sort()
+    
+
+    print "Comparing files in the  directory: ", dir1
+    print "               with the directory: ", dir2
+    
+    if os.path.isdir(dir3):
+        if (len(os.listdir(dir3)) > 0)  and (not overwrite):
+            ans = raw_input("Ok to overwrite files in %s ?  " % dir3)
+            if ans.lower() not in ['y','yes']:
+                print "*** Aborting"
+                return
+    else:
+        os.system('mkdir -p %s' % dir3)
+            
+    hfile = open(dir3+'/diff.html','w')
+    hfile.write("""<html>
+            <h1>Directory comparison</h1>
+            Comparing files in the directory: &nbsp; dir1 = %s<br>
+            with the directory: &nbsp; dir2 = %s<p>
+            <ul>
+            """ % (dir1,dir2))
+                    
+    dirinfo = filecmp.dircmp(dir1,dir2)
+    
+    for f in files:
+        hfile.write("<li> %s: " % f)
+        if f in dirinfo.left_only:
+            hfile.write("Only appears in dir1\n")
+        elif f in dirinfo.right_only:
+            hfile.write("Only appears in dir2\n")
+        elif f in dirinfo.same_files:
+            hfile.write("Are identical in dir1 and dir2\n")
+        elif f in dirinfo.diff_files:
+            numchanges = 3
+            hfile.write("""Differ on %s lines, 
+                    view <a href="%s">these lines</a> or
+                    <a href="%s">all lines</a>\n""" \
+                    % (numchanges, "diff_changed_lines.html",
+                       "diff_all_lines.html"))
+
+        import pdb; pdb.set_trace()
+        hfile.write("</ul>\n</html>\n")
+        
+        
+        
+    print "To view diffs, open the file ",dir3+'/diffs.html'
+    
        
 if __name__=="__main__":
     args = sys.argv[1:]
