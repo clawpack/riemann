@@ -1,7 +1,18 @@
-"""
+#!/usr/bin/env python
+__doc__ = r"""
 Module to diff two images or directories full of images.
+
+Can by used from the command line via:
+   python imagediff.py file1 file2
+   python imagediff.py dir1 dir2
+Assumes dir1 and dir2 are subdirectories of working directory.
+
+Command line flags include:
+    -v, --verbose = Verbose output   
+    -h, --help = Display this help
 """
-import os, sys
+
+import os, sys, getopt
 
 def imagediff_file(fname1, fname2):
     
@@ -26,7 +37,7 @@ def imagediff_file(fname1, fname2):
     
     
          
-def make_imagediff(fname1,fname2,fname3=''):
+def make_imagediff(fname1,fname2,fname3='', verbose=True):
     ext1 = os.path.splitext(fname1)[1]
     ext2 = os.path.splitext(fname2)[1]
     if ext1 != ext2:
@@ -41,11 +52,12 @@ def make_imagediff(fname1,fname2,fname3=''):
     
     os.system("convert %s %s -compose subtract -composite -threshold 0.001 -negate %s" \
          % (fname1, fname2, fname3))
-         
-    print "Created pixelwise difference ", fname3
+    
+    if verbose:     
+        print "Created pixelwise difference ", fname3
     return fname3
     
-def imagediff_dir(dir1, dir2, dir3="imagediff_dir", ext='.png', overwrite=False):
+def imagediff_dir(dir1, dir2, dir3="imagediff_dir", ext='.png', overwrite=False, verbose=True):
     
     import filecmp,glob
     
@@ -120,10 +132,43 @@ def imagediff_dir(dir1, dir2, dir3="imagediff_dir", ext='.png', overwrite=False)
     os.chdir(startdir)
     print "To view diffs, open the file ",os.path.join(dir3,hname)
     
-if __name__=="__main__":
-    
-    args = sys.argv[1:]
-    imagediff_dir(*args)
+
+class Usage(Exception):
+    def __init__(self, msg):
+        self.msg = msg
+
+if __name__ == "__main__":    
+    # Parse input arguments
+    argv = sys.argv
+    try:
+        try:
+            opts, args = getopt.getopt(argv[1:], "hv",["help","verbose"])
+        except getopt.error, msg:
+            raise Usage(msg)
+
+        # Default script parameter values
+        verbose = False
+
+        # option processing
+        for option, value in opts:
+            # Script parameters
+            if option in ("-v","--verbose"):
+                 verbose = True
+            if option in ("-h","--help"):
+                raise Usage(help_message)
+
+        # Run diff
+        if os.path.isfile(args[0]) and os.path.isfile(args[1]):
+            sys.exit(imagediff_file(args[0],args[1],verbose=verbose))
+        elif os.path.isdir(args[0]) and os.path.isdir(args[1]):
+            sys.exit(imagediff_dir(args[0],args[1],verbose=verbose))
+        else:
+              raise Usage("Both paths must either be files or directories.")
+        
+    except Usage, err:
+        print >> sys.stderr, sys.argv[0].split("/")[-1] + ": " + str(err.msg)
+        print >> sys.stderr, "\t for help use --help"
+        sys.exit(2)
     
     
         
