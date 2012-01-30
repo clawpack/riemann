@@ -109,25 +109,33 @@ def imagediff_dir(dir1, dir2, dir3="imagediff_dir", ext='.png', overwrite=False,
     for f in files:
         fhtml = os.path.splitext(f)[0] + '.html'  ## Specific to Clawpack _plots
         if not os.path.isfile(os.path.join(dir1,fhtml)): fhtml = f
-        hfile.write("""<h3>%s <a href="%s">in dir1</a> ... <a href="%s">in dir2</a>  </h3>""" \
-                % (f, os.path.join(dir1,fhtml), os.path.join(dir2,fhtml)))
+        #hfile.write("""<h3>%s <a href="%s">in dir1</a> ... <a href="%s">in dir2</a>  </h3>""" \
+        #      % (f, os.path.join(dir1,fhtml), os.path.join(dir2,fhtml)))
+        
+        hfile.write("""<h3>%s</h3>""" % f)
         if f not in files2:
             hfile.write("Only appears in dir1\n")
         elif f not in files1:
             hfile.write("Only appears in dir2\n")
         elif f in f_equal:
-            hfile.write("Are identical in dir1 and dir2\n")
+            hfile.write("Are identical in dir1 and dir2 <p>\n")
+            fname1 = os.path.join(dir1,f)
+            hfile.write("""
+              <a href="%s"><img src="%s" width=350 border="1"></a>""" \
+                % (fname1,fname1))
         else:
-            hfile.write("Images differ in the black pixels in the third imageure...<p>\n")
+            hfile.write("Images differ in the black pixels in the third image ...<p>\n")
             fname3 = f
             fname1 = os.path.join(dir1,f)
             fname2 = os.path.join(dir2,f)
+            fhtml1 = os.path.join(dir1,fhtml)
+            fhtml2 = os.path.join(dir2,fhtml)
             fname3 = make_imagediff(fname1,fname2,fname3)
             hfile.write("""
               <a href="%s"><img src="%s" width=350 border="1"></a> &nbsp; 
               <a href="%s"><img src="%s" width=350 border="1"></a> &nbsp; 
               <a href="%s"><img src="%s" width=350 border="1"></a>""" \
-                % (fname1,fname1,fname2,fname2,fname3,fname3))
+                % (fhtml1,fname1,fhtml2,fname2,fname3,fname3))
         
     os.chdir(startdir)
     print "To view diffs, open the file ",os.path.join(dir3,hname)
