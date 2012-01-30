@@ -38,10 +38,10 @@ is the gravitational acceleration.
 
 import numpy as np
 
-meqn = 2
-mwaves = 2
+num_eqn = 2
+num_waves = 2
 
-def rp_shallow_roe_1d(q_l,q_r,aux_l,aux_r,aux_global):
+def rp_shallow_roe_1d(q_l,q_r,aux_l,aux_r,problem_data):
     r"""
     Roe shallow water solver in 1d::
     
@@ -57,7 +57,7 @@ def rp_shallow_roe_1d(q_l,q_r,aux_l,aux_r,aux_global):
         a1 = 0.5 * ( - delta_hu + (ubar + cbar) * delta_h ) / cbar
         a2 = 0.5 * (   delta_hu - (ubar - cbar) * delta_h ) / cbar
     
-    *aux_global* should contain:
+    *problem_data* should contain:
      - *g* - (float) Gravitational constant
      - *efix* - (bool) Boolean as to whether a entropy fix should be used, if 
        not present, false is assumed
@@ -66,18 +66,18 @@ def rp_shallow_roe_1d(q_l,q_r,aux_l,aux_r,aux_global):
     """
     
     # Array shapes
-    nrp = q_l.shape[1]
+    num_rp = q_l.shape[1]
     
     # Output arrays
-    wave = np.empty( (meqn, mwaves, nrp) )
-    s = np.zeros( (mwaves, nrp) )
-    amdq = np.zeros( (meqn, nrp) )
-    apdq = np.zeros( (meqn, nrp) )
+    wave = np.empty( (num_eqn, num_waves, num_rp) )
+    s = np.zeros( (num_waves, num_rp) )
+    amdq = np.zeros( (num_eqn, num_rp) )
+    apdq = np.zeros( (num_eqn, num_rp) )
 
     # Compute roe-averaged quantities
     ubar = ( (q_l[1,:]/np.sqrt(q_l[0,:]) + q_r[1,:]/np.sqrt(q_r[0,:])) /
         (np.sqrt(q_l[0,:]) + np.sqrt(q_r[0,:])) )
-    cbar = np.sqrt(0.5 * aux_global['g'] * (q_l[0,:] + q_r[0,:]))
+    cbar = np.sqrt(0.5 * problem_data['g'] * (q_l[0,:] + q_r[0,:]))
         
     # Compute Flux structure    
     delta = q_r - q_l
@@ -93,19 +93,19 @@ def rp_shallow_roe_1d(q_l,q_r,aux_l,aux_r,aux_global):
     wave[1,1,:] = a2 * (ubar + cbar)
     s[1,:] = ubar + cbar
         
-    if aux_global['efix']:
+    if problem_data['efix']:
         raise NotImplementedError("Entropy fix has not been implemented.")
     else:
-        s_index = np.zeros((2,nrp))
-        for m in xrange(meqn):
-            for mw in xrange(mwaves):
+        s_index = np.zeros((2,num_rp))
+        for m in xrange(num_eqn):
+            for mw in xrange(num_waves):
                 s_index[0,:] = s[mw,:]
                 amdq[m,:] += np.min(s_index,axis=0) * wave[m,mw,:]
                 apdq[m,:] += np.max(s_index,axis=0) * wave[m,mw,:]
             
     return wave, s, amdq, apdq
     
-def rp_shallow_hll_1d(q_l,q_r,aux_l,aux_r,aux_global):
+def rp_shallow_hll_1d(q_l,q_r,aux_l,aux_r,problem_data):
     r"""
     HLL shallow water solver ::
     
@@ -115,34 +115,34 @@ def rp_shallow_hll_1d(q_l,q_r,aux_l,aux_r,aux_global):
     
         Q_hat = ( f(q_r) - f(q_l) - s_2 * q_r + s_1 * q_l ) / (s_1 - s_2)
     
-    *aux_global* should contain:
+    *problem_data* should contain:
      - *g* - (float) Gravitational constant
             
     :Version: 1.0 (2009-02-05)
     """
     raise NotImplemented("This Riemann solver has not been interleaved!")
     # Array shapes
-    nrp = q_l.shape[0]
-    meqn = 2
-    mwaves = 2
+    num_rp = q_l.shape[0]
+    num_eqn = 2
+    num_waves = 2
     
     # Output arrays
-    wave = np.empty( (nrp, meqn, mwaves) )
-    s = np.empty( (nrp, mwaves) )
-    amdq = np.zeros( (nrp, meqn) )
-    apdq = np.zeros( (nrp, meqn) )
+    wave = np.empty( (num_rp, num_eqn, num_waves) )
+    s = np.empty( (num_rp, num_waves) )
+    amdq = np.zeros( (num_rp, num_eqn) )
+    apdq = np.zeros( (num_rp, num_eqn) )
 
     # Compute Roe and right and left speeds
     ubar = ( (q_l[:,1]/np.sqrt(q_l[:,0]) + q_r[:,1]/np.sqrt(q_r[:,0])) /
         (np.sqrt(q_l[:,0]) + np.sqrt(q_r[:,0])) )
-    cbar = np.sqrt(0.5 * aux_global['g'] * (q_l[:,0] + q_r[:,0]))
+    cbar = np.sqrt(0.5 * problem_data['g'] * (q_l[:,0] + q_r[:,0]))
     u_r = q_r[:,1] / q_r[:,0]
-    c_r = np.sqrt(aux_global['g'] * q_r[:,0])
+    c_r = np.sqrt(problem_data['g'] * q_r[:,0])
     u_l = q_l[:,1] / q_l[:,0]
-    c_l = np.sqrt(aux_global['g'] * q_l[:,0])
+    c_l = np.sqrt(problem_data['g'] * q_l[:,0])
 
     # Compute Einfeldt speeds
-    s_index = np.empty((nrp,4))
+    s_index = np.empty((num_rp,4))
     s_index[:,0] = ubar+cbar
     s_index[:,1] = ubar-cbar
     s_index[:,2] = u_l + c_l
@@ -153,11 +153,11 @@ def rp_shallow_hll_1d(q_l,q_r,aux_l,aux_r,aux_global):
     s[:,1] = np.max(s_index,axis=1)
 
     # Compute middle state
-    q_hat = np.empty((nrp,2))
+    q_hat = np.empty((num_rp,2))
     q_hat[:,0] = ((q_r[:,1] - q_l[:,1] - s[:,1] * q_r[:,0] 
                             + s[:,0] * q_l[:,0]) / (s[:,0] - s[:,1]))
-    q_hat[:,1] = ((q_r[:,1]**2/q_r[:,0] + 0.5 * aux_global['g'] * q_r[:,0]**2
-                - (q_l[:,1]**2/q_l[:,0] + 0.5 * aux_global['g'] * q_l[:,0]**2)
+    q_hat[:,1] = ((q_r[:,1]**2/q_r[:,0] + 0.5 * problem_data['g'] * q_r[:,0]**2
+                - (q_l[:,1]**2/q_l[:,0] + 0.5 * problem_data['g'] * q_l[:,0]**2)
                 - s[:,1] * q_r[:,1] + s[:,0] * q_l[:,1]) / (s[:,0] - s[:,1]))
 
     # Compute each family of waves
@@ -165,16 +165,16 @@ def rp_shallow_hll_1d(q_l,q_r,aux_l,aux_r,aux_global):
     wave[:,:,1] = q_r - q_hat
     
     # Compute variations
-    s_index = np.zeros((nrp,2))
-    for m in xrange(meqn):
-        for mw in xrange(mwaves):
+    s_index = np.zeros((num_rp,2))
+    for m in xrange(num_eqn):
+        for mw in xrange(num_waves):
             s_index[:,0] = s[:,mw]
             amdq[:,m] += np.min(s_index,axis=1) * wave[:,m,mw]
             apdq[:,m] += np.max(s_index,axis=1) * wave[:,m,mw]
             
     return wave, s, amdq, apdq
     
-def rp_shallow_exact_1d(q_l,q_r,aux_l,aux_r,aux_global):
+def rp_shallow_exact_1d(q_l,q_r,aux_l,aux_r,problem_data):
     r"""
     Exact shallow water Riemann solver
     
