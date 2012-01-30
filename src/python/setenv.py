@@ -303,7 +303,7 @@ if __name__ == "__main__":
         print >> sys.stderr, sys.argv[0].split("/")[-1] + ": " + str(err.msg)
         print >> sys.stderr, "\t for help use --help"
         sys.exit(2)
-        
+
     sys.exit(write_env_files(claw_path,verbose=verbose,
                              outfile_base=out_file_base,shell_type=shell_type,
                              **project_paths))
