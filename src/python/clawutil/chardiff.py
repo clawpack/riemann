@@ -1,3 +1,19 @@
+"""
+Module to perform charcter-wise diff of two files or a set of identically
+named files in two directories.  
+
+Can by used from the command line via:
+   python chardiff.py file1 file2
+   python chardiff.py dir1 dir2
+   python chardiff.py dir1 dir2 ['fort.q*','*.data']
+The last example only compares the files with the specified pattern.
+Other optional arguments can also be specified.
+
+More documentation needed...
+
+"""
+
+
 import sys,os
 
 def chardiff_file(fname1, fname2, print_all_lines=True, hfile1='', \
@@ -35,8 +51,8 @@ def chardiff_file(fname1, fname2, print_all_lines=True, hfile1='', \
                 badline = True  # signal break after this line
                 line2 = line2.ljust(len_line)  # pad the line
 
-            toggle = []   # keep track of where switch between 
-                          # matching and not matching sections
+            toggle = []   # keep track of indices in string where there's a 
+                          # switch between matching and non-matching substrings
             same = True
             for j in range(len_line):
                 if (same and (line1[j] != line2[j])) or \
@@ -161,8 +177,10 @@ def chardiff_file(fname1, fname2, print_all_lines=True, hfile1='', \
         #html.write("<h2>Files disagree after this point --- truncated</h2>\n")
     html.write("</html>\n""")
     html.close()
-    return numchanges
+    return flen,numchanges
     
+
+# -----------------------------------------------------------------
     
 
 def chardiff_dir(dir1, dir2, file_pattern='all', dir3="diff_dir", overwrite=False, print_all_lines=True):
@@ -172,11 +190,16 @@ def chardiff_dir(dir1, dir2, file_pattern='all', dir3="diff_dir", overwrite=Fals
     """
     import filecmp, glob
     
+    ignored_extensions = ['.o','.pdf','.ps','']
+
     # Construct sorted list of files matching in either or both directories:
     if file_pattern=='all':
-        files_both = os.listdir(dir1) + os.listdir(dir2)
+        files1 = os.listdir(dir1)
+        files2 = os.listdir(dir2)
+        files_both = files1 + files2
     else:
-        file_pattern = list(file_pattern)  # in case it was a single pattern
+        if type(file_pattern) == str:
+            file_pattern = [file_pattern]
         files1 = []
         files2 = []
         for pattern in file_pattern:
@@ -191,7 +214,6 @@ def chardiff_dir(dir1, dir2, file_pattern='all', dir3="diff_dir", overwrite=Fals
     for f in files_both:
         if f not in files: files.append(f)
     files.sort()
-    
 
     print "Comparing files in the  directory: ", dir1
     print "               with the directory: ", dir2
@@ -205,12 +227,12 @@ def chardiff_dir(dir1, dir2, file_pattern='all', dir3="diff_dir", overwrite=Fals
     else:
         os.system('mkdir -p %s' % dir3)
             
-    hfile = open(dir3+'/diff.html','w')
+    hfile = open(dir3+'/_DiffIndex.html','w')
     hfile.write("""<html>
             <h1>Directory comparison</h1>
             Comparing files in the directory: &nbsp; dir1 = %s<br>
-            with the directory: &nbsp; dir2 = %s<p>
-            Matching the pattern: %s<p>
+            &nbsp;&nbsp; with the directory: &nbsp; dir2 = %s<br>
+            &nbsp;&nbsp; matching the pattern: %s<p>
             &nbsp;<p>
             <h2>Files:</h2>
             <ul>
@@ -219,8 +241,13 @@ def chardiff_dir(dir1, dir2, file_pattern='all', dir3="diff_dir", overwrite=Fals
     f_equal, f_diff, f_other = filecmp.cmpfiles(dir1,dir2,files,False)
     
     for f in files:
+        if (f=='.'):
+            continue
         hfile.write("<li> <b>%s:</b> &nbsp; " % f)
-        if f not in files2:
+        exten = os.path.splitext(f)[1]
+        if (exten in ignored_extensions):
+            hfile.write("Ignoring files with exension '%s'\n" % exten)
+        elif f not in files2:
             hfile.write("Only appears in dir1\n")
         elif f not in files1:
             hfile.write("Only appears in dir2\n")
@@ -230,26 +257,32 @@ def chardiff_dir(dir1, dir2, file_pattern='all', dir3="diff_dir", overwrite=Fals
             hfile1 = "%s_diff_all_lines.html" % f
             hfile2 = "%s_diff_changed_lines.html" % f
             
-            numchanges = chardiff_file(os.path.join(dir1,f), \
+            flen,numchanges = chardiff_file(os.path.join(dir1,f), \
                     os.path.join(dir2,f), \
                     hfile1=os.path.join(dir3,hfile1), \
                     hfile2=os.path.join(dir3,hfile2), verbose=False)
                           
-            hfile.write("""Differ on %s lines, 
+            hfile.write("""Differ on %s lines out of %s, 
                     view <a href="%s">these lines</a> or
                     <a href="%s">all lines</a>\n""" \
-                    % (numchanges, hfile2,hfile1))
+                    % (numchanges, flen, hfile2,hfile1))
 
     hfile.write("</ul>\n</html>\n")
         
         
         
-    print "To view diffs, open the file ",dir3+'/diffs.html'
+    print "To view diffs, open the file ",dir3+'/_DiffIndex.html'
     
+# -----------------------------------------------------------------
        
 if __name__=="__main__":
     args = sys.argv[1:]
-    highlight_diffs_html(*args)
+    arg1 = sys.argv[1]
+    arg2 = sys.argv[2]
+    if os.path.isfile(arg1) and os.path.isfile(arg2):
+        chardiff_file(*args)
+    elif os.path.isdir(arg1) and os.path.isdir(arg2):
+        chardiff_dir(*args)
+    else:
+        print "*** Error: first two arguments must both be files or directories"
             
-            
-
