@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-r"""
+__doc__ = r"""
 Module to perform charcter-wise diff of two files or a set of identically
 named files in two directories.  
 
@@ -10,12 +10,17 @@ Can by used from the command line via:
 The last example only compares the files with the specified pattern.
 Other optional arguments can also be specified.
 
-More documentation needed...
+Command line flags include:
+    -v, --verbose = Verbose output
+    -h, --help = Display this help
 
 """
 
+help_message = __doc__
 
-import sys,os
+import sys
+import os
+import getopt
 
 def chardiff_file(fname1, fname2, print_all_lines=True, hfile1='', \
                   hfile2='', verbose=True):
@@ -108,7 +113,7 @@ def chardiff_file(fname1, fname2, print_all_lines=True, hfile1='', \
     html = open(hfile1,"w")
     if verbose:
         print "Point your browser to: "
-        print "  all %s lines with diffs: %s" % (flen, hfile1)
+        print "  view all %s lines with diffs: %s" % (flen, hfile1)
     hf2 = os.path.split(hfile2)[1]
     html.write("""
         <html>
@@ -147,7 +152,7 @@ def chardiff_file(fname1, fname2, print_all_lines=True, hfile1='', \
     
     html = open(hfile2,"w")
     if verbose:
-        print "  only %s lines with changes: %s" % (numchanges, hfile2)
+        print "  view only %s lines with changes: %s" % (numchanges, hfile2)
     hf1 = os.path.split(hfile1)[1]
     html.write("""
         <html>
@@ -184,7 +189,8 @@ def chardiff_file(fname1, fname2, print_all_lines=True, hfile1='', \
 # -----------------------------------------------------------------
     
 
-def chardiff_dir(dir1, dir2, file_pattern='all', dir3="diff_dir", overwrite=False, print_all_lines=True):
+def chardiff_dir(dir1, dir2, file_pattern='all', dir3="diff_dir", 
+                    overwrite=False, print_all_lines=True, verbose=False):
     """
     Run chardiff_file on all common files between dir1 and dir2 that match the patterns in the
     list files.
@@ -275,15 +281,46 @@ def chardiff_dir(dir1, dir2, file_pattern='all', dir3="diff_dir", overwrite=Fals
     print "To view diffs, open the file ",dir3+'/_DiffIndex.html'
     
 # -----------------------------------------------------------------
-       
-if __name__=="__main__":
-    args = sys.argv[1:]
-    arg1 = sys.argv[1]
-    arg2 = sys.argv[2]
-    if os.path.isfile(arg1) and os.path.isfile(arg2):
-        chardiff_file(*args)
-    elif os.path.isdir(arg1) and os.path.isdir(arg2):
-        chardiff_dir(*args)
-    else:
-        print "*** Error: first two arguments must both be files or directories"
+class Usage(Exception):
+    def __init__(self, msg):
+        self.msg = msg
+
+if __name__ == "__main__":    
+    # Parse input arguments
+    argv = sys.argv
+    try:
+        try:
+            opts, args = getopt.getopt(argv[1:], "hv",["help","verbose"])
+        except getopt.error, msg:
+            raise Usage(msg)
             
+        # Default script parameter values
+        verbose = False
+    
+        # option processing
+        for option, value in opts:
+            # Script parameters
+            if option in ("-v","--verbose"):
+                 verbose = True
+            if option in ("-h","--help"):
+                raise Usage(help_message)
+        
+        # Run diff
+        if os.path.isfile(args[0]) and os.path.isfile(args[1]):
+            sys.exit(chardiff_file(args[0],args[1],verbose=verbose))
+        elif os.path.isdir(args[0]) and os.path.isdir(args[1]):
+            if len(args) > 2:
+                if args[2][0] == '[':
+                    file_pattern = args[2][1:-1].split(',')
+                else:
+                    file_pattern = args[2]
+                sys.exit(chardiff_dir(args[0],args[1],file_pattern,verbose=verbose))
+            else:
+                sys.exit(chardiff_dir(args[0],args[1],verbose=verbose))
+        else:
+            raise Usage("Both paths must either be files or directories.")
+                            
+    except Usage, err:
+        print >> sys.stderr, sys.argv[0].split("/")[-1] + ": " + str(err.msg)
+        print >> sys.stderr, "\t for help use --help"
+        sys.exit(2)
