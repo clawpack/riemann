@@ -57,6 +57,7 @@ def make_imagediff(fname1,fname2,fname3='', verbose=True):
         print "Created pixelwise difference ", fname3
     return fname3
     
+    
 def imagediff_dir(dir1, dir2, dir3="imagediff_dir", ext='.png', overwrite=False, verbose=True):
     
     import filecmp,glob
@@ -112,30 +113,61 @@ def imagediff_dir(dir1, dir2, dir3="imagediff_dir", ext='.png', overwrite=False,
         #hfile.write("""<h3>%s <a href="%s">in dir1</a> ... <a href="%s">in dir2</a>  </h3>""" \
         #      % (f, os.path.join(dir1,fhtml), os.path.join(dir2,fhtml)))
         
-        hfile.write("""<h3>%s</h3>""" % f)
+        #hfile.write("""<h3>%s</h3>""" % f)
+        fname1 = os.path.join(dir1,f)
+        fname2 = os.path.join(dir2,f)
+        fhtml1 = os.path.join(dir1,fhtml)
+        fhtml2 = os.path.join(dir2,fhtml)
+        
         if f not in files2:
-            hfile.write("Only appears in dir1\n")
+            #hfile.write("<b>%s</b> only appears in dir1<p>\n" % f)
+            hfile.write("""
+              <table>
+              <tr><td><b>%s</b> only appears in dir1</td></tr>
+              <tr>
+              <td><a href="%s"><img src="%s" width=350 border="1"></a></td> &nbsp; &nbsp;
+              <td><img src="XXmissingXX" width=350 height=250 border="1"></td>
+              </tr>
+              </table><p>"""  % (f, fhtml1, fname1))
         elif f not in files1:
-            hfile.write("Only appears in dir2\n")
+            #hfile.write("<b>%s</b> only appears in dir2<p>\n" % f)
+            hfile.write("""
+              <table>
+              <tr><td></td><td><b>%s</b> only appears in dir2</td></tr>
+              <tr>
+              <td><img src="XXmissingXX" width=350 height=250 border="1"></td>&nbsp;&nbsp;
+              <td><a href="%s"><img src="%s" width=350 border="1"></a></td> &nbsp; 
+              </tr>
+              </table><p>"""  % (f, fhtml2, fname2))
+            
         elif f in f_equal:
-            hfile.write("Are identical in dir1 and dir2 <p>\n")
+            #hfile.write("Are identical in dir1 and dir2 <p>\n")
             fname1 = os.path.join(dir1,f)
             hfile.write("""
-              <a href="%s"><img src="%s" width=350 border="1"></a>""" \
-                % (fname1,fname1))
+              <table>
+              <tr><td><b>%s</b> are identical in dir1 and dir2</td></tr>
+              <tr>
+              <td><a href="%s"><img src="%s" width=350 border="1"></a></td> &nbsp;&nbsp; 
+              </tr>
+              </table><p>"""  % (f, fhtml1, fname1))
+            # hfile.write("""
+            #               <a href="%s"><img src="%s" width=350 border="1"></a>""" \
+            #                 % (fname1,fname1))
         else:
-            hfile.write("Images differ in the black pixels in the third image ...<p>\n")
+            #hfile.write("Images differ in the black pixels in the third image ...<p>\n")
             fname3 = f
-            fname1 = os.path.join(dir1,f)
-            fname2 = os.path.join(dir2,f)
-            fhtml1 = os.path.join(dir1,fhtml)
-            fhtml2 = os.path.join(dir2,fhtml)
+
             fname3 = make_imagediff(fname1,fname2,fname3)
             hfile.write("""
-              <a href="%s"><img src="%s" width=350 border="1"></a> &nbsp; 
-              <a href="%s"><img src="%s" width=350 border="1"></a> &nbsp; 
-              <a href="%s"><img src="%s" width=350 border="1"></a>""" \
-                % (fhtml1,fname1,fhtml2,fname2,fname3,fname3))
+              <table>
+              <tr><td><b>%s</b> from dir1</td><td><b>%s</b>  from dir2</td>
+                  <td>Pixels that differ between the images</td>  </tr>
+              <tr>
+              <td><a href="%s"><img src="%s" width=350 border="1"></a></td> &nbsp;&nbsp; 
+              <td><a href="%s"><img src="%s" width=350 border="1"></a></td> &nbsp;&nbsp; 
+              <td><a href="%s"><img src="%s" width=350 border="1"></a></td>  </tr>
+              </table><p>""" \
+                % (f,f,fhtml1,fname1,fhtml2,fname2,fname3,fname3))
         
     os.chdir(startdir)
     print "To view diffs, open the file ",os.path.join(dir3,hname)
