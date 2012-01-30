@@ -1,4 +1,5 @@
-"""
+#!/usr/bin/env python
+r"""
 Module to perform charcter-wise diff of two files or a set of identically
 named files in two directories.  
 
