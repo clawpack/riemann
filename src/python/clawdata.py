@@ -208,12 +208,13 @@ class ClawInputData(ClawData):
         self.add_attribute('output_ntimes',1)
         self.add_attribute('output_times',[1.])
         self.add_attribute('output_step_interval',10)
+        self.add_attribute('total_steps',5)     
         self.add_attribute('output_time_interval',1.)
         self.add_attribute('output_format',1)
         self.add_attribute('output_q_components','all')
         self.add_attribute('output_aux_components',[])
         self.add_attribute('output_aux_onlyonce',True)
-        self.add_attribute('output_tfinal',1.0)
+        self.add_attribute('tfinal',1.0)
         
         self.add_attribute('dt_initial',1.e-5)
         self.add_attribute('dt_max',1.e99)
@@ -223,7 +224,7 @@ class ClawInputData(ClawData):
         self.add_attribute('steps_max',50000)
         self.add_attribute('order',2)
         self.add_attribute('order_trans',0)
-        self.add_attribute('dimensional_split',False)
+        self.add_attribute('dimensional_split',0)
         self.add_attribute('verbosity',0)
         self.add_attribute('verbosity_regrid',0)
         self.add_attribute('src_split',0)
@@ -232,7 +233,7 @@ class ClawInputData(ClawData):
         self.add_attribute('t0',0.)
         self.add_attribute('xlower',0.)
         self.add_attribute('xupper',1.)
-        self.add_attribute('mbc',2)
+        self.add_attribute('num_ghost',2)
         self.add_attribute('bc_xlower',1)
         self.add_attribute('bc_xupper',1)
         self.add_attribute('restart',0)
@@ -282,8 +283,8 @@ class AmrclawInputData(ClawInputData):
         self.add_attribute('refinement_ratio_t',[1])
         self.add_attribute('auxtype',[])
 
-        self.add_attribute('checkpt_style',3)
-        self.add_attribute('checkpt_step_interval',1000)
+        self.add_attribute('checkpt_style',1)
+        self.add_attribute('checkpt_interval',1000)
         self.add_attribute('checkpt_time_interval',1000.)
         self.add_attribute('checkpt_times',[1000.])
         self.add_attribute('checkpt_ntimes',1)
@@ -292,7 +293,7 @@ class AmrclawInputData(ClawInputData):
         self.add_attribute('flag_richardson_tol',1.0)
         self.add_attribute('flag_gradient',True)
         self.add_attribute('flag_gradient_tol',0.05)
-        self.add_attribute('regrid_step_interval',2)
+        self.add_attribute('regrid_interval',2)
         self.add_attribute('regrid_buffer_width',3)
         self.add_attribute('clustering_cutoff',0.7)
 
@@ -431,17 +432,17 @@ def make_clawdatafile(clawdata):
     data_write(file, clawdata, 'output_style', '(style of specifying output times)')
     if clawdata.output_style == 1:
         data_write(file, clawdata, 'output_ntimes', '(number of output times)')
-        data_write(file, clawdata, 'output_tfinal', '(final time)')
+        data_write(file, clawdata, 'tfinal', '(final time)')
     elif clawdata.output_style == 2:
         clawdata.output_ntimes = len(clawdata.output_times)
         data_write(file, clawdata, 'output_ntimes', '(number of output times)')
         data_write(file, clawdata, 'output_times', '(output times)')
     elif clawdata.output_style == 3:
-        data_write(file, clawdata, 'output_ntimes', '(number of output times)')
         data_write(file, clawdata, 'output_step_interval', '(timesteps between output)')
+        data_write(file, clawdata, 'total_steps', '(number of output times)')
     elif clawdata.output_style == 4:
-        data_write(file, clawdata, 'output_tfinal', '(final time)')
         data_write(file, clawdata, 'output_time_interval', '(output interval)')
+        data_write(file, clawdata, 'tfinal', '(final time)')
     else:
         print '*** Error: unrecognized output_style'
         raise
@@ -506,7 +507,7 @@ def make_clawdatafile(clawdata):
         data_write(file, clawdata, 'zupper', '(zupper)')
     data_write(file, clawdata, None)
 
-    data_write(file, clawdata, 'mbc', '(number of ghost cells)')
+    data_write(file, clawdata, 'num_ghost', '(number of ghost cells)')
     
     for bdry in ['xlower','xupper','ylower','yupper','zlower','zupper']:
         bc = getattr(clawdata, 'bc_'+bdry, None) 
@@ -577,17 +578,17 @@ def make_amrclawdatafile(clawdata):
     data_write(file, clawdata, 'output_style', '(style of specifying output times)')
     if clawdata.output_style == 1:
         data_write(file, clawdata, 'output_ntimes', '(number of output times)')
-        data_write(file, clawdata, 'output_tfinal', '(final time)')
+        data_write(file, clawdata, 'tfinal', '(final time)')
     elif clawdata.output_style == 2:
         clawdata.output_ntimes = len(clawdata.output_times)
         data_write(file, clawdata, 'output_ntimes', '(number of output times)')
         data_write(file, clawdata, 'output_times', '(output times)')
     elif clawdata.output_style == 3:
         data_write(file, clawdata, 'output_step_interval', '(output every output_step_interval steps)')
-        data_write(file, clawdata, 'nsteps', '(number of steps to take)')
+        data_write(file, clawdata, 'total_steps', '(number of steps to take)')
     elif clawdata.output_style == 4:
         data_write(file, clawdata, 'output_time_interval', '(time between outputs)')
-        data_write(file, clawdata, 'output_tfinal', '(final time)')
+        data_write(file, clawdata, 'tfinal', '(final time)')
     else:
         print '*** Error: unrecognized output_style = ',output_style
         raise
@@ -650,7 +651,7 @@ def make_amrclawdatafile(clawdata):
         if bc == 'wall':
             setattr(clawdata, 'bc_'+bdry, 3)
 
-    data_write(file, clawdata, 'mbc', '(number of ghost cells)')
+    data_write(file, clawdata, 'num_ghost', '(number of ghost cells)')
     data_write(file, clawdata, 'bc_xlower', '(type of BC at xlower)')
     data_write(file, clawdata, 'bc_xupper', '(type of BC at xupper)')
     data_write(file, clawdata, 'bc_ylower', '(type of BC at ylower)')
@@ -662,25 +663,30 @@ def make_amrclawdatafile(clawdata):
 
     data_write(file, clawdata, 'restart', '(1 to restart from a past run)')
     data_write(file, clawdata, 'checkpt_style', '(how checkpoints specified)')
+    
     if clawdata.checkpt_style == 2:  
         clawdata.checkpt_ntimes = len(clawdata.checkpt_times)
         data_write(file, clawdata, 'checkpt_ntimes', '(number of checkpoint times)')
         data_write(file, clawdata, 'checkpt_times', '(checkpoint times)')
     elif clawdata.checkpt_style == 3:        
-        data_write(file, clawdata, 'checkpt_step_interval', '(how often to checkpoint)')
-    elif clawdata.checkpt_style == 4:        
-        data_write(file, clawdata, 'checkpt_time_interval', '(how often to checkpoint)')
-    elif clawdata.checkpt_style not in (0,1):
+        data_write(file, clawdata, 'checkpt_interval', '(step interval for checkpoint)')
+    elif clawdata.checkpt_style == 4:  
+        print "*** Error: checkpt_style==4 not yet implemented"
+        raise ValueError("Invalid checkpt_style")      
+        data_write(file, clawdata, 'checkpt_time_interval', '(time interval for checkpoint)')
+    else:
         print "*** Error, unrecognized checkpt_style = ",clawdata.checkpt_style
+        print "*** Require: 0,2,3, or 4"
         raise ValueError("Unrecognized checkpt_style")
         return
+        
     data_write(file, clawdata, None)
 
     data_write(file, clawdata, 'flag_richardson', '(use Richardson extrap?)')
     data_write(file, clawdata, 'flag_richardson_tol', '(tolerance for Richardson)')
     data_write(file, clawdata, 'flag_gradient', '(use gradient flagging?)')
     data_write(file, clawdata, 'flag_gradient_tol', '(tolerance used for gradient)')
-    data_write(file, clawdata, 'regrid_step_interval', '(how often to regrid)')
+    data_write(file, clawdata, 'regrid_interval', '(how often to regrid)')
     data_write(file, clawdata, 'regrid_buffer_width', '(buffer zone around flagged pts)')
     data_write(file, clawdata, 'clustering_cutoff', '(efficiency cutoff for clustering)')
     data_write(file, clawdata, 'verbosity_regrid', '(what levels to print grid info)')
@@ -715,6 +721,7 @@ def make_amrclawdatafile(clawdata):
     if clawdata.output_naux_components > 0:
         data_write(file, clawdata, 'output_aux_components', '(which components of aux)')
     data_write(file, clawdata, 'output_aux_onlyonce', '(only at t0?)')
+        
              
         
     data_write(file, clawdata, None)
