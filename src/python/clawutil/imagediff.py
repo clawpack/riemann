@@ -58,7 +58,7 @@ def make_imagediff(fname1,fname2,fname3='', verbose=True):
     return fname3
     
     
-def imagediff_dir(dir1, dir2, dir3="imagediff_dir", ext='.png', overwrite=False, verbose=True):
+def imagediff_dir(dir1, dir2, dir3="_image_diff", ext='.png', overwrite=False, verbose=True):
     
     import filecmp,glob
     

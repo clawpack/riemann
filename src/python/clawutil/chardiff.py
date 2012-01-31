@@ -189,7 +189,7 @@ def chardiff_file(fname1, fname2, print_all_lines=True, hfile1='', \
 # -----------------------------------------------------------------
     
 
-def chardiff_dir(dir1, dir2, file_pattern='all', dir3="diff_dir", 
+def chardiff_dir(dir1, dir2, file_pattern='all', dir3="_char_diff", 
                     overwrite=False, print_all_lines=True, verbose=False):
     """
     Run chardiff_file on all common files between dir1 and dir2 that match the patterns in the
@@ -197,7 +197,7 @@ def chardiff_dir(dir1, dir2, file_pattern='all', dir3="diff_dir",
     """
     import filecmp, glob
     
-    ignored_extensions = ['.o','.pdf','.ps','']
+    ignored_extensions = ['.o','.pdf','.ps','.chk','']
 
     # Construct sorted list of files matching in either or both directories:
     if file_pattern=='all':
@@ -248,11 +248,12 @@ def chardiff_dir(dir1, dir2, file_pattern='all', dir3="diff_dir",
     f_equal, f_diff, f_other = filecmp.cmpfiles(dir1,dir2,files,False)
     
     for f in files:
+        print "Checking ",f
         if (f=='.'):
             continue
         hfile.write("<li> <b>%s:</b> &nbsp; " % f)
         exten = os.path.splitext(f)[1]
-        if (exten in ignored_extensions):
+        if (exten[:4] in ignored_extensions):
             hfile.write("Ignoring files with exension '%s'\n" % exten)
         elif f not in files2:
             hfile.write("Only appears in dir1\n")
