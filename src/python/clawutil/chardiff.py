@@ -67,9 +67,12 @@ def chardiff_file(fname1, fname2, print_all_lines=True, hfile1='', \
                     toggle.append(j)
 
             if len(toggle)==0:
-                print "*** Error: toggle should be nonempty"
-                print "*** Aborting"
-                raise Exception()
+                #print "*** Error: toggle should be nonempty"
+                #print "*** Aborting"
+                #raise Exception()
+                # They might be the same after padding with blanks.
+                # Accept this case as ok...
+                line_changed = False
     
         if print_all_lines and (not line_changed):
             changed.append(False)
