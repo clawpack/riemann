@@ -14,9 +14,9 @@ Command line flags include:
 
 import os, sys, getopt
 
-def imagediff_file(fname1, fname2):
+def imagediff_file(fname1, fname2, verbose):
     
-    fname3 = make_imagediff(fname1,fname2)
+    fname3 = make_imagediff(fname1,fname2,verbose=verbose)
     
     hfile = "imagediff.html"
     html = open(hfile,"w")
@@ -37,7 +37,7 @@ def imagediff_file(fname1, fname2):
     
     
          
-def make_imagediff(fname1,fname2,fname3='', verbose=True):
+def make_imagediff(fname1,fname2,fname3='', verbose=False):
     ext1 = os.path.splitext(fname1)[1]
     ext2 = os.path.splitext(fname2)[1]
     if ext1 != ext2:
@@ -58,7 +58,8 @@ def make_imagediff(fname1,fname2,fname3='', verbose=True):
     return fname3
     
     
-def imagediff_dir(dir1, dir2, dir3="_image_diff", ext='.png', overwrite=False, verbose=True):
+def imagediff_dir(dir1, dir2, dir3="_image_diff", ext='.png', \
+                  overwrite=False, verbose=False):
     
     import filecmp,glob
     
@@ -85,9 +86,7 @@ def imagediff_dir(dir1, dir2, dir3="_image_diff", ext='.png', overwrite=False, v
     else:
         os.system('mkdir -p %s' % dir3)
     startdir = os.getcwd()
-    # dir1 = os.path.abspath(dir1)
-    # dir2 = os.path.abspath(dir2)
-    # dir3 = os.path.abspath(dir3)
+
     dir1 = '../' + dir1
     dir2 = '../' + dir2
     
@@ -110,17 +109,13 @@ def imagediff_dir(dir1, dir2, dir3="_image_diff", ext='.png', overwrite=False, v
     for f in files:
         fhtml = os.path.splitext(f)[0] + '.html'  ## Specific to Clawpack _plots
         if not os.path.isfile(os.path.join(dir1,fhtml)): fhtml = f
-        #hfile.write("""<h3>%s <a href="%s">in dir1</a> ... <a href="%s">in dir2</a>  </h3>""" \
-        #      % (f, os.path.join(dir1,fhtml), os.path.join(dir2,fhtml)))
-        
-        #hfile.write("""<h3>%s</h3>""" % f)
+  
         fname1 = os.path.join(dir1,f)
         fname2 = os.path.join(dir2,f)
         fhtml1 = os.path.join(dir1,fhtml)
         fhtml2 = os.path.join(dir2,fhtml)
         
         if f not in files2:
-            #hfile.write("<b>%s</b> only appears in dir1<p>\n" % f)
             hfile.write("""
               <table>
               <tr><td><b>%s</b> only appears in dir1</td></tr>
@@ -130,7 +125,6 @@ def imagediff_dir(dir1, dir2, dir3="_image_diff", ext='.png', overwrite=False, v
               </tr>
               </table><p>"""  % (f, fhtml1, fname1))
         elif f not in files1:
-            #hfile.write("<b>%s</b> only appears in dir2<p>\n" % f)
             hfile.write("""
               <table>
               <tr><td></td><td><b>%s</b> only appears in dir2</td></tr>
@@ -141,7 +135,6 @@ def imagediff_dir(dir1, dir2, dir3="_image_diff", ext='.png', overwrite=False, v
               </table><p>"""  % (f, fhtml2, fname2))
             
         elif f in f_equal:
-            #hfile.write("Are identical in dir1 and dir2 <p>\n")
             fname1 = os.path.join(dir1,f)
             hfile.write("""
               <table>
@@ -154,10 +147,9 @@ def imagediff_dir(dir1, dir2, dir3="_image_diff", ext='.png', overwrite=False, v
             #               <a href="%s"><img src="%s" width=350 border="1"></a>""" \
             #                 % (fname1,fname1))
         else:
-            #hfile.write("Images differ in the black pixels in the third image ...<p>\n")
             fname3 = f
 
-            fname3 = make_imagediff(fname1,fname2,fname3)
+            fname3 = make_imagediff(fname1,fname2,fname3,verbose=verbose)
             hfile.write("""
               <table>
               <tr><td><b>%s</b> from dir1</td><td><b>%s</b>  from dir2</td>
