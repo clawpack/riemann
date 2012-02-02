@@ -3,7 +3,7 @@ Module to do regression test of output directory against a version
 that has been archived.  
 
 Can run at command line from an application directory, e.g.:
-  $ python $CLAW/python/pyclaw/regression_test.py OUTDIR1 OUTDIR2
+  $ python $CLAW/python/pyclaw/regression_test.py output OUTDIR1 OUTDIR2
 to compare the data in OUTDIR1 to the regression data in OUTDIR2.
 
 If OUTDIR2 is not specified, will attempt to download comparison data from
@@ -16,10 +16,6 @@ To add new data to repository use the save_regression_data.py module.
 
 Need to improve and document better!
 
-Notes: 
-  This uses the difflib module to produce diffs if files do not agree and
-  display them as webpages.  If there are many diffs, this won't necessarily
-  do a line-by-line comparison, which might be preferable.
 
 """
 
@@ -122,8 +118,9 @@ def cmp_dir(outdir, regdir):
     For files that differ, create html files highlighting differences.
     """
 
-    import filecmp, difflib, glob
+    from clawutil import chardiff
 
+    
     files = os.listdir(regdir)
     print "Comparing files in the output directory: ",outdir
     print "          with the regression directory: ", regdir
@@ -135,58 +132,11 @@ def cmp_dir(outdir, regdir):
             with the regression directory: &nbsp; %s<p>
             """ % (outdir,regdir))
                     
-    match,mismatch,errors = filecmp.cmpfiles(outdir, regdir, files)
-    
-    if (len(mismatch)==0) and (len(errors)==0):
-        print "All files are identical"
-        hfile.write("<h2>All files are identical</h2>\n")
-        
-        
-    if (len(errors)>0):
-        hfile.write("<h2>Files that are missing from output directory:</h2>\n<ul>\n")     
-        print "Errors comparing the following files (missing from output directory?): "
-        for fname in errors:
-            print "   ",fname
-            hfile.write(' <li> %s' % fname)
-        hfile.write("</ul>\n")
-        
-        
-    
-    if (len(mismatch)>0):
-        
-        hfile.write("""
-                <h2>Files that disagree with archived regression files:</h2>
-                <ul>
-                """)
-        print "Mismatches in the following files: "
-        for file in mismatch:
-            ofile = os.path.join(outdir,file)
-            rfile = os.path.join(regdir,file)
-            tol = 1.e99  # Report all differences.  How best to set this??
-            diff_results,max_diff,max_i = approximateDiff(ofile,rfile,tol)
-            print "==>  %s : Maximum difference = %13.5e on line %s" \
-                  % (file.rjust(20),max_diff,max_i)
 
-            f1 = open(ofile).readlines()
-            f2 = open(rfile).readlines()
-            differ = difflib.HtmlDiff()
-            diffs = differ.make_file(f1,f2,fromdesc=ofile,todesc='archived')
-            fdiff = open(ofile+'_diffs.html','w')
-            fdiff.write(diffs)
-            fdiff.close()
-            hfile.write(' <li> <a href="%s">%s</a> &nbsp; Maximum difference = %13.5e on line %s\n' \
-               % (file+'_diffs.html',file,max_diff,max_i))
-        hfile.write("""
-                </ul>
-                </html>""")
-        hfile.close()
-        
-    print "To view diffs, open the file ",outdir+'/diffs.html'
         
 
-def compare_plots(outdir, plotdir, regression_plotdir, comparison_plotdir="_plots_comparison", \
-                  setplot="setplot.py", printfigs=True):
-           
+def compare_plots(plotdir, regression_plotdir, comparison_plotdir="_plots_diff")
+                  
     """
     Generate plots in plotdir using the setplot module and then
     create html files showing side-by-side comparison with those in regression_plotdir.
@@ -194,21 +144,8 @@ def compare_plots(outdir, plotdir, regression_plotdir, comparison_plotdir="_plot
     archived regression data.
     """
 
-    from visclaw.plotters.plotpages import plotclaw2html_compare, plotclaw_driver
-    from visclaw.plotters.data import ClawPlotData
-    from visclaw.plotters.frametools import call_setplot
+    from clawutil import imagediff
 
-    plotdata = ClawPlotData()
-    plotdata = call_setplot(setplot, plotdata)
-    plotdata.plotdir = plotdir
-    plotdata.outdir = outdir
-    plotdata.printfigs = printfigs
-    plotdata.setplot = False
-    
-    # Create plots:
-    plotdata = plotclaw_driver(plotdata)
-    #import pdb; pdb.set_trace()
-    
     if not os.path.isdir(plotdir):
         print "*** Directory not found: ",plotdir
         return
@@ -221,7 +158,7 @@ def compare_plots(outdir, plotdir, regression_plotdir, comparison_plotdir="_plot
             print "*** Attempt to fetch regression data also failed."
             return
 
-    plotclaw2html_compare(plotdata, plotdir, regression_plotdir, comparison_plotdir)
+    imagediff.imagediff_dir(plotdir, regression_plotdir, comparison_plotdir)
 
 
 def fetch_regression_data(outdir):
@@ -237,7 +174,6 @@ def fetch_regression_data(outdir):
     tarfile = thisdir.replace('/','-') + '-' + outdir + '.tar.gz'
     regdir = outdir + '-regression_data'
 
-    #remote_regdir = "clawpack@homer.u.washington.edu:public_html/regression_data/"
     url = "http://www.clawpack.org/regression_data"
 
     print "Trying to retrieve %s \n   from %s" % (tarfile, url)
