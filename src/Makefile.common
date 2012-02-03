@@ -177,7 +177,7 @@ output: $(MAKEFILE_LIST);
 
 # (Removed Cygwin stuff...)
 # Plotting command
-PLOTCMD ?= $(CLAW_PYTHON) $(VISCLAW)/src/python/visclaw/plotters/plotclaw.py
+PLOTCMD ?= $(CLAW_PYTHON) $(VISCLAW)/src/python/visclaw/plotclaw.py
 
 # Rule to make the plots into subdirectory specified by PLOT_DIR,
 # using data in subdirectory specified by OUT_DIR and the plotting
