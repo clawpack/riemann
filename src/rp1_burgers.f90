@@ -7,7 +7,7 @@
 ! R. J. LeVeque.
 
     
-    implicit none 
+    implicit double precision (a-h,o-z)
 	
 	integer :: maxmx, meqn, mwaves, mbc, mx
 	
