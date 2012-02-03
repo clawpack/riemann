@@ -63,7 +63,10 @@ def imagediff_dir(dir1, dir2, dir3="_image_diff", ext='.png', \
     
     import filecmp,glob
     
-    files1 = glob.glob("%s/*%s" % (dir1,ext))
+    if dir1[-1] == '/': dir1 = dir1[:-1]
+    if dir2[-1] == '/': dir2 = dir2[:-1]
+    
+    files1 = glob.glob("%s/*%s" % (dir1,ext))    
     files1 = [f.replace(dir1+'/','') for f in files1]
     files2 = glob.glob("%s/*%s" % (dir2,ext))
     files2 = [f.replace(dir2+'/','') for f in files2]
@@ -109,7 +112,7 @@ def imagediff_dir(dir1, dir2, dir3="_image_diff", ext='.png', \
     for f in files:
         fhtml = os.path.splitext(f)[0] + '.html'  ## Specific to Clawpack _plots
         if not os.path.isfile(os.path.join(dir1,fhtml)): fhtml = f
-  
+          
         fname1 = os.path.join(dir1,f)
         fname2 = os.path.join(dir2,f)
         fhtml1 = os.path.join(dir1,fhtml)
