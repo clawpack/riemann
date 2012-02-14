@@ -74,6 +74,6 @@ rp3_vc_acoustics.so: $(RIEMANN)/src/rpn3_vc_acoustics.f90 $(RIEMANN)/src/rpt3_vc
 	f2py -m rp3_vc_acoustics -c  $(RIEMANN)/src/rpn3_vc_acoustics.f90 $(RIEMANN)/src/rpt3_vc_acoustics.f90 $(RIEMANN)/src/rptt3_vc_acoustics.f90
 
 rp3acv.so: $(RIEMANN)/src/rpn3acv.f90 $(RIEMANN)/src/rpt3acv.f90 $(RIEMANN)/src/rptt3acv.f90
-	f2py -m rp3_vc_acoustics -c $(RIEMANN)/src/rpn3acv.f90 $(RIEMANN)/src/rpt3acv.f90 $(RIEMANN)/src/rptt3acv.f90
+	f2py -m rp3acv -c $(RIEMANN)/src/rpn3acv.f90 $(RIEMANN)/src/rpt3acv.f90 $(RIEMANN)/src/rptt3acv.f90
 
 
