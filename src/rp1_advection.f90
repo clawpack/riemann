@@ -22,14 +22,13 @@
 
 
     implicit double precision (a-h,o-z)
-    dimension   ql( meqn,1-mbc:maxmx+mbc)
-    dimension   qr( meqn,1-mbc:maxmx+mbc)
-    dimension   amdq( meqn,1-mbc:maxmx+mbc)
-    dimension   apdq( meqn,1-mbc:maxmx+mbc)
-    dimension    s(mwaves,1-mbc:maxmx+mbc)
-    dimension wave(meqn, mwaves,1-mbc:maxmx+mbc)
+    double precision ::   ql( meqn,1-mbc:maxmx+mbc)
+    double precision ::   qr( meqn,1-mbc:maxmx+mbc)
+    double precision ::   amdq( meqn,1-mbc:maxmx+mbc)
+    double precision ::   apdq( meqn,1-mbc:maxmx+mbc)
+    double precision ::    s(mwaves,1-mbc:maxmx+mbc)
+    double precision :: wave(meqn, mwaves,1-mbc:maxmx+mbc)
     common /cparam/ u
-
 
     do 30 i=2-mbc,mx+mbc
     
