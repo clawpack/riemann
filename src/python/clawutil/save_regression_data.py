@@ -14,7 +14,7 @@ def send_outdir(outdir="_output"):
     if os.path.exists(regdir):
         raise Exception("Directory %s already exists" % regdir)
 
-    os.system("ln -s %s  %s" % (outdir, regdir))
+    os.system("ln -sf %s  %s" % (outdir, regdir))
     os.system("tar -cHf %s %s" % (tarfile, regdir))
     os.system("gzip %s" % tarfile)
     tarfile = tarfile + '.gz'

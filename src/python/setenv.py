@@ -217,7 +217,8 @@ def write_env_files(claw_path,verbose=True,outfile_base="setenv",
         write_environment_variable(csh_file,bash_file,"PYCLAW",available_projects["pyclaw"])
 
     if "clawapps" in available_projects:
-        raise NotImplementedError("Environment settings not implemented for clawapps!")
+        #raise NotImplementedError("Environment settings not implemented for clawapps!")
+        pass
 
     if "doc" in available_projects:
         pass
