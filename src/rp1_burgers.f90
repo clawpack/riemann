@@ -8,8 +8,9 @@ subroutine rp1(maxmx,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq,num_aux
 
     
     implicit double precision (a-h,o-z)
-    
+
     integer :: maxmx, meqn, mwaves, mbc, mx
+        
     double precision :: ql(meqn,1-mbc:maxmx+mbc)
     double precision :: qr(meqn,1-mbc:maxmx+mbc)
     double precision :: s(mwaves, 1-mbc:maxmx+mbc)
