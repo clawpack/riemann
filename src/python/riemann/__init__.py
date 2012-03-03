@@ -25,6 +25,7 @@ try:
     import rp1_nonlinear_elasticity_fwave
     import rp1_reactive_euler_with_efix
     import rp1_shallow_roe_with_efix
+    import rp1_layered_shallow_water
     import rp2_acoustics
     import rp2_advection
     import rp2_euler_mapgrid
@@ -36,5 +37,10 @@ try:
     import rp2_vc_acoustics
     import rp2_vc_advection
     import rp3_vc_acoustics
-except ImportError:
-    print 'Warning: Some Riemannn solvers not found.  Remember to make in RIEMANN/src/python/riemann.'
+except ImportError as e:
+    import traceback
+    print "********************************************************************"
+    print 'Warning: Some Riemannn solvers were not able to be imported.'
+    print '         Did you run make in RIEMANN/src/python/riemann.'
+    traceback.print_exc()
+    print "********************************************************************"
