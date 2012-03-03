@@ -3,12 +3,10 @@
 ! ============================================================================
 subroutine rp1(maxmx,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq,num_aux)
 
-    use rp1_layerd_shallow_water_module
-
     implicit none
     
     ! Input arguments
-    integer, intent(in) :: maxmx,meqn,mwaves,mbc,mx
+    integer, intent(in) :: maxmx,meqn,mwaves,mbc,mx,num_aux
     
     double precision, intent(in), dimension(meqn,1-mbc:maxmx+mbc) :: ql,qr
     double precision, intent(in), dimension(num_aux,1-mbc:maxmx+mbc) :: auxl,auxr
@@ -43,9 +41,18 @@ subroutine rp1(maxmx,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq,num_au
         end function eval_lapack_solve
     end interface
 
-    ! Common block
+    ! Common block variables
     double precision :: dt,dx,t
+    integer :: eigen_method,inundation_method
+    logical :: entropy_fix
+    double precision :: dry_tolerance
+    double precision :: r,g,one_minus_r,rho_air,rho(2)
+
+    common /cparam/ rho,r,g,one_minus_r,rho_air, &
+                    dry_tolerance,eigen_method,inundation_method,entropy_fix
+                    
     common /comxt/ dt,dx,t
+    
     
     ! Initialize return variables
     amdq = 0.d0
@@ -333,10 +340,10 @@ subroutine rp1(maxmx,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq,num_au
         delta(2) = delta(2) + momentum_transfer(1)
         delta(4) = delta(4) + momentum_transfer(2)
         
-        ! Wind forcing
-        wind_speed = 0.5d0 * (w_l + w_r)
-        tau = wind_drag(wind_speed) * rho_air * wind_speed
-        delta(2) = delta(2) - tau * wind_speed
+        ! Wind forcing, taken care of in the source term
+!         wind_speed = 0.5d0 * (w_l + w_r)
+!         tau = wind_drag(wind_speed) * rho_air * wind_speed
+!         delta(2) = delta(2) - tau * wind_speed
 
         ! ====================================================================
         ! Solve system, solution is stored in delta
@@ -402,8 +409,6 @@ end subroutine rp1
 subroutine linear_eigen(h_l,h_r,u_l,u_r,b_l,b_r,            &
                          &  transonic_wave,wave_correction,s,eig_vec)
 
-    use parameters_module, only: r,g,dry_tolerance,entropy_fix
-
     implicit none
     
     ! I/O
@@ -418,6 +423,14 @@ subroutine linear_eigen(h_l,h_r,u_l,u_r,b_l,b_r,            &
     double precision :: alpha(4),speeds(4,2),gamma_l,gamma_r
     double precision :: h_ave(2),u_ave(2)
     double precision :: s_l(4),s_r(4),s_ave(4),work_vec(4,4)
+    
+    ! Common block parameters
+    integer :: eigen_method,inundation_method
+    logical :: entropy_fix
+    double precision :: rho(2),rho_air,r,g,one_minus_r,dry_tolerance
+
+    common /cparam/ rho,r,g,one_minus_r,rho_air, &
+                    dry_tolerance,eigen_method,inundation_method,entropy_fix
         
     gamma_l = h_l(2) / h_l(1)
     gamma_r = h_r(2) / h_r(1)
@@ -480,8 +493,6 @@ end subroutine linear_eigen
 subroutine velocity_eigen(h_l,h_r,u_l,u_r,b_l,b_r,            &
                          &  transonic_wave,wave_correction,s,eig_vec)
 
-    use parameters_module, only: r,g,one_minus_r
-
     implicit none
     
     ! I/O
@@ -493,6 +504,14 @@ subroutine velocity_eigen(h_l,h_r,u_l,u_r,b_l,b_r,            &
     ! Locals
     double precision :: total_depth_l,total_depth_r,mult_depth_l,mult_depth_r
     double precision :: alpha(4)
+    
+    ! Common block parameters
+    integer :: eigen_method,inundation_method
+    logical :: entropy_fix
+    double precision :: rho(2),rho_air,r,g,one_minus_r,dry_tolerance
+
+    common /cparam/ rho,r,g,one_minus_r,rho_air, &
+                    dry_tolerance,eigen_method,inundation_method,entropy_fix
     
     total_depth_l = sum(h_l)
     total_depth_r = sum(h_r)
@@ -531,8 +550,6 @@ end subroutine velocity_eigen
 subroutine lapack_eigen(h_l,h_r,u_l,u_r,b_l,b_r,            &
                          &  transonic_wave,wave_correction,s,eig_vec)
 
-    use parameters_module, only: entropy_fix
-
     implicit none
     
     ! I/O
@@ -546,6 +563,14 @@ subroutine lapack_eigen(h_l,h_r,u_l,u_r,b_l,b_r,            &
     integer :: j
     double precision :: h_ave(2),u_ave(2)
     double precision :: s_l(4),s_r(4),vec_work(4,4)
+    
+    ! Common block parameters
+    integer :: eigen_method,inundation_method
+    logical :: entropy_fix
+    double precision :: rho(2),rho_air,r,g,one_minus_r,dry_tolerance
+
+    common /cparam/ rho,r,g,one_minus_r,rho_air, &
+                    dry_tolerance,eigen_method,inundation_method,entropy_fix
     
     ! Solve eigenvalue problem
     h_ave(:) = 0.5d0 * (h_l(:) + h_r(:))
@@ -579,8 +604,6 @@ end subroutine lapack_eigen
 subroutine single_layer_eigen(h_l,h_r,u_l,u_r,b_l,b_r,            &
                          &  transonic_wave,wave_correction,s,eig_vec)
 
-    use parameters_module, only: g
-
     implicit none
     
     ! I/O
@@ -589,6 +612,14 @@ subroutine single_layer_eigen(h_l,h_r,u_l,u_r,b_l,b_r,            &
     integer, intent(inout) :: transonic_wave
     double precision, intent(inout) :: wave_correction
     double precision, intent(inout) :: s(4),eig_vec(4,4)
+    
+    ! Common block parameters
+    integer :: eigen_method,inundation_method
+    logical :: entropy_fix
+    double precision :: rho(2),rho_air,r,g,one_minus_r,dry_tolerance
+
+    common /cparam/ rho,r,g,one_minus_r,rho_air, &
+                    dry_tolerance,eigen_method,inundation_method,entropy_fix
     
     transonic_wave = 0
     wave_correction = 0.d0
@@ -617,8 +648,6 @@ end subroutine single_layer_eigen
 !  Evaluate eigenvalues using LAPACK's DGEEV function
 subroutine eval_lapack_eigen(h,u,lambda,vec)
 
-    use parameters_module, only: r,g
-
     implicit none
     double precision, intent(in) :: h(2),u(2)
     double precision, intent(inout) :: lambda(4),vec(4,4)
@@ -627,6 +656,14 @@ subroutine eval_lapack_eigen(h,u,lambda,vec)
     integer :: info
     double precision :: A(4,4),real_lambda(4),imaginary_lambda(4)
     double precision :: empty,work(1,lwork)
+    
+    ! Common-block parameters
+    integer :: eigen_method,inundation_method
+    logical :: entropy_fix
+    double precision :: rho(2),rho_air,r,g,one_minus_r,dry_tolerance
+
+    common /cparam/ rho,r,g,one_minus_r,rho_air, &
+                    dry_tolerance,eigen_method,inundation_method,entropy_fix
 
     ! Quasi-linear matrix
     A(1,:) = [0.d0,1.d0,0.d0,0.d0]
@@ -691,5 +728,4 @@ function eval_lapack_solve(eig_vec,delta) result(beta)
 
 end function eval_lapack_solve
 ! ============================================================================
-
 

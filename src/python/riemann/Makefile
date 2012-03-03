@@ -41,10 +41,7 @@ clean:
 
 # Special rules	
 rp2_kpp.so: $(RIEMANN)/src/rpn2_kpp.f90 $(RIEMANN)/src/rpt2_dummy.f90
-	f2py -m $(basename $(notdir $@)) -c  $<
+	f2py -m $(basename $(notdir $@)) -c  $(RIEMANN)/src/rpn2_kpp.f90 $(RIEMANN)/src/rpt2_dummy.f90
 	
 rp3acv.so: $(RIEMANN)/src/rpn3acv.f90 $(RIEMANN)/src/rpt3acv.f90 $(RIEMANN)/src/rptt3acv.f90
-	f2py -m $(basename $(notdir $@)) -c $<
-	
-rp1_layered_shallow_water.so: $(RIEMANN)/src/rp1_layered_shallow_water_module.f90 $(RIEMANN)/src/rp1_layered_shallow_water.f90
-	f2py -m $(basename $(notdir $@)) -c $<
+	f2py -m $(basename $(notdir $@)) -c $(RIEMANN)/src/rpn3acv.f90 $(RIEMANN)/src/rpt3acv.f90 $(RIEMANN)/src/rptt3acv.f90
