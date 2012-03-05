@@ -42,6 +42,13 @@ subroutine rp1(maxmx,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq,num_au
             double precision :: beta(4)
         end function eval_lapack_solve
     end interface
+    interface
+        double precision function wind_drag(wind_speed)
+            implicit none
+            double precision, intent(in) :: wind_speed
+        end function wind_drag
+    end interface
+    
 
     ! Common blocks
     double precision :: rho(2),rho_air,g,r,one_minus_r
@@ -339,9 +346,9 @@ subroutine rp1(maxmx,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq,num_au
         delta(4) = delta(4) + momentum_transfer(2)
         
         ! Wind forcing
-!         wind_speed = 0.5d0 * (w_l + w_r)
-!         tau = wind_drag(wind_speed) * rho_air * wind_speed
-!         delta(2) = delta(2) - tau * wind_speed
+        wind_speed = 0.5d0 * (w_l + w_r)
+        tau = wind_drag(wind_speed) * rho_air * wind_speed
+        delta(2) = delta(2) - tau * wind_speed
 
         ! ====================================================================
         ! Solve system, solution is stored in delta
@@ -733,5 +740,27 @@ function eval_lapack_solve(eig_vec,delta) result(beta)
 
 end function eval_lapack_solve
 ! ============================================================================
+
+! ============================================================================
+!  Calculate wind drag coefficient
+double precision function wind_drag(wind_speed)
+    
+    implicit none
+        
+    ! Input
+    double precision, intent(in) :: wind_speed
+        
+    if (wind_speed <= 11.d0) then
+        wind_drag = 1.2d0
+    else if ((wind_speed > 11.d0).and.(wind_speed <= 25.d0)) then
+        wind_drag = 0.49d0 + 0.065d0 * wind_speed
+    else
+        wind_drag = 0.49 + 0.065d0 * 25.d0
+    endif
+        
+    wind_drag = wind_drag * 10.d-3
+    
+end function wind_drag
+
 
 
