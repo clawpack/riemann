@@ -38,10 +38,17 @@ all: $(SHARED_OBJECTS)
 
 clean:
 	-rm -f $(SHARED_OBJECTS)
+	
+new:
+	$(MAKE) clean
+	$(MAKE) all
 
 # Special rules	
 rp2_kpp.so: $(RIEMANN)/src/rpn2_kpp.f90 $(RIEMANN)/src/rpt2_dummy.f90
 	f2py -m $(basename $(notdir $@)) -c  $(RIEMANN)/src/rpn2_kpp.f90 $(RIEMANN)/src/rpt2_dummy.f90
+
+rp2_euler_mapgrid.so: $(RIEMANN)/src/rpn2_euler_mapgrid.f90 $(RIEMANN)/src/rpt2_euler_mapgrid.f90 $(RIEMANN)/src/euler_roe_solver_mapgrid.f90 $(RIEMANN)/src/getquadinfo_mapgrid.f90
+	f2py -m $(basename $(notdir $@)) -c $(RIEMANN)/src/rpn2_euler_mapgrid.f90 $(RIEMANN)/src/rpt2_euler_mapgrid.f90 $(RIEMANN)/src/euler_roe_solver_mapgrid.f90 $(RIEMANN)/src/getquadinfo_mapgrid.f90
 	
 rp3acv.so: $(RIEMANN)/src/rpn3acv.f90 $(RIEMANN)/src/rpt3acv.f90 $(RIEMANN)/src/rptt3acv.f90
 	f2py -m $(basename $(notdir $@)) -c $(RIEMANN)/src/rpn3acv.f90 $(RIEMANN)/src/rpt3acv.f90 $(RIEMANN)/src/rptt3acv.f90
