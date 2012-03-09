@@ -166,8 +166,7 @@ def write_env_files(claw_path,verbose=True,outfile_base="setenv",
         missing_projects = check_repos_dependencies(project,available_projects.keys())
         if missing_projects is not None:
             error_msg = "The project %s depends on the following missing projects:" % project_name
-            for project in missing_projects:
-                error_msg += "\n  %s" % project
+            error_msg += ("\n %s" % name for name in missing_projects)
             
     # =========================================================================
     #  Write out out_file_base.csh and out_file_base.sh
@@ -217,9 +216,8 @@ def write_env_files(claw_path,verbose=True,outfile_base="setenv",
         write_environment_variable(csh_file,bash_file,"PYCLAW",available_projects["pyclaw"])
 
     if "clawapps" in available_projects:
-        #raise NotImplementedError("Environment settings not implemented for clawapps!")
-        pass
-
+        print "  CLAWAPPS = %s" % available_projects["clawapps"]
+        write_environment_variable(csh_file,bash_file,"CLAWAPPS",available_projects["clawapps"])
     if "doc" in available_projects:
         pass
         
@@ -240,8 +238,7 @@ def write_env_files(claw_path,verbose=True,outfile_base="setenv",
         write_environment_variable(csh_file,bash_file,"SHARPCLAW",available_projects["sharpclaw"])
 
     if "clawpack-4.x" in available_projects:
-        # python_path
-        # = ":".join((os.path.join(available_projects["clawpack-4.x"],"python"),python_path))
+        # python_path = ":".join((os.path.join(available_projects["clawpack-4.x"],"python"),python_path))
         print "  CLAW_4 = %s" % available_projects["clawpack-4.x"]
         write_environment_variable(csh_file,bash_file,"CLAW_4",available_projects["clawpack-4.x"])
 
