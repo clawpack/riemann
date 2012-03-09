@@ -38,6 +38,44 @@ project_dependencies = {"classic":["riemann","clawutil"],
                         "visclaw":["clawutil"],
                         "sharpclaw":["riemann","clawutil"]}
 
+# This was intended to be a prefered means for adding and deleting paths for
+# the resulting output script but we need a csh version before this will really
+# work correctly without adding a lot of complexity to this utility (KTM)
+bash_path_modification_functions = """
+# These are utility functions for manipulating paths
+var_append () {
+    # Check to see if the variable exists
+    if [ -z "${1}" ]; then
+        export ${1}="${2}"
+    else
+        var_remove $1 $2
+        export ${1}="`/usr/bin/printenv $1`:${2}"
+    fi
+}
+var_prepend () {
+    # Check to see if variable exists
+    if [ -z "${1}" ]; then
+        export ${1}="${2}"
+    else
+        var_remove $1 $2
+        export ${1}="${2}:`/usr/bin/printenv $1`"
+    fi
+}
+var_remove () {
+    VAR_CONTENTS=`/usr/bin/printenv $1`
+    NEW_VAR=`echo -n $VAR_CONTENTS | awk -v RS=: -v ORS=: '$0 != "'$2'"' | sed 's/:$//'`
+    export ${1}=${NEW_VAR}
+} 
+
+path_append () { var_append PATH $1; }
+path_prepend () { var_prepend PATH $1; }
+path_remove () { var_remove PATH $1; }
+python_append () { var_append PYTHONPATH $1;}
+python_prepend () { var_prepend PYTHONPATH $1;}
+python_remove () { var_remove PYTHONPATH $1;}  
+
+"""
+
 # ============================================================================
 #  Help display
 class Usage(Exception):
@@ -62,6 +100,10 @@ Command line script parameters:
   -h, --help - Display help message
   -o, --output= (string) - The base name for the output bash and csh files 
                            (default == "setenv")
+  -s, --shell= (string) - Type of shell script to output, valid options include
+                         'csh', 'bash', 'sh', or 'both'.  The option 'both'
+                         will output both a "csh" and "sh" compatable file.
+                         (default == 'both')
                            
 Project path options:
   -c, --claw= (string) - Path to base CLAW directory.  If this option is choosen
@@ -77,8 +119,10 @@ Project path options:
 # ============================================================================
 #  Helper functions
 def write_environment_variable(csh_handle,bash_handle,var,value):
-    csh_handle.write('setenv %s "%s"\n' % (var.upper(),value))
-    bash_handle.write('export %s="%s"\n' % (var.upper(),value))
+    if csh_handle is not None:
+        csh_handle.write('setenv %s "%s"\n' % (var.upper(),value))
+    if bash_handle is not None:
+        bash_handle.write('export %s="%s"\n' % (var.upper(),value))
 
 def check_repos_dependencies(project_name,available_projects):
     r"""Checks that required repositories of project_name are present"""
@@ -91,8 +135,8 @@ def check_repos_dependencies(project_name,available_projects):
     return None
 
 # ============================================================================
-def write_env_files(claw_path,verbose=True,outfile_base="setenv",**kargs):
-    
+def write_env_files(claw_path,verbose=True,outfile_base="setenv",
+                                                shell_type='both',**kargs):
     # Find projects
     available_projects = {}
     print "Found the following Clawpack projects:"
@@ -122,20 +166,22 @@ def write_env_files(claw_path,verbose=True,outfile_base="setenv",**kargs):
         missing_projects = check_repos_dependencies(project,available_projects.keys())
         if missing_projects is not None:
             error_msg = "The project %s depends on the following missing projects:" % project_name
-            for project in missing_projects:
-                error_msg += "\n  %s" % project
+            error_msg += ("\n %s" % name for name in missing_projects)
             
     # =========================================================================
     #  Write out out_file_base.csh and out_file_base.sh
-    
     # Open output files
-    csh_file = open(os.path.join(claw_path,".".join((outfile_base,"csh"))),'w')
-    bash_file = open(os.path.join(claw_path,".".join((outfile_base,"bash"))),'w')
-    
-    # Write out boiler plate
     boiler_plate = ("# Clawpack environment settings\n")
-    csh_file.write(boiler_plate)
-    bash_file.write(boiler_plate)
+    if "csh" in shell_type:
+        csh_file = open(os.path.join(claw_path,".".join((outfile_base,"csh"))),'w')
+        csh_file.write(boiler_plate)
+    else:
+        csh_file = None
+    if "bash" == shell_type or "sh" == shell_type:
+        bash_file = open(os.path.join(claw_path,".".join((outfile_base,"bash"))),'w')
+        bash_file.write(boiler_plate)
+    else:
+        bash_file = None
     
     # Write out variables
     python_path = "${PYTHONPATH}"
@@ -170,9 +216,8 @@ def write_env_files(claw_path,verbose=True,outfile_base="setenv",**kargs):
         write_environment_variable(csh_file,bash_file,"PYCLAW",available_projects["pyclaw"])
 
     if "clawapps" in available_projects:
-        #raise NotImplementedError("Environment settings not implemented for clawapps!")
-        pass
-
+        print "  CLAWAPPS = %s" % available_projects["clawapps"]
+        write_environment_variable(csh_file,bash_file,"CLAWAPPS",available_projects["clawapps"])
     if "doc" in available_projects:
         pass
         
@@ -193,8 +238,7 @@ def write_env_files(claw_path,verbose=True,outfile_base="setenv",**kargs):
         write_environment_variable(csh_file,bash_file,"SHARPCLAW",available_projects["sharpclaw"])
 
     if "clawpack-4.x" in available_projects:
-        # python_path
-        # = ":".join((os.path.join(available_projects["clawpack-4.x"],"python"),python_path))
+        # python_path = ":".join((os.path.join(available_projects["clawpack-4.x"],"python"),python_path))
         print "  CLAW_4 = %s" % available_projects["clawpack-4.x"]
         write_environment_variable(csh_file,bash_file,"CLAW_4",available_projects["clawpack-4.x"])
 
@@ -207,8 +251,10 @@ def write_env_files(claw_path,verbose=True,outfile_base="setenv",**kargs):
     print ""
         
     # Close output files
-    csh_file.close()
-    bash_file.close()
+    if csh_file is not None:
+        csh_file.close()
+    if bash_file is not None:
+        bash_file.close()
 
 if __name__ == "__main__":    
     # Parse input arguments
@@ -216,17 +262,18 @@ if __name__ == "__main__":
     project_paths = {}
     try:
         try:
-            long_options = ["help","output=","verbose",
+            long_options = ["help","output=","verbose","shell=",
                  "claw="]
             for proj_name in git_repos:
                 long_options.append("%s=" % proj_name)
-            opts, args = getopt.getopt(argv[1:], "ho:vc:",long_options)
+            opts, args = getopt.getopt(argv[1:], "ho:vs:c",long_options)
         except getopt.error, msg:
             raise Usage(msg)
             
         # Default script parameter values
         verbose = False
         out_file_base = "setenv"
+        shell_type = 'both'
         
         # Default claw path
         claw_path = os.path.abspath(os.curdir)
@@ -235,9 +282,11 @@ if __name__ == "__main__":
         for option, value in opts:
             # Script parameters
             if option in ("-v","--verbose"):
-                 verbose = True
+                verbose = True
             if option in ("-o","--output"):
                 out_file_base = value
+            if option in ("-s","--shell"):
+                shell_type = value
             if option in ("-h","--help"):
                 raise Usage(help_message)
                                 
@@ -252,7 +301,8 @@ if __name__ == "__main__":
         print >> sys.stderr, sys.argv[0].split("/")[-1] + ": " + str(err.msg)
         print >> sys.stderr, "\t for help use --help"
         sys.exit(2)
-    
+
     sys.exit(write_env_files(claw_path,verbose=verbose,
-                outfile_base=out_file_base,**project_paths))
+                             outfile_base=out_file_base,shell_type=shell_type,
+                             **project_paths))
                 
