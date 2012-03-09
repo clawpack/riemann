@@ -52,6 +52,7 @@ MODULE_OBJECTS = $(subst .F,.o, $(subst .F90,.o, $(subst .f,.o, $(subst .f90,.o,
 INCLUDE ?=
 FFLAGS ?=
 LFLAGS ?= $(FFLAGS)
+PPFLAGS ?=
 
 # These will be included in all actual compilation and linking, one could
 # actually overwrite these before hand but that is not the intent of these
@@ -74,11 +75,23 @@ ALL_LFLAGS += $(LFLAGS)
 ifeq ($(findstring gfortran,$(CLAW_FC)),gfortran)
 	# There should be no space between this flag and the argument
 	MODULE_FLAG = -J
+	PPFLAGS += -cpp
 else ifeq ($(CLAW_FC),ifort)
 	# Note that there shoud be a space after this flag
 	MODULE_FLAG = -module 
+	PPFLAGS += -fpp 
 else
-	@echo "WARNING: Unknown Fortran compiler $(CLAW_FC), cannot set module include flag."
+	# Assume gcc like flagging, probably should raise an error here
+	MODULE_FLAG = -J
+	PPFLAGS += -cpp
+endif
+
+# Only set PPFLAGS in ALL_FFLAGS if this is the base Makefile run, MAKELEVEL
+# should be set by make itself but some versions do not so we default to
+# always setting it if that's the case
+MAKELEVEL ?= 0
+ifeq ($(MAKELEVEL),0)
+	ALL_FFLAGS += $(PPFLAGS)
 endif
 
 #----------------------------------------------------------------------------
@@ -205,11 +218,13 @@ plots: $(SETPLOT_FILE) $(MAKEFILE_LIST);
 
 # Recompile everything:
 
+# Note that we reset MAKELEVEL to 0 here so that we make sure to set the
+# preprocessor flags correctly
 new: 
 	-rm -f  $(OBJECTS)
 	-rm -f  $(MODULE_OBJECTS)
 	-rm -f  $(CLAW_EXE)
-	$(MAKE) $(CLAW_EXE)
+	$(MAKE) $(CLAW_EXE) MAKELEVEL=0
 
 
 # Clean up options:
