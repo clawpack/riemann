@@ -180,7 +180,7 @@ data: $(MAKEFILE_LIST);
 #----------------------------------------------------------------------------
 # Run the code without checking dependencies:
 output: $(MAKEFILE_LIST);
-	$(CLAW_PYTHON) $(CLAW)/clawutil/src/python/runclaw.py  $(CLAW_EXE) $(OUT_DIR) \
+	$(CLAW_PYTHON) $(CLAW)/clawutil/src/python/clawutil/runclaw.py  $(CLAW_EXE) $(OUT_DIR) \
 	$(OVERWRITE) $(RESTART)
 	@echo $(OUT_DIR) > .output
 
