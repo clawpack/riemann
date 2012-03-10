@@ -55,7 +55,7 @@ def status(path=None):
     return status
 
 
-def clone(repo,force=False):
+def clone(repo,force=False,verbose=False):
     r"""
     This function clones git repositories located at GitHub.
 
@@ -164,6 +164,8 @@ if __name__ == "__main__":
     elif function == "clone":
         if len(args) == 0:
             repos_list = env_variables.keys()
+        else:
+            repos_list = args
 
         print "This will attempt to clone copies of the following Clawpack projects:"
         print repos_list
