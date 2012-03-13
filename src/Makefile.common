@@ -223,6 +223,7 @@ plots: $(SETPLOT_FILE) $(MAKEFILE_LIST);
 new: 
 	-rm -f  $(OBJECTS)
 	-rm -f  $(MODULE_OBJECTS)
+	-rm -f  $(MODULE_FILES)
 	-rm -f  $(CLAW_EXE)
 	$(MAKE) $(CLAW_EXE) MAKELEVEL=0
 
@@ -236,6 +237,7 @@ clobber:
 	$(MAKE) clean
 	-rm -f $(OBJECTS)
 	-rm -f $(MODULE_OBJECTS)
+	-rm -f $(MODULE_FILES)
 	-rm -f fort.*  *.pyc pyclaw.log 
 	-rm -f -r $(OUT_DIR) $(PLOT_DIR)
 
