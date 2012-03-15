@@ -164,25 +164,27 @@ Makefile.html : Makefile ; $(CC2HTML) $<
 
 # Make data files needed by Fortran code:
 .data: $(SETRUN_FILE) $(MAKEFILE_LIST) ;
-	$(MAKE) data
-
-data: $(MAKEFILE_LIST);
 	$(CLAW_PYTHON) $(SETRUN_FILE) $(CLAW_PKG)
 	touch .data
+
+data: $(MAKEFILE_LIST);
+	-rm -f .data
+	$(MAKE) .data
 
 #----------------------------------------------------------------------------
 # Run the code and put fort.* files into subdirectory named output:
 # runclaw will execute setrun.py to create data files and determine
 # what executable to run, e.g. xclaw or xamr.
 .output: $(CLAW_EXE) .data $(MAKEFILE_LIST);
-	$(MAKE) output
+	$(CLAW_PYTHON) $(CLAW)/clawutil/src/python/clawutil/runclaw.py  $(CLAW_EXE) $(OUT_DIR) \
+	$(OVERWRITE) $(RESTART)
+	@echo $(OUT_DIR) > .output
 
 #----------------------------------------------------------------------------
 # Run the code without checking dependencies:
 output: $(MAKEFILE_LIST);
-	$(CLAW_PYTHON) $(CLAW)/clawutil/src/python/clawutil/runclaw.py  $(CLAW_EXE) $(OUT_DIR) \
-	$(OVERWRITE) $(RESTART)
-	@echo $(OUT_DIR) > .output
+	-rm -f .output
+	$(MAKE) .output
 
 #----------------------------------------------------------------------------
 
@@ -195,14 +197,14 @@ PLOTCMD ?= $(CLAW_PYTHON) $(VISCLAW)/src/python/visclaw/plotclaw.py
 # Rule to make the plots into subdirectory specified by PLOT_DIR,
 # using data in subdirectory specified by OUT_DIR and the plotting
 # commands specified in CLAW_SETPLOT.
-
 .plots: .output $(SETPLOT_FILE) $(MAKEFILE_LIST) ;
-	$(MAKE) plots
+	$(PLOTCMD) $(OUT_DIR) $(PLOT_DIR) $(SETPLOT_FILE)
+	@echo $(PLOT_DIR) > .plots
 
 # Make the plots without checking dependencies:
 plots: $(SETPLOT_FILE) $(MAKEFILE_LIST);
-	$(PLOTCMD) $(OUT_DIR) $(PLOT_DIR) $(SETPLOT_FILE)
-	@echo $(PLOT_DIR) > .plots
+	-rm -f .plots
+	$(MAKE) .plots
 
 #----------------------------------------------------------------------------
 
@@ -223,6 +225,7 @@ plots: $(SETPLOT_FILE) $(MAKEFILE_LIST);
 new: 
 	-rm -f  $(OBJECTS)
 	-rm -f  $(MODULE_OBJECTS)
+	-rm -f  $(MODULE_FILES)
 	-rm -f  $(CLAW_EXE)
 	$(MAKE) $(CLAW_EXE) MAKELEVEL=0
 
@@ -236,6 +239,7 @@ clobber:
 	$(MAKE) clean
 	-rm -f $(OBJECTS)
 	-rm -f $(MODULE_OBJECTS)
+	-rm -f $(MODULE_FILES)
 	-rm -f fort.*  *.pyc pyclaw.log 
 	-rm -f -r $(OUT_DIR) $(PLOT_DIR)
 
