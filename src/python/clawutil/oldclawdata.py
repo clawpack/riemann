@@ -1312,6 +1312,19 @@ class GeoclawInputData(Data):
         self.add_attribute('variable_dt_refinement_ratios',False)
         # NEED TO CONTINUE!
 
+        # Speed refinement
+        self.add_attribute('max_speed_nest',5)
+        self.add_attribute('momentum_refinement',False)
+        self.add_attribute('speed_refine',[0.25,0.5,1.0,2.0,3.0,4.0])
+        
+        # Multilayer data
+        self.add_attribute('layers',1)
+        self.add_attribute('rho',1.0)
+        self.add_attribute('eta',0.0)
+        self.add_attribute('richardson_tolerance',0.95)
+        self.add_attribute('eigen_method',2)
+        self.add_attribute('inundation_method',2)
+
     def write(self):
 
         # print 'Creating data file setgeo.data'
@@ -1324,11 +1337,21 @@ class GeoclawInputData(Data):
         data_write(file, self, 'Rearth')
         data_write(file, self, 'variable_dt_refinement_ratios')
         file.close()
+        
+        file = open_datafile('multilayer.data')
+        data_write(file,self,'layers')
+        data_write(file,self,'rho')
+        data_write(file,self,'eta_init')
+        data_write(file,self,'richardson_tolerance')
+        data_write(file,self,'eigen_method')
+        data_write(file,self,'inundation_method')
+        file.close()
 
         # print 'Creating data file settsunami.data'
         # open file and write a warning header:
-        file = open_datafile('settsunami.data')
-        data_write(file, self, 'sealevel')
+        file = open_datafile('setshallow.data')
+        # Moved to multilayer.data file under eta parameters
+        # data_write(file, self, 'sealevel')
         data_write(file, self, 'drytolerance')
         data_write(file, self, 'wavetolerance')
         data_write(file, self, 'depthdeep')
@@ -1336,6 +1359,9 @@ class GeoclawInputData(Data):
         data_write(file, self, 'ifriction')
         data_write(file, self, 'coeffmanning')
         data_write(file, self, 'frictiondepth')
+        data_write(file, self, 'max_speed_nest')
+        data_write(file, self, 'momentum_refinement')
+        data_write(file, self, 'speed_refine')
         file.close()
 
         # print 'Creating data file settopo.data'
