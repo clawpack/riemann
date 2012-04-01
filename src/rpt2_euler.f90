@@ -20,7 +20,7 @@
       dimension bmasdq(meqn, 1-mbc:maxm+mbc)
       dimension bpasdq(meqn, 1-mbc:maxm+mbc)
 !
-      common /cparam/  gamma,gamma1
+      common /cparam/  gamma
       dimension waveb(4,3),sb(3)
       parameter (maxm2 = 1800)  !# assumes at most 200x200 grid with mbc=2
       common /comroe/ u2v2(-6:maxm2+7), &
@@ -32,6 +32,8 @@
          stop
       endif
 !
+      gamma1 = gamma - 1.d0
+
       if (ixy.eq.1) then
           mu = 2
           mv = 3
