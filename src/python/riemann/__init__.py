@@ -29,6 +29,7 @@ try:
     import rp2_advection
     import rp2_euler_mapgrid
     import rp2_euler_5wave
+    import rp2_euler_4wave
     import rp2_kpp
     import rp2_psystem
     import rp2_shallow_roe_with_efix

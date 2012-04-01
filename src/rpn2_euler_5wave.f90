@@ -3,7 +3,7 @@
 
 !     =====================================================
     subroutine rpn2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr, &
-    wave,s,amdq,apdq,num_aux)
+                    wave,s,amdq,apdq,num_aux)
 !     =====================================================
 
 !     # Roe-solver for the Euler equations with a tracer variable
