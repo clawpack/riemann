@@ -41,7 +41,7 @@
       parameter (maxm2 = 1800)  !# assumes at most 200x200 grid with mbc=2
       dimension delta(4)
       logical efix
-      common /cparam/  gamma,gamma1
+      common /cparam/  gamma
       common /comroe/ u2v2(-6:maxm2+7), &
             u(-6:maxm2+7),v(-6:maxm2+7),enth(-6:maxm2+7),a(-6:maxm2+7), &
             g1a2(-6:maxm2+7),euv(-6:maxm2+7) 
@@ -53,6 +53,8 @@
          stop
       endif
 !
+      gamma1 = gamma - 1.d0
+
 !     # set mu to point to  the component of the system that corresponds
 !     # to momentum in the direction of this slice, mv to the orthogonal
 !     # momentum:
