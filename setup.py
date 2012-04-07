@@ -113,14 +113,16 @@ if not release:
 def configuration(parent_package='',top_path=None):
     from numpy.distutils.misc_util import Configuration
 
-    package_path=os.path.join(os.path.dirname(__file__),'src','python','clawutil')
-    config = Configuration('clawutil', parent_package, top_path, package_path)
+    subpackage_path=os.path.join('src','python','clawutil')
+    config = Configuration(None, parent_package, top_path)
     config.set_options(ignore_setup_xxx_py=True,
                        assume_default_configuration=True,
                        delegate_options_to_subpackages=True,
-                       quiet=True)
+                       quiet=False)
 
     config.get_version('src/python/clawutil/version.py')
+    config.add_subpackage(None, subpackage_path)
+
 
     return config
 
