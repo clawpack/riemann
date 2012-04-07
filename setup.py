@@ -158,7 +158,10 @@ def setup_package():
             license = 'BSD',
             classifiers=[_f for _f in CLASSIFIERS.split('\n') if _f],
             platforms = ["Linux", "Solaris", "Mac OS-X", "Unix"],
-            configuration=configuration )
+            configuration=configuration,
+            package_dir={'':os.path.join('src','python')},
+            )
+        
     finally:
         del sys.path[0]
         os.chdir(old_path)
