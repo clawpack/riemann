@@ -134,7 +134,7 @@ three_d_riemann = ['vc_acoustics']
 def configuration(parent_package='',top_path=None):
     from numpy.distutils.misc_util import Configuration
 
-    package_path=os.path.join(os.path.dirname(__file__),'src','python','riemann')
+    package_path=os.path.join(os.path.dirname(__file__),'src','python')
     config = Configuration('riemann', parent_package, top_path, package_path)
     config.set_options(ignore_setup_xxx_py=True,
                        assume_default_configuration=True,
@@ -210,6 +210,7 @@ def setup_package():
             license = 'BSD',
             classifiers=[_f for _f in CLASSIFIERS.split('\n') if _f],
             platforms = ["Linux", "Solaris", "Mac OS-X", "Unix"],
+            package_dir={'':os.path.join('src','python')},
             configuration=configuration )
     finally:
         del sys.path[0]
