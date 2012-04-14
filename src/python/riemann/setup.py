@@ -19,15 +19,12 @@ three_d_riemann = ['vc_acoustics']
                    
 # special rules for rp2_kpp, rp2_euler_mapgrid, and rp3acv
 
+import os
+
 def configuration(parent_package='',top_path=None):
     from numpy.distutils.misc_util import Configuration
 
-    package_path=os.path.join(os.path.dirname(__file__),'src','python')
-    config = Configuration('riemann', parent_package, top_path, package_path)
-    config.set_options(ignore_setup_xxx_py=True,
-                       assume_default_configuration=True,
-                       delegate_options_to_subpackages=True,
-                       quiet=True)
+    config = Configuration('riemann', parent_package, top_path)
 
     src_dir = os.path.join(os.path.dirname(__file__),'src')
 
@@ -64,45 +61,6 @@ def configuration(parent_package='',top_path=None):
         config.add_extension(rp_ext,rp_src)
     return config
 
-
-def setup_package():
-    from numpy.distutils.core import setup
-
-    old_path = os.getcwd()
-    local_path = os.path.dirname(os.path.abspath(sys.argv[0]))
-    src_path = local_path
-
-    os.chdir(local_path)
-    sys.path.insert(0, local_path)
-    sys.path.insert(0, os.path.join(local_path, 'src/python/riemann'))  # to retrieve version
-
-    # Run build
-    old_path = os.getcwd()
-    os.chdir(src_path)
-    sys.path.insert(0, src_path)
-
-    # Rewrite the version file everytime
-    write_version_py()
-
-    try:
-        setup(
-            name = 'riemann',
-            maintainer = "Clawpack Developers",
-            maintainer_email = "claw-dev@googlegroups.com",
-            description = DOCLINES[0],
-            long_description = "\n".join(DOCLINES[2:]),
-            url = "http://www.clawpack.org",
-            download_url = "https://github.com/clawpack/riemann/tarball/master", 
-            license = 'BSD',
-            classifiers=[_f for _f in CLASSIFIERS.split('\n') if _f],
-            platforms = ["Linux", "Solaris", "Mac OS-X", "Unix"],
-            package_dir={'':os.path.join('src','python')},
-            configuration=configuration )
-    finally:
-        del sys.path[0]
-        os.chdir(old_path)
-    return
-
-
 if __name__ == '__main__':
-    setup_package()
+    from numpy.distutils.core import setup
+    setup(**configuration(top_path='').todict())
