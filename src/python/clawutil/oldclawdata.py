@@ -1320,7 +1320,8 @@ class GeoclawInputData(Data):
         # Multilayer data
         self.add_attribute('layers',1)
         self.add_attribute('rho',1.0)
-        self.add_attribute('eta',0.0)
+        self.add_attribute('eta_init',0.0)
+        self.add_attribute('check_richardson',False)
         self.add_attribute('richardson_tolerance',0.95)
         self.add_attribute('eigen_method',2)
         self.add_attribute('inundation_method',2)
@@ -1342,6 +1343,7 @@ class GeoclawInputData(Data):
         data_write(file,self,'layers')
         data_write(file,self,'rho')
         data_write(file,self,'eta_init')
+        data_write(file,self,'check_richardson')
         data_write(file,self,'richardson_tolerance')
         data_write(file,self,'eigen_method')
         data_write(file,self,'inundation_method')
