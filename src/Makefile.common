@@ -201,10 +201,12 @@ PLOTCMD ?= $(CLAW_PYTHON) $(VISCLAW)/src/python/visclaw/plotclaw.py
 	$(PLOTCMD) $(OUT_DIR) $(PLOT_DIR) $(SETPLOT_FILE)
 	@echo $(PLOT_DIR) > .plots
 
-# Make the plots without checking dependencies:
+# Make the plots without checking dependencies
+# This has to use its own plot command to skip the check for .output
 plots: $(SETPLOT_FILE) $(MAKEFILE_LIST);
 	-rm -f .plots
-	$(MAKE) .plots
+	$(PLOTCMD) $(OUT_DIR) $(PLOT_DIR) $(SETPLOT_FILE)
+	@echo $(PLOT_DIR) > .plots
 
 #----------------------------------------------------------------------------
 
