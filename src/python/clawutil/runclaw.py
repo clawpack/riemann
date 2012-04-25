@@ -186,6 +186,42 @@ def runclaw(xclawcmd=None, outdir=None, overwrite=True, restart=False,
 
 #----------------------------------------------------------
 
+def create_path(path,overwrite=False):
+    r"""Create a path and over write it if requested"""
+    
+    if not os.path.exists(path):
+        os.makedirs(path)
+    elif overwrite:
+        data_files = glob.glob(path,"*")
+        for data_file in data_files:
+            os.remove(data_file)
+
+def create_output_paths(name,prefix,**kargs):
+    r"""Create an output, plotting, and data path with the given prefix."""
+    
+    if kargs.has_key('outdir'):
+        outdir = kargs['outdir']
+    else:
+        base_path = os.environ.get('DATA_PATH',os.getcwd())
+        outdir = os.path.join(base_path,name,"%s_output" % prefix)
+    if kargs.has_key('plotdir'):
+        plotdir = kargs['plotdir']
+    else:
+        base_path = os.environ.get('DATA_PATH',os.getcwd())
+        plotdir = os.path.join(base_path,name,"%s_plots" % prefix)
+    if kargs.has_key('logfile'):
+        log_path = kargs['logfile']
+    else:
+        base_path = os.environ.get('DATA_PATH',os.getcwd())
+        log_path = os.path.join(base_path,name,"%s_log.txt" % prefix)
+        
+    create_path(outdir,overwrite=kargs.get('overwrite',False))
+    create_path(plotdir,overwrite=kargs.get('overwrite',False))
+    create_path(os.path.dirname(log_path),overwrite=False)
+    
+    return outdir,plotdir,log_path
+
+
 if __name__=='__main__':
     """
     If executed at command line prompt, simply call the function, with
