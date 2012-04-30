@@ -84,8 +84,8 @@ subroutine rp1(maxmx,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq,num_au
             hu_l(j) = qr(layer_index+2,i-1) / rho(j)
             hu_r(j) = ql(layer_index+2,i) / rho(j)
             
-            h_hat_l(j) = auxr(j+3,i-1)
-            h_hat_r(j) = auxl(j+3,i)
+            h_hat_l(j) = auxr(j+2,i-1)
+            h_hat_r(j) = auxl(j+2,i)
             
             ! Check for dry states in this layer
             if (h_l(j) < dry_tolerance) then
@@ -684,7 +684,7 @@ subroutine eval_lapack_eigen(h,u,lambda,vec)
     A(4,:) = [g*r*h(2),0.d0,-u(2)**2 + g*h(2),2.d0*u(2)]
     
     ! Call LAPACK eigen solver
-    call dgeev('N','V',4,A,4,real_lambda,imaginary_lambda,empty,1,vec,4,work,lwork,info)
+    call dgeev('N','V',4,A,4,lambda,imaginary_lambda,empty,1,vec,4,work,lwork,info)
     if (info < 0) then
         info = -info
         print "(a,i1,a)","The ",info,"th argument had an illegal value."
