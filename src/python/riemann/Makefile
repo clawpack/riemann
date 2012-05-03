@@ -7,6 +7,7 @@ RIEMANN_SOLVERS = \
 	rp1_nonlinear_elasticity_fwave \
 	rp1_reactive_euler_with_efix \
 	rp1_shallow_roe_with_efix \
+	rp1_layered_shallow_water \
 	rp2_acoustics \
 	rp2_advection \
 	rp2_euler_5wave \
@@ -17,9 +18,9 @@ RIEMANN_SOLVERS = \
 	rp2_shallow_sphere \
 	rp2_vc_acoustics \
 	rp2_vc_advection \
+	rp2_layered_shallow_water \
 	rp3_vc_acoustics \
 	rp3acv \
-	rp1_layered_shallow_water
 
 SHARED_OBJECTS = $(addsuffix .so,$(RIEMANN_SOLVERS))
 
