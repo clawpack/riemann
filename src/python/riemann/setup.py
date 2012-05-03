@@ -52,6 +52,8 @@ def configuration(parent_package='',top_path=None):
      {'ext' :'rp2_euler_mapgrid',
       'srcs':['rpn2_euler_mapgrid.f90','rpt2_euler_mapgrid.f90',
               'euler_roe_solver_mapgrid.f90','getquadinfo_mapgrid.f90']},
+     {'ext' :'rp2_euler_4wave',
+      'srcs':['rpn2_euler_4wave.f90','rpt2_euler.f90']},
      {'ext' :'rp3acv',
       'srcs':['rpn3acv.f90','rpt3acv.f90','rptt3acv.f90']}]
     
