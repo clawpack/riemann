@@ -16,6 +16,7 @@ from rp_burgers import rp_burgers_1d
 from rp_shallow import rp_shallow_roe_1d, rp_shallow_hll_1d, rp_shallow_exact_1d
 from rp_euler import rp_euler_roe_1d
 from rp_nonlinear_elasticity import rp_nonlinear_elasticity_1d
+import static
 
 try:
     import rp1_acoustics
@@ -30,6 +31,7 @@ try:
     import rp2_advection
     import rp2_euler_mapgrid
     import rp2_euler_5wave
+    import rp2_euler_4wave
     import rp2_kpp
     import rp2_psystem
     import rp2_shallow_roe_with_efix

@@ -1,6 +1,6 @@
 !     =====================================================
-    subroutine rpn2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr, &
-    auxl,auxr,wave,s,amdq,apdq,num_aux)
+      subroutine rpn2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr, &
+                      auxl,auxr,wave,s,amdq,apdq,num_aux)
 !     =====================================================
 
 !     # Riemann solver for the acoustics equations in 2d,
