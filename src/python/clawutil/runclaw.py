@@ -1,4 +1,5 @@
-
+#!/usr/bin/env python
+# encoding: utf-8
 """
 Generic code for running the fortran version of Clawpack and sending the
 results to subdirectory output of the directory from which this is executed.
@@ -7,6 +8,10 @@ Execute via
 from a directory that contains a claw.data file and a Clawpack executable.
 """
 
+import os
+import sys
+import glob
+import shutil
 
 def runclaw(xclawcmd=None, outdir=None, overwrite=True, restart=False, 
             rundir=None):
@@ -20,8 +25,7 @@ def runclaw(xclawcmd=None, outdir=None, overwrite=True, restart=False,
     If rundir is None, all *.data is copied from current directory, if a path 
     is given, data files are copied from there instead.
     """
-
-    import os,glob,shutil,time
+    
     verbose = False
     xclawout = None
     xclawerr = None
@@ -220,6 +224,42 @@ def create_output_paths(name,prefix,**kargs):
     create_path(os.path.dirname(log_path),overwrite=False)
     
     return outdir,plotdir,log_path
+
+
+def replace_stream_handlers(logger_name,log_path,log_file_append=True):
+    r"""Replace the stream handlers in the logger logger_name
+        
+        This routine replaces all stream handlers in logger logger_name with a 
+        file handler which outputs to the log file at log_path. If 
+        log_file_append is True then the log files is opened for appending, 
+        otherwise it is written over.
+        
+        TODO: This seems to only be working in certain instances, need to debug
+    """
+    import logging
+    
+    logger = logging.getLogger(logger_name)
+    handler_list = [handler for handler in logger.handlers if isinstance(handler,logging.StreamHandler)]
+    for handler in handler_list:
+        # Create new handler
+        if log_file_append:
+            new_handler = logging.FileHandler(log_path,'a')
+        else:
+            new_handler = logging.FileHandler(log_path,'w')
+            log_file_append = True
+        new_handler.setLevel(handler.level)
+        # new_handler.name = handler.name
+        new_handler.setFormatter(handler.formatter)
+            
+        # Remove old handler
+        if isinstance(handler,logging.FileHandler):
+            handler.close()
+            if os.path.exists(handler.baseFilename):
+                os.remove(handler.baseFilename)
+        logger.removeHandler(handler)
+          
+        # Add new handler  
+        logger.addHandler(new_handler)
 
 
 if __name__=='__main__':
