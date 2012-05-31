@@ -1313,9 +1313,8 @@ class GeoclawInputData(Data):
         # NEED TO CONTINUE!
 
         # Speed refinement
-        self.add_attribute('max_speed_nest',5)
-        self.add_attribute('momentum_refinement',False)
-        self.add_attribute('speed_refine',[0.25,0.5,1.0,2.0,3.0,4.0])
+        self.add_attribute('max_speed_nest',1)
+        self.add_attribute('speed_tolerance',[1e12])
         
         # Multilayer data
         self.add_attribute('layers',1)
@@ -1362,8 +1361,7 @@ class GeoclawInputData(Data):
         data_write(file, self, 'coeffmanning')
         data_write(file, self, 'frictiondepth')
         data_write(file, self, 'max_speed_nest')
-        data_write(file, self, 'momentum_refinement')
-        data_write(file, self, 'speed_refine')
+        data_write(file, self, 'speed_tolerance')
         file.close()
 
         # print 'Creating data file settopo.data'
