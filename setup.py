@@ -4,7 +4,8 @@ one_d_riemann =   ['acoustics',
                    'euler_with_efix',
                    'nonlinear_elasticity_fwave',
                    'reactive_euler_with_efix',
-                   'shallow_roe_with_efix']
+                   'shallow_roe_with_efix',
+                   'layered_shallow_water']
 
 two_d_riemann =   ['acoustics',
                    'advection',
@@ -57,6 +58,9 @@ def configuration(parent_package='',top_path=None):
               'euler_roe_solver_mapgrid.f90','getquadinfo_mapgrid.f90']},
      {'ext' :'rp3acv',
       'srcs':['rpn3acv.f90','rpt3acv.f90','rptt3acv.f90']}]
+     # Not working yet!
+     # {'ext':'rp2_layered_shallow_water',
+     #  'srcs':['rpn2_layered_shallow_water.f90','rpt2_layered_shallow_water.f90','geoclaw_rp.f']}]
     
     for rp_dict in special_target_list:
         rp_ext = rp_dict['ext']

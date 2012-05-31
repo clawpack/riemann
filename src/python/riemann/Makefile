@@ -19,9 +19,8 @@ RIEMANN_SOLVERS = \
 	rp2_shallow_sphere \
 	rp2_vc_acoustics \
 	rp2_vc_advection \
-	rp2_layered_shallow_water \
 	rp3_vc_acoustics \
-	rp3acv \
+	rp3acv
 
 SHARED_OBJECTS = $(addsuffix .so,$(RIEMANN_SOLVERS))
 
