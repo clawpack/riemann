@@ -55,3 +55,6 @@ rp2_euler_mapgrid.so: $(RIEMANN)/src/rpn2_euler_mapgrid.f90 $(RIEMANN)/src/rpt2_
 	
 rp3acv.so: $(RIEMANN)/src/rpn3acv.f90 $(RIEMANN)/src/rpt3acv.f90 $(RIEMANN)/src/rptt3acv.f90
 	f2py -m $(basename $(notdir $@)) -c $^
+	
+rp2_layered_shallow_water.so: $(RIEMANN)/src/rpn2_layered_shallow_water.f90 $(RIEMANN)/src/rpt2_layered_shallow_water.f90 $(GEOCLAW)/src/2d/riemannsolvers.f
+	f2py -m $(basename $(notdir $@)) -c $^

@@ -1,4 +1,4 @@
-subroutine rpt2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr,aux1,aux2,aux3,imp,asdq,bmasdq,bpasdq)
+subroutine rpt2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr,aux1,aux2,aux3,imp,asdq,bmasdq,bpasdq,num_aux)
 ! ============================================================================
 !  Solves transverse Riemann problem for the multilayer shallow water 
 !  equations in 2D with topography and wind forcing:
@@ -25,24 +25,24 @@ subroutine rpt2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr,aux1,aux2,aux3,imp,asdq,bmasdq
 !  Kyle T. Mandli (10-13-2010)
 ! ============================================================================
 
-    use geoclaw_module
-    use hurricane_module
-    use multilayer_module
+!     use geoclaw_module
+!     use hurricane_module
+!     use multilayer_module
 
     implicit none
 
     ! Input arguments
-    integer, intent(in) :: ixy,maxm,meqn,mwaves,mbc,mx,imp
+    integer, intent(in) :: ixy,maxm,meqn,mwaves,mbc,mx,imp,num_aux
     double precision, dimension(meqn,1-mbc:maxm+mbc), intent(in) :: ql,qr
     double precision, dimension(meqn,1-mbc:maxm+mbc), intent(inout) :: asdq
-    double precision, dimension(ml_maux,1-mbc:maxm+mbc), intent(in) :: aux1,aux2,aux3
+    double precision, dimension(num_aux,1-mbc:maxm+mbc), intent(in) :: aux1,aux2,aux3
     
     ! Ouput
     double precision, dimension(meqn,1-mbc:maxm+mbc), intent(out) :: bmasdq,bpasdq
     
     ! Local storage
     integer :: i,j,m,mw,n_index,t_index,info
-    double precision :: g,dxdcm,dxdcp
+    double precision :: dxdcm,dxdcp
     double precision, dimension(3) :: b
     double precision, dimension(6) :: s,delta,pivot
     double precision, dimension(6,6) :: eig_vec,A
@@ -59,12 +59,17 @@ subroutine rpt2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr,aux1,aux2,aux3,imp,asdq,bmasdq
     double precision :: h(2),hu(2),hv(2),u(2),v(2),h_hat(2),gamma
     double precision :: alpha(4)
     
+    ! Common block parameters
+    real(kind=8) :: rho(num_layers),r
+    real(kind=8) :: g,R_earth,pi,capa_index
+    integer :: eigen_method, inundation_method
+    real(kind=8) :: dry_tolerance
+    
+    common /cparam/ rho,R_earth
+    
     ! Output array intializations
     bmasdq = 0.d0
     bpasdq = 0.d0
-
-    ! Convenience
-    g = grav
 
     ! Normal and transverse sweep directions
     if (ixy == 1) then
@@ -110,7 +115,7 @@ subroutine rpt2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr,aux1,aux2,aux3,imp,asdq,bmasdq
                 h_hat = aux2(7:8,i)
             endif
                 
-            if (h(j) < drytolerance) then
+            if (h(j) < dry_tolerance) then
                 u(j) = 0.d0
                 v(j) = 0.d0
             else
@@ -119,7 +124,7 @@ subroutine rpt2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr,aux1,aux2,aux3,imp,asdq,bmasdq
             endif
         enddo
         
-!         if (h(2) < drytolerance) then
+!         if (h(2) < dry_tolerance) then
 !             do m=4,6
 !                 if (asdq(i,m) /= 0.d0) then
 !                     print *,"asdq(i,4:6) > 0"
@@ -137,7 +142,7 @@ subroutine rpt2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr,aux1,aux2,aux3,imp,asdq,bmasdq
         ! ====================================================================
         !  Check for dry states in the bottom layer, 
         !  This is if we are right next to a wall, use single layer solver
-        if ((h(2) < drytolerance)) then
+        if ((h(2) < dry_tolerance)) then
             ! Storage for single layer rpt2
             ql_sl = ql(1:3,i) / rho(1)
             qr_sl = qr(1:3,i-1) / rho(1)
@@ -203,17 +208,17 @@ subroutine rpt2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr,aux1,aux2,aux3,imp,asdq,bmasdq
         endif
 
         ! Handle lat-long coordinate systems
-        if (icoordsys == 2) then
+        if (capa_index > 0) then
             if (ixy == 2) then
-                dxdcp=(Rearth*pi/180.d0)
+                dxdcp=(R_earth*pi/180.d0)
                 dxdcm = dxdcp
             else
                 if (imp == 1) then
-                    dxdcp = Rearth*pi*cos(aux3(3,i-1))/180.d0
-                    dxdcm = Rearth*pi*cos(aux1(3,i-1))/180.d0
+                    dxdcp = R_earth*pi*cos(aux3(3,i-1))/180.d0
+                    dxdcm = R_earth*pi*cos(aux1(3,i-1))/180.d0
                 else
-                    dxdcp = Rearth*pi*cos(aux3(3,i))/180.d0
-                    dxdcm = Rearth*pi*cos(aux1(3,i))/180.d0
+                    dxdcp = R_earth*pi*cos(aux3(3,i))/180.d0
+                    dxdcm = R_earth*pi*cos(aux1(3,i))/180.d0
                 endif
             endif
         else
@@ -251,56 +256,64 @@ subroutine rpt2_single_layer(ixy,ql,qr,aux1,aux2,aux3,ilr,asdq,bmasdq,bpasdq)
 !
 ! Adapted from geoclaw 4-23-2011
 
-      use geoclaw_module
+!       use geoclaw_module
 
-      implicit none
+    implicit none
 
-      integer ixy,ilr
-      
-      integer, parameter :: meqn = 3
-      integer, parameter :: mwaves = 3
+    integer ixy,ilr
+    
+    integer, parameter :: meqn = 3
+    integer, parameter :: mwaves = 3
 
-      double precision  ql(meqn) ! = ql(i,meqn)
-      double precision  qr(meqn) ! = qr(i-1,meqn)
-      double precision  asdq(meqn)
-      double precision  bmasdq(meqn)
-      double precision  bpasdq(meqn)
-      ! Since we need two values of aux, 1 = i-1 and 2 = i
-      double precision  aux1(2,3)
-      double precision  aux2(2,3)
-      double precision  aux3(2,3)
+    double precision  ql(meqn) ! = ql(i,meqn)
+    double precision  qr(meqn) ! = qr(i-1,meqn)
+    double precision  asdq(meqn)
+    double precision  bmasdq(meqn)
+    double precision  bpasdq(meqn)
+    ! Since we need two values of aux, 1 = i-1 and 2 = i
+    double precision  aux1(2,3)
+    double precision  aux2(2,3)
+    double precision  aux3(2,3)
 
-      double precision  s(3)
-      double precision  r(3,3)
-      double precision  beta(3)
-      double precision  g,tol,abs_tol
-      double precision  hl,hr,hul,hur,hvl,hvr,vl,vr,ul,ur,bl,br
-      double precision  uhat,vhat,hhat,roe1,roe3,s1,s2,s3,s1l,s3r
-      double precision  delf1,delf2,delf3,dxdcd,dxdcu
-      double precision  dxdcm,dxdcp,topo1,topo3,eta
+    double precision  s(3)
+    double precision  r(3,3)
+    double precision  beta(3)
+    double precision  tol,abs_tol
+    double precision  hl,hr,hul,hur,hvl,hvr,vl,vr,ul,ur,bl,br
+    double precision  uhat,vhat,hhat,roe1,roe3,s1,s2,s3,s1l,s3r
+    double precision  delf1,delf2,delf3,dxdcd,dxdcu
+    double precision  dxdcm,dxdcp,topo1,topo3,eta
 
-      integer m,mw,mu,mv
-      
+    integer m,mw,mu,mv
 
-      g=grav
-      tol=drytolerance
-      abs_tol=drytolerance
+    ! Common block parameters
+    real(kind=8) :: rho(num_layers),r
+    real(kind=8) :: g,R_earth,pi,capa_index
+    integer :: eigen_method, inundation_method
+    real(kind=8) :: dry_tolerance
+    
+    common /cparam/ rho,R_earth
+    
+    
+    
+    tol=dry_tolerance
+    abs_tol=dry_tolerance
 
-      if (ixy.eq.1) then
-	     mu = 2
-	     mv = 3
-      else
-	     mu = 3
-	     mv = 2
-      endif
+    if (ixy.eq.1) then
+	   mu = 2
+	   mv = 3
+    else
+	   mu = 3
+	   mv = 2
+    endif
 
 
-         hl=qr(1)
-         hr=ql(1)
-         hul=qr(mu)
-         hur=ql(mu)
-         hvl=qr(mv)
-         hvr=ql(mv)
+       hl=qr(1)
+       hr=ql(1)
+       hul=qr(mu)
+       hur=ql(mu)
+       hvl=qr(mv)
+       hvr=ql(mv)
 
 !===========determine velocity from momentum===========================
        if (hl.lt.abs_tol) then
@@ -331,7 +344,7 @@ subroutine rpt2_single_layer(ixy,ql,qr,aux1,aux2,aux3,ilr,asdq,bmasdq,bpasdq)
       dxdcp = 1.d0
       dxdcm = 1.d0
 
-       if (hl.le.drytolerance.and.hr.le.drytolerance) go to 90
+       if (hl.le.dry_tolerance.and.hr.le.dry_tolerance) go to 90
 
        !check and see if cell that transverse waves are going in is high and dry
        if (ilr.eq.1) then
@@ -345,17 +358,17 @@ subroutine rpt2_single_layer(ixy,ql,qr,aux1,aux2,aux3,ilr,asdq,bmasdq,bpasdq)
        endif
        if (eta.lt.max(topo1,topo3)) go to 90
 
-      if (icoordsys.eq.2) then
+      if (capa_index > 0) then
          if (ixy.eq.2) then
-            dxdcp=(Rearth*pi/180.d0)
+            dxdcp=(R_earth*pi/180.d0)
             dxdcm = dxdcp
          else
             if (ilr.eq.1) then
-               dxdcp = Rearth*pi*cos(aux3(1,3))/180.d0
-               dxdcm = Rearth*pi*cos(aux1(1,3))/180.d0
+               dxdcp = R_earth*pi*cos(aux3(1,3))/180.d0
+               dxdcm = R_earth*pi*cos(aux1(1,3))/180.d0
             else
-               dxdcp = Rearth*pi*cos(aux3(2,3))/180.d0
-               dxdcm = Rearth*pi*cos(aux1(2,3))/180.d0
+               dxdcp = R_earth*pi*cos(aux3(2,3))/180.d0
+               dxdcm = R_earth*pi*cos(aux1(2,3))/180.d0
             endif
          endif
       endif
@@ -451,8 +464,8 @@ subroutine rpt2_single_layer(ixy,ql,qr,aux1,aux2,aux3,ilr,asdq,bmasdq,bpasdq)
 ! 
 !     ! Constants
 !     g=grav
-!     tol=drytolerance
-!     abs_tol=drytolerance
+!     tol=dry_tolerance
+!     abs_tol=dry_tolerance
 !     
 !     ! Initializations
 !     s = 0.d0
@@ -497,7 +510,7 @@ subroutine rpt2_single_layer(ixy,ql,qr,aux1,aux2,aux3,ilr,asdq,bmasdq,bpasdq)
 !     dxdcp = 1.d0
 !     dxdcm = 1.d0
 ! 
-!     if (hl.le.drytolerance.and.hr.le.drytolerance) go to 90
+!     if (hl.le.dry_tolerance.and.hr.le.dry_tolerance) go to 90
 ! 
 !     ! check and see if cell that transverse waves are going in is high and dry
 !     if (ilr.eq.1) then
@@ -513,15 +526,15 @@ subroutine rpt2_single_layer(ixy,ql,qr,aux1,aux2,aux3,ilr,asdq,bmasdq,bpasdq)
 ! 
 !     if (icoordsys.eq.2) then
 !         if (ixy.eq.2) then
-!             dxdcp=(Rearth*pi/180.d0)
+!             dxdcp=(R_earth*pi/180.d0)
 !             dxdcm = dxdcp
 !         else
 !             if (ilr.eq.1) then
-!                 dxdcp = Rearth*pi*cos(aux3(1,3))/180.d0
-!                 dxdcm = Rearth*pi*cos(aux1(1,3))/180.d0
+!                 dxdcp = R_earth*pi*cos(aux3(1,3))/180.d0
+!                 dxdcm = R_earth*pi*cos(aux1(1,3))/180.d0
 !             else
-!                 dxdcp = Rearth*pi*cos(aux3(2,3))/180.d0
-!                 dxdcm = Rearth*pi*cos(aux1(2,3))/180.d0
+!                 dxdcp = R_earth*pi*cos(aux3(2,3))/180.d0
+!                 dxdcm = R_earth*pi*cos(aux1(2,3))/180.d0
 !             endif
 !         endif
 !     endif

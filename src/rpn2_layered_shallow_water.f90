@@ -46,32 +46,38 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq,nu
     integer :: n_index,t_index,layer_index
     
     ! Physics
-    double precision :: g,dxdc
+    double precision :: dxdc
+    integer, parameter :: num_layers = 2
     
     ! State variables
-    double precision, dimension(2) :: h_l,h_r,hu_l,hu_r,hv_l,hv_r
-    double precision, dimension(2) :: u_l,u_r,v_l,v_r,advected_speed
-    double precision :: b_l,b_r,w_normal,w_transverse,kappa_l,kappa_r
-    double precision :: eta_l(2),eta_r(2),h_ave(2),momentum_transfer(2)
-    double precision :: h_hat_l(2),h_hat_r(2),gamma_l,gamma_r
-    double precision :: flux_transfer_l,flux_transfer_r,lambda(6)
-    double precision :: temp_depth(2),temp_u(2),temp_v(2)
+    real(kind=8), dimension(num_layers) :: h_l,h_r,hu_l,hu_r,hv_l,hv_r
+    real(kind=8), dimension(num_layers) :: u_l,u_r,v_l,v_r,advected_speed
+    real(kind=8) :: b_l,b_r,w_normal,w_transverse,kappa_l,kappa_r
+    real(kind=8), dimension(num_layers) :: eta_l,eta_r,h_ave,momentum_transfer
+    real(kind=8), dimension(num_layers) :: h_hat_l,h_hat_r,gamma_l,gamma_r
+    real(kind=8) :: flux_transfer_l,flux_transfer_r,lambda(6)
+    real(kind=8), dimension(num_layers) :: temp_depth,temp_u,temp_v
 
     ! Solver variables
-    double precision, dimension(6) :: delta,flux_r,flux_l,pivot
-    double precision, dimension(6,6) :: eig_vec,A
-    double precision :: beta(6),alpha(4)
-    logical :: dry_state_l(2), dry_state_r(2)
+    real(kind=8), dimension(6) :: delta,flux_r,flux_l,pivot
+    real(kind=8), dimension(6,6) :: eig_vec,A
+    real(kind=8) :: beta(6),alpha(4)
+    logical, dimension(num_layers) :: dry_state_l, dry_state_r
     
     ! Single layer locals
     integer, parameter :: max_iterations = 1
-    double precision :: wall(3),fw(3,3),sw(3),phi_r(2),phi_l(2)
-    double precision :: s_l,s_r,s_roe(2),s_E(2),u_hat,c_hat,sm(2)
-    double precision :: h_star,h_star_test,h_star_HLL,s_l_test,s_r_test
-    logical :: rare(2)
+    real(kind=8) :: wall(3),fw(3,3),sw(3),phi_r(2),phi_l(2)
+    real(kind=8) :: s_l,s_r,s_roe(2),s_E(2),u_hat,c_hat,sm(2)
+    real(kind=8) :: h_star,h_star_test,h_star_HLL,s_l_test,s_r_test
+    logical, dimension(num_layers) :: rare
 
     ! Common block variables
+    real(kind=8) :: rho(num_layers),r
+    real(kind=8) :: g,R_earth,pi,capa_index
+    integer :: eigen_method, inundation_method
+    real(kind=8) :: dry_tolerance
     
+    common /cparam/ rho,R_earth
 
     external dgesv
     
@@ -115,7 +121,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq,nu
             h_ave(:) = 0.5d0 * (h_l(:) + h_r(:))
             
             ! Check for dry states
-            if (h_l(j) < drytolerance) then
+            if (h_l(j) < dry_tolerance) then
                 dry_state_l(j) = .true.
                 hu_l(j) = 0.d0
                 hv_l(j) = 0.d0
@@ -125,7 +131,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq,nu
                 u_l(j) = hu_l(j) / h_l(j)
                 v_l(j) = hv_l(j) / h_l(j)
             endif
-            if (h_r(j) < drytolerance) then
+            if (h_r(j) < dry_tolerance) then
                 dry_state_r(j) = .true.
                 hu_r(j) = 0.d0
                 hv_r(j) = 0.d0
@@ -153,7 +159,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq,nu
 
         ! ====================================================================
         !  Top layer only
-        ! ====================================================================            
+        ! ====================================================================
         if (dry_state_l(2).and.dry_state_r(2)) then
             wall = 1.d0
             
@@ -169,9 +175,9 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq,nu
             phi_r(1) = 0.5d0 * g * h_r(1)**2 + h_r(1) * u_r(1)**2
              
             ! Check for dry state to right
-            if (h_r(1) <= drytolerance) then
+            if (h_r(1) <= dry_tolerance) then
                 call riemanntype(h_l(1),h_l(1),u_l(1),-u_l(1),h_star, &
-                                 sm(1),sm(2),rare(1),rare(2),1,drytolerance,g)
+                                 sm(1),sm(2),rare(1),rare(2),1,dry_tolerance,g)
                 h_star_test = max(h_l(1),h_star)
                 ! Right state should become ghost values that mirror left for wall problem
                 if (h_star_test + b_l < b_r) then 
@@ -186,9 +192,9 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq,nu
                     b_r = h_l(1) + b_l
                 endif
             ! Check for drystate to left, i.e right surface is lower than left topo
-            else if (h_l(1) <= drytolerance) then 
+            else if (h_l(1) <= dry_tolerance) then 
                 call riemanntype(h_r(1),h_r(1),-u_r(1),u_r(1),h_star, &
-                                 sm(1),sm(2),rare(1),rare(2),1,drytolerance,g)
+                                 sm(1),sm(2),rare(1),rare(2),1,dry_tolerance,g)
                 h_star_test = max(h_r(1),h_star)
                 ! Left state should become ghost values that mirror right
                 if (h_star_test + b_r < b_l) then  
@@ -221,7 +227,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq,nu
              call riemann_aug_JCP(max_iterations,3,3,h_l(1),h_r(1),hu_l(1), &
                                     hu_r(1),hv_l(1),hv_r(1),b_l,b_r,u_l(1), &
                                     u_r(1),v_l(1),v_r(1),phi_l(1),phi_r(1), &
-                                    s_E(1),s_E(2),drytolerance,g,sw,fw)
+                                    s_E(1),s_E(2),dry_tolerance,g,sw,fw)
             
             ! Eliminate ghost fluxes for wall
             do mw=1,3
@@ -270,12 +276,12 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq,nu
                         n_index,t_index,lambda,eig_vec)
                 else if (inundation_method == 2) then
                     ! Linearized with eigenspace with small depth
-                    temp_depth = [h_r(1),drytolerance]
+                    temp_depth = [h_r(1),dry_tolerance]
                     call linearized_eigen(h_l,temp_depth,u_l,u_r,v_l,v_r, &
                         n_index,t_index,lambda,eig_vec)
                 else if (inundation_method == 3) then
                     ! Velocity difference with eigenspace with small depth
-                    temp_depth = [h_r(1),drytolerance]
+                    temp_depth = [h_r(1),dry_tolerance]
                     call vel_diff_eigen(h_l,temp_depth,u_l,u_r,v_l,v_r, &
                         n_index,t_index,lambda,eig_vec)
                 else if (inundation_method == 4) then
@@ -285,7 +291,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq,nu
                         n_index,t_index,lambda,eig_vec)
                 else if (inundation_method == 5) then
                     ! LAPACK with small depth
-                    temp_depth = [h_r(1),drytolerance]
+                    temp_depth = [h_r(1),dry_tolerance]
                     call lapack_eigen(h_l,temp_depth,u_l,u_r,v_l,v_r, &
                         n_index,t_index,lambda,eig_vec)
                 endif
@@ -334,13 +340,13 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq,nu
                     temp_depth = [h_l(1),0.d0]
                     call linearized_eigen(temp_depth,h_r,u_l,u_r,v_l,v_r,n_index,t_index,lambda,eig_vec)
                 else if (inundation_method == 2) then
-                    temp_depth = [h_l(1),drytolerance]
+                    temp_depth = [h_l(1),dry_tolerance]
                     call linearized_eigen(temp_depth,h_r,u_l,u_r,v_l,v_r,n_index,t_index,lambda,eig_vec)
                 else if (inundation_method == 3) then
-                    temp_depth = [h_l(1),drytolerance]
+                    temp_depth = [h_l(1),dry_tolerance]
                     call vel_diff_eigen(temp_depth,h_r,u_l,u_r,v_l,v_r,n_index,t_index,lambda,eig_vec)
                 else if (inundation_method == 4) then
-                    temp_depth = [h_l(1),drytolerance]
+                    temp_depth = [h_l(1),dry_tolerance]
                     call lapack_eigen(temp_depth,h_r,u_l,u_r,v_l,v_r,n_index,t_index,lambda,eig_vec)
                 else if (inundation_method == 5) then
                     temp_depth = [h_l(1),0.d0]
@@ -489,7 +495,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq,nu
             print *,""
             print "(a,i2)","In normal solver: ixy=",ixy
             print "(a,i3)","  Error solving R beta = delta,",info
-            print "(a,i3,a,i3)","  Location: ",icom," ",jcom
+!             print "(a,i3,a,i3)","  Location: ",icom," ",jcom
             print "(a,6d16.8)","  Eigenspeeds: ",s(i,:)
             print "(a)","  Eigenvectors:"
             do j=1,6
@@ -510,17 +516,17 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq,nu
     
     ! ========================================================================
     ! Capacity for mapping from latitude longitude to physical space
-    if (mcapa > 0) then
+    if (capa_index > 0) then
         do i=2-mbc,mx+mbc
             if (ixy == 1) then
-                dxdc=(Rearth*pi/180.d0)
+                dxdc=(R_earth*pi/180.d0)
             else
                 dxdc=auxl(i,3)
             endif
 
             do mw=1,mwaves
-    	        s(mw,i)=dxdc*s(mw,i)
-    	        fwave(:,mw,i)=dxdc*fwave(:,mw,i)
+                s(mw,i)=dxdc*s(mw,i)
+                fwave(:,mw,i)=dxdc*fwave(:,mw,i)
             enddo
         enddo
     endif
@@ -538,8 +544,8 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq,nu
             h_l(1) = qr(1,i-1) / rho(1)
             h_r(2) = ql(4,i) / rho(2)
             h_l(2) = qr(4,i-1) / rho(2)
-            dry_state_r(2) = h_r(2) < drytolerance
-            dry_state_l(2) = h_l(2) < drytolerance
+            dry_state_r(2) = h_r(2) < dry_tolerance
+            dry_state_l(2) = h_l(2) < dry_tolerance
             rare(1) = h_l(2) + b_l > b_r
             rare(2) = h_r(2) + b_r > b_l
             if (dry_state_r(2).and.(.not.dry_state_l(2)).and.(.not.rare(1)) &
