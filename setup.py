@@ -20,6 +20,7 @@ three_d_riemann = ['vc_acoustics']
 # special rules for rp2_kpp, rp2_euler_mapgrid, and rp3acv
 
 def configuration(parent_package='',top_path=None):
+    import os
     from numpy.distutils.misc_util import Configuration
 
     package_path=os.path.join(os.path.dirname(__file__),'src','python')
@@ -66,6 +67,7 @@ def configuration(parent_package='',top_path=None):
 
 
 def setup_package():
+    import os
     from numpy.distutils.core import setup
 
     old_path = os.getcwd()
