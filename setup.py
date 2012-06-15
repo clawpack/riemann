@@ -21,6 +21,7 @@ three_d_riemann = ['vc_acoustics']
 
 def configuration(parent_package='',top_path=None):
     import os
+    import sys
     from numpy.distutils.misc_util import Configuration
 
     package_path=os.path.join(os.path.dirname(__file__),'src','python')
@@ -68,6 +69,7 @@ def configuration(parent_package='',top_path=None):
 
 def setup_package():
     import os
+    import sys
     from numpy.distutils.core import setup
 
     old_path = os.getcwd()
