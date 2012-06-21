@@ -1315,7 +1315,7 @@ class GeoclawInputData(Data):
         # Shallow water data parameters
         self.add_attribute('dry_tolerance',1.0e-3)
         self.add_attribute('wave_tolerance',1.0e-1)
-        self.add_attribute('speed_tolerance',[1.0e12]*15)
+        self.add_attribute('speed_tolerance',1.0e12)
         self.add_attribute('depthdeep',1.0e2)
         self.add_attribute('maxleveldeep',3)
         self.add_attribute('ifriction',1)
@@ -1365,6 +1365,9 @@ class GeoclawInputData(Data):
         if not isinstance(self.wave_tolerance,list):
             self.wave_tolerance = [self.wave_tolerance for n in xrange(self.num_layers)]
         data_write(file, self, 'wave_tolerance')
+        if not isinstance(self.speed_tolerance,list):
+            self.speed_tolerance = [self.speed_tolerance]
+            print "Warning: Need len(speed_tolerance) == mxnest"
         data_write(file, self, 'speed_tolerance')
         data_write(file, self, 'depthdeep')
         data_write(file, self, 'maxleveldeep')
