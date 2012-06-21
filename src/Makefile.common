@@ -176,7 +176,7 @@ data: $(MAKEFILE_LIST);
 # runclaw will execute setrun.py to create data files and determine
 # what executable to run, e.g. xclaw or xamr.
 .output: $(CLAW_EXE) .data $(MAKEFILE_LIST);
-	$(CLAW_PYTHON) $(CLAW)/clawutil/src/python/clawutil/runclaw.py  $(CLAW_EXE) $(OUT_DIR) \
+	$(CLAW_PYTHON) $(CLAWUTIL)/src/python/clawutil/runclaw.py  $(CLAW_EXE) $(OUT_DIR) \
 	$(OVERWRITE) $(RESTART)
 	@echo $(OUT_DIR) > .output
 
