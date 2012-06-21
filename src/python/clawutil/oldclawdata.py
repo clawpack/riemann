@@ -1312,12 +1312,18 @@ class GeoclawInputData(Data):
         self.add_attribute('variable_dt_refinement_ratios',False)
         # NEED TO CONTINUE!
 
-        # Speed refinement
-        self.add_attribute('max_speed_nest',1)
-        self.add_attribute('speed_tolerance',[1e12])
+        # Shallow water data parameters
+        self.add_attribute('dry_tolerance',1.0e-3)
+        self.add_attribute('wave_tolerance',1.0e-1)
+        self.add_attribute('speed_tolerance',[1.0e12]*15)
+        self.add_attribute('depthdeep',1.0e2)
+        self.add_attribute('maxleveldeep',3)
+        self.add_attribute('ifriction',1)
+        self.add_attribute('coeffmanning',0.025)
+        self.add_attribute('frictiondepth',1.0e6)
         
         # Multilayer data
-        self.add_attribute('layers',1)
+        self.add_attribute('num_layers',1)
         self.add_attribute('rho',1.0)
         self.add_attribute('eta_init',0.0)
         self.add_attribute('check_richardson',False)
@@ -1339,7 +1345,7 @@ class GeoclawInputData(Data):
         file.close()
         
         file = open_datafile('multilayer.data')
-        data_write(file,self,'layers')
+        data_write(file,self,'num_layers')
         data_write(file,self,'rho')
         data_write(file,self,'eta_init')
         data_write(file,self,'check_richardson')
@@ -1353,15 +1359,18 @@ class GeoclawInputData(Data):
         file = open_datafile('setshallow.data')
         # Moved to multilayer.data file under eta parameters
         # data_write(file, self, 'sealevel')
-        data_write(file, self, 'drytolerance')
-        data_write(file, self, 'wavetolerance')
+        if not isinstance(self.dry_tolerance,list):
+            self.dry_tolerance = [self.dry_tolerance for n in xrange(self.num_layers)]
+        data_write(file, self, 'dry_tolerance')
+        if not isinstance(self.wave_tolerance,list):
+            self.wave_tolerance = [self.wave_tolerance for n in xrange(self.num_layers)]
+        data_write(file, self, 'wave_tolerance')
+        data_write(file, self, 'speed_tolerance')
         data_write(file, self, 'depthdeep')
         data_write(file, self, 'maxleveldeep')
         data_write(file, self, 'ifriction')
         data_write(file, self, 'coeffmanning')
         data_write(file, self, 'frictiondepth')
-        data_write(file, self, 'max_speed_nest')
-        data_write(file, self, 'speed_tolerance')
         file.close()
 
         # print 'Creating data file settopo.data'
