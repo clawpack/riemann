@@ -1305,95 +1305,152 @@ class GeoclawInputData(Data):
         super(GeoclawInputData,self).__init__()
 
         # Set default values:
-        self.add_attribute('igravity',1)
-        self.add_attribute('iqinit',0)
-        self.add_attribute('icoriolis',1)
-        self.add_attribute('Rearth',6367500.0)
-        self.add_attribute('variable_dt_refinement_ratios',False)
-        # NEED TO CONTINUE!
-
-        # Shallow water data parameters
-        self.add_attribute('dry_tolerance',1.0e-3)
-        self.add_attribute('wave_tolerance',1.0e-1)
-        self.add_attribute('speed_tolerance',1.0e12)
-        self.add_attribute('depthdeep',1.0e2)
-        self.add_attribute('maxleveldeep',3)
-        self.add_attribute('ifriction',1)
-        self.add_attribute('coeffmanning',0.025)
-        self.add_attribute('frictiondepth',1.0e6)
-        
-        # Multilayer data
+        self.add_attribute('gravity',9.8)
+        self.add_attribute('earth_radius',6367500.0)
+        self.add_attribute('coordinate_system',1)
         self.add_attribute('num_layers',1)
         self.add_attribute('rho',1.0)
         self.add_attribute('eta_init',0.0)
+        self.add_attribute('coriolis_force',True)
+        self.add_attribute('wind_force',False)
+        self.add_attribute('rho_air',1.15)
+        self.add_attribute('pressure_force',False)
+        self.add_attribute('friction_force',True)
+        self.add_attribute('manning_coefficient',0.025)
+        self.add_attribute('friction_depth',1.0e6)
+        self.add_attribute('variable_dt_refinement_ratios',False)
+
+        # Refinement controls
+        self.add_attribute('dry_tolerance',1.0e-3)
+        self.add_attribute('wave_tolerance',1.0e-1)
+        self.add_attribute('speed_tolerance',[1.0e12]*6)
+        self.add_attribute('deep_depth',1.0e2)
+        self.add_attribute('max_level_deep',3)
+        self.add_attribute('regions',[])
+        
+        # Multilayer data
         self.add_attribute('check_richardson',False)
         self.add_attribute('richardson_tolerance',0.95)
         self.add_attribute('eigen_method',2)
         self.add_attribute('inundation_method',2)
+        
+        # Topography data
+        self.add_attribute('topo_type',0)
+        self.add_attribute('topofiles',[])
+        
+        self.add_attribute('topo_location',-50e3)
+        self.add_attribute('topo_left',-4000.0)
+        self.add_attribute('topo_right',-200.0)
+        self.add_attribute('topo_angle',0.0)
+        
+        self.add_attribute('x0',350e3)
+        self.add_attribute('x1',450e3)
+        self.add_attribute('x2',480e3)
+        self.add_attribute('basin_depth',-3000.0)
+        self.add_attribute('shelf_depth',-100.0)
+        self.add_attribute('beach_slope',0.008)
+        
+        # Moving topograhpy
+        self.add_attribute('dtopofiles',[])
+        
+        # Qinit data
+        self.add_attribute('qinit_type',0)
+        self.add_attribute('qinitfiles',[])    
+        self.add_attribute('init_location',[300e3,0.0])
+        self.add_attribute('wave_family',4)
+        self.add_attribute('epsilon',0.4)
+        self.add_attribute('sigma',25e3)
+        self.add_attribute('theta',0.0)
+        
+        # Fixed Grids
+        self.add_attribute('fixedgrids',[])
 
     def write(self):
 
         # print 'Creating data file setgeo.data'
         # open file and write a warning header:
-        file = open_datafile('setgeo.data')
-        data_write(file, self, 'igravity')
+        file = open_datafile('physics.data')
         data_write(file, self, 'gravity')
-        data_write(file, self, 'icoordsys')
-        data_write(file, self, 'icoriolis')
-        data_write(file, self, 'Rearth')
-        data_write(file, self, 'variable_dt_refinement_ratios')
-        file.close()
-        
-        file = open_datafile('multilayer.data')
-        data_write(file,self,'num_layers')
-        data_write(file,self,'rho')
-        data_write(file,self,'eta_init')
-        data_write(file,self,'check_richardson')
-        data_write(file,self,'richardson_tolerance')
-        data_write(file,self,'eigen_method')
-        data_write(file,self,'inundation_method')
-        file.close()
-
-        # print 'Creating data file settsunami.data'
-        # open file and write a warning header:
-        file = open_datafile('setshallow.data')
-        # Moved to multilayer.data file under eta parameters
-        # data_write(file, self, 'sealevel')
+        data_write(file, self, 'earth_radius')
+        data_write(file, self, 'coordinate_system')
+        data_write(file, self)
+        data_write(file, self, 'num_layers')
+        data_write(file, self, 'rho')
+        data_write(file, self, 'eta_init')
+        data_write(file, self)
+        data_write(file, self, 'coriolis_force')
+        data_write(file, self, 'friction_force')
+        data_write(file, self, 'manning_coefficient')
+        data_write(file, self, 'friction_depth')
+        data_write(file, self, 'wind_force')
+        data_write(file, self, 'rho_air')
+        data_write(file, self, 'pressure_force')
+        data_write(file, self)
         if not isinstance(self.dry_tolerance,list):
             self.dry_tolerance = [self.dry_tolerance for n in xrange(self.num_layers)]
         data_write(file, self, 'dry_tolerance')
+        data_write(file, self, 'variable_dt_refinement_ratios')
+        file.close()
+        
+        if self.num_layers > 1:
+            file = open_datafile('multilayer.data')
+            data_write(file,self,'check_richardson','(Whether to check discrete Richardson Number)')
+            data_write(file,self,'richardson_tolerance','(Richardson number limit)')
+            data_write(file,self,'eigen_method','(Eigen method for wet multilayer)')
+            data_write(file,self,'inundation_method','(Inundation eigen method for multilayer)')
+            file.close()
+        
+        # Refinement controls
+        file = open_datafile('refinement.data')
         if not isinstance(self.wave_tolerance,list):
             self.wave_tolerance = [self.wave_tolerance for n in xrange(self.num_layers)]
         data_write(file, self, 'wave_tolerance')
         if not isinstance(self.speed_tolerance,list):
             self.speed_tolerance = [self.speed_tolerance]
-            print "Warning: Need len(speed_tolerance) == mxnest"
+            print "Warning: Need len(speed_tolerance) >= mxnest"
         data_write(file, self, 'speed_tolerance')
-        data_write(file, self, 'depthdeep')
-        data_write(file, self, 'maxleveldeep')
-        data_write(file, self, 'ifriction')
-        data_write(file, self, 'coeffmanning')
-        data_write(file, self, 'frictiondepth')
+        data_write(file, self, 'deep_depth')
+        data_write(file, self, 'max_level_deep')
+        data_write(file, self)
+        
+        # Regions settings
+        self.nregions = len(self.regions)
+        data_write(file, self, 'nregions')
+        for regions in self.regions:
+            file.write(8*"%g  " % tuple(regions) +"\n")
         file.close()
 
-        # print 'Creating data file settopo.data'
-        # open file and write a warning header:
-        file = open_datafile('settopo.data')
-        self.ntopofiles = len(self.topofiles)
-        data_write(file, self, 'ntopofiles')
-        for tfile in self.topofiles:
-            try:
-                fname = os.path.abspath(tfile[-1])
-            except:
-                print "*** Error: file not found: ",tfile[-1]
-                raise MissingFile("file not found")
-            file.write("\n'%s' \n " % fname)
-            file.write("%3i %3i %3i %20.10e %20.10e \n" % tuple(tfile[:-1]))
+        # Topography data
+        file = open_datafile('topo.data')
+        data_write(file,self,'topo_type','(Type topography specification)')
+        if self.topo_type == 0:
+            self.ntopofiles = len(self.topofiles)
+            data_write(file, self, 'ntopofiles')
+            for tfile in self.topofiles:
+                try:
+                    fname = os.path.abspath(tfile[-1])
+                except:
+                    print "*** Error: file not found: ",tfile[-1]
+                    raise MissingFile("file not found")
+                file.write("\n'%s' \n " % fname)
+                file.write("%3i %3i %3i %20.10e %20.10e \n" % tuple(tfile[:-1]))
+        elif self.topo_type == 1:
+            data_write(out_file,self,'topo_location','(Bathymetry jump location)')
+            data_write(out_file,self,'topo_left','(Depth to left of bathy_location)')
+            data_write(out_file,self,'topo_right','(Depth to right of bathy_location)')
+        elif self.topo_type == 2 or self.topo_type == 3: 
+            data_write(out_file,self,'x0','(Location of basin end)')
+            data_write(out_file,self,'x1','(Location of shelf slope end)')
+            data_write(out_file,self,'x2','(Location of beach slope)')
+            data_write(out_file,self,'basin_depth','(Depth of basin)')
+            data_write(out_file,self,'shelf_depth','(Depth of shelf)')
+            data_write(out_file,self,'beach_slope','(Slope of beach)')
+        else:
+            raise NotImplemented("Topography type %s has not been implemented." % topo_type)    
         file.close()
 
-        # print 'Creating data file setdtopo.data'
-        # open file and write a warning header:
-        file = open_datafile('setdtopo.data')
+        # Moving topography settings
+        file = open_datafile('dtopo.data')
         self.mdtopofiles = len(self.dtopofiles)
         data_write(file, self, 'mdtopofiles')
         data_write(file, self, None)
@@ -1407,61 +1464,44 @@ class GeoclawInputData(Data):
             file.write("%3i %3i %3i\n" % tuple(tfile[:-1]))
         file.close()
 
-        # print 'Creating data file setqinit.data'
-        # open file and write a warning header:
-        file = open_datafile('setqinit.data')
-        # self.iqinit tells which component of q is perturbed!
-        data_write(file, self, 'iqinit')
-        data_write(file, self, None)
-        for tfile in self.qinitfiles:
-            try:
-                fname = "'%s'" % os.path.abspath(tfile[-1])
-            except:
-                # print "*** Error: file not found: ",tfile[-1]
-                raise MissingFile("file not found")
-            file.write("\n%s  \n" % fname)
-            file.write("%3i %3i \n" % tuple(tfile[:-1]))
+        # Initial perturbation
+        file = open_datafile('qinit.data')
+        data_write(file, self, 'qinit_type')
+        # Single-layer perturbation requested
+        if self.num_layers == 1:
+            data_write(file, self, None)
+            for tfile in self.qinitfiles:
+                try:
+                    fname = "'%s'" % os.path.abspath(tfile[-1])
+                except:
+                    raise MissingFile("file not found")
+                file.write("\n%s  \n" % fname)
+                file.write("%3i %3i \n" % tuple(tfile[:-1]))
+        # Analytical initialization, good for 2 layers
+        elif self.num_layers == 2:
+            data.data_write(out_file,self,'epsilon','(Perturbation strength)')
+            if self.qinit_type <= 2 or self.qinit_type == 5:
+                data_write(out_file,self,'init_location','(Location for perturbation)')
+                data_write(out_file,self,'wave_family','(Wave family of the perturbation)')
+                if 2 == self.qinit_type or self.qinit_type == 5:
+                    data_write(out_file,self,'angle','(Angle of direction of travel from x-axis)')
+                    data_write(out_file,self,'sigma','(Gaussian width')
+            elif self.qinit_type == 3:
+                data_write(out_file,self,'init_location','(Location for perturbation)')
+                data_write(out_file,self,'sigma','(Gaussian width')
+            else:
+                raise NotImplemented("Initialization type %s not implemented." % qinit_type)
         file.close()
 
+        # Create gauges file
         make_setgauges_datafile(self)
 
-#        print 'Creating data file setgauges.data'
-#        # open file and write a warning header:
-#        file = open_datafile('setgauges.data')
-#        self.ngauges = len(self.gauges)
-#        data_write(file, self, 'ngauges')
-#        data_write(file, self, None)
-#        gaugeno_used = []
-#        for gauge in self.gauges:
-#            gaugeno = gauge[0]
-#            if gaugeno in gaugeno_used:
-#                print "*** Gauge number %s used more than once! " % gaugeno
-#                raise Exception("Repeated gauge number")
-#            else:
-#                gaugeno_used.append(gauge[0])
-#            gauge.append(gaugeno)
-#            file.write("%3i %19.10e  %19.10e  %15.6e  %15.6e  =: gauge%s\n" % tuple(gauge))
-#        file.close()
-
-
-        # print 'Creating data file setfixedgrids.data'
-        # open file and write a warning header:
-        file = open_datafile('setfixedgrids.data')
+        # Fixed grid settings
+        file = open_datafile('fixed_grids.data')
         self.nfixedgrids = len(self.fixedgrids)
         data_write(file, self, 'nfixedgrids')
         data_write(file, self, None)
         for fixedgrid in self.fixedgrids:
             file.write(11*"%g  " % tuple(fixedgrid) +"\n")
-        file.close()
-
-
-        # print 'Creating data file setregions.data'
-        # open file and write a warning header:
-        file = open_datafile('setregions.data')
-        self.nregions = len(self.regions)
-        data_write(file, self, 'nregions')
-        data_write(file, self, None)
-        for regions in self.regions:
-            file.write(8*"%g  " % tuple(regions) +"\n")
         file.close()
 
