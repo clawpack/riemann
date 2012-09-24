@@ -7,6 +7,7 @@ RIEMANN_SOLVERS = \
 	rp1_nonlinear_elasticity_fwave \
 	rp1_reactive_euler_with_efix \
 	rp1_shallow_roe_with_efix \
+	rp1_traffic \
 	rp2_acoustics \
 	rp2_advection \
 	rp2_euler_5wave \
