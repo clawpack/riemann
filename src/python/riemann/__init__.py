@@ -26,6 +26,7 @@ try:
     import rp1_nonlinear_elasticity_fwave
     import rp1_reactive_euler_with_efix
     import rp1_shallow_roe_with_efix
+    import rp1_traffic
     import rp2_acoustics
     import rp2_advection
     import rp2_euler_mapgrid
