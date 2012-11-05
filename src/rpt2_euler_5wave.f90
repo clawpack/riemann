@@ -25,10 +25,10 @@
     dimension waveb(5,4),sb(4)
     parameter (maxm2 = 1800)
 !     # assumes at most maxm2 * maxm2 grid with mbc<=7
-    common /comroe/ u2v2(-6:maxm2+7), &
-    u(-6:maxm2+7),v(-6:maxm2+7), &
-    enth(-6:maxm2+7),a(-6:maxm2+7), &
-    g1a2(-6:maxm2+7),euv(-6:maxm2+7)
+!     common /comroe/ u2v2(-6:maxm2+7), &
+!     u(-6:maxm2+7),v(-6:maxm2+7), &
+!     enth(-6:maxm2+7),a(-6:maxm2+7), &
+!     g1a2(-6:maxm2+7),euv(-6:maxm2+7)
 
     if (mbc > 7 .OR. maxm2 < maxm) then
         write(6,*) 'need to increase maxm2 or 7 in rpt'
@@ -44,40 +44,55 @@
     endif
 
     do 20 i = 2-mbc, mx+mbc
-        a3 = g1a2(i) * (euv(i)*asdq(1,i) &
-        + u(i)*asdq(mu,i) + v(i)*asdq(mv,i) - asdq(4,i))
-        a2 = asdq(mu,i) - u(i)*asdq(1,i)
-        a4 = (asdq(mv,i) + (a(i)-v(i))*asdq(1,i) - a(i)*a3) &
-        / (2.d0*a(i))
+        ! Roe averaged variables
+        rhsqrtl = dsqrt(qr(1,i-1))
+        rhsqrtr = dsqrt(ql(1,i))
+        rhsq2 = rhsqrtl + rhsqrtr
+        u = (qr(mu,i-1)/rhsqrtl + ql(mu,i)/rhsqrtr) / rhsq2
+        v = (qr(mv,i-1)/rhsqrtl + ql(mv,i)/rhsqrtr) / rhsq2
+        u2v2 = u**2 + v**2
+
+        pl = gamma1*(qr(4,i-1) - 0.5d0*(qr(2,i-1)**2 + qr(3,i-1)**2)/qr(1,i-1))
+        pr = gamma1*(ql(4,i)   - 0.5d0*(ql(2,i)**2   + ql(3,i)**2)  /ql(1,i))
+        enth = (((qr(4,i-1)+pl)/rhsqrtl + (ql(4,i)+pr)/rhsqrtr)) / rhsq2
+
+        a = sqrt(gamma1*(enth - 0.5d0*u2v2))
+        g1a2 = gamma1 / a**2
+        euv = enth - u2v2
+
+        a3 = g1a2 * (euv*asdq(1,i) + u*asdq(mu,i) + v*asdq(mv,i) - asdq(4,i))
+        a2 = asdq(mu,i) - u*asdq(1,i)
+        a4 = (asdq(mv,i) + (a-v)*asdq(1,i) - a*a3) &
+        / (2.d0*a)
         a1 = asdq(1,i) - a3 - a4
     
         waveb(1,1) = a1
-        waveb(mu,1) = a1*u(i)
-        waveb(mv,1) = a1*(v(i)-a(i))
-        waveb(4,1) = a1*(enth(i) - v(i)*a(i))
+        waveb(mu,1) = a1*u
+        waveb(mv,1) = a1*(v-a)
+        waveb(4,1) = a1*(enth - v*a)
         waveb(5,1) = 0.d0
-        sb(1) = v(i) - a(i)
+        sb(1) = v - a
     
         waveb(1,2) = a3
-        waveb(mu,2) = a3*u(i) + a2
-        waveb(mv,2) = a3*v(i)
-        waveb(4,2) = a3*0.5d0*u2v2(i) + a2*u(i)
+        waveb(mu,2) = a3*u + a2
+        waveb(mv,2) = a3*v
+        waveb(4,2) = a3*0.5d0*u2v2 + a2*u
         waveb(5,2) = 0.d0
-        sb(2) = v(i)
+        sb(2) = v
     
         waveb(1,3) = a4
-        waveb(mu,3) = a4*u(i)
-        waveb(mv,3) = a4*(v(i)+a(i))
-        waveb(4,3) = a4*(enth(i)+v(i)*a(i))
+        waveb(mu,3) = a4*u
+        waveb(mv,3) = a4*(v+a)
+        waveb(4,3) = a4*(enth+v*a)
         waveb(5,3) = 0.d0
-        sb(3) = v(i) + a(i)
+        sb(3) = v + a
     
         waveb(1,4) = 0.d0
         waveb(mu,4) = 0.d0
         waveb(mv,4) = 0.d0
         waveb(4,4) = 0.d0
         waveb(5,4) = asdq(5,i)
-        sb(4) = v(i)
+        sb(4) = v
     
     !           # compute the flux differences bmasdq and bpasdq
     
