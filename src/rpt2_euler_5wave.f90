@@ -1,40 +1,44 @@
+! Riemann solver in the transverse direction for the Euler equations
+!  with a tracer variable.
+! Split asdq (= A^* \Delta q, where * = + or -)
+! into down-going flux difference bmasdq (= B^- A^* \Delta q)
+!    and up-going flux difference bpasdq (= B^+ A^* \Delta q)
 
+! Uses Roe averages and other quantities which were
+! computed in rpn2eu and stored in the common block comroe.
+!
+subroutine rpt2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr,aux1,aux2,aux3,ilr,asdq, &
+                bmasdq,bpasdq,num_aux)
 
-!     =====================================================
-    subroutine rpt2(ixy,maxm,meqn,mwaves,mbc,mx, &
-                ql,qr,aux1,aux2,aux3,ilr,asdq,bmasdq,bpasdq,num_aux)
-!     =====================================================
-    implicit double precision (a-h,o-z)
+    implicit none
 
-!     # Riemann solver in the transverse direction for the Euler equations
-!     #  with a tracer variable.
-!     # Split asdq (= A^* \Delta q, where * = + or -)
-!     # into down-going flux difference bmasdq (= B^- A^* \Delta q)
-!     #    and up-going flux difference bpasdq (= B^+ A^* \Delta q)
+    ! Input
+    integer, intent(in) :: ixy, maxm, meqn, mwaves, mbc, mx, ilr, num_aux
+    real(kind=8), intent(in) :: ql(meqn, 1-mbc:maxm+mbc)
+    real(kind=8), intent(in) :: qr(meqn, 1-mbc:maxm+mbc)
+    real(kind=8), intent(in) :: aux1(num_aux, 1-mbc:maxm+mbc)
+    real(kind=8), intent(in) :: aux2(num_aux, 1-mbc:maxm+mbc)
+    real(kind=8), intent(in) :: aux3(num_aux, 1-mbc:maxm+mbc)
+    real(kind=8), intent(in) :: asdq(meqn, 1-mbc:maxm+mbc)
+    
+    ! Output
+    real(kind=8), intent(in out) :: bmasdq(meqn, 1-mbc:maxm+mbc)
+    real(kind=8), intent(in out) :: bpasdq(meqn, 1-mbc:maxm+mbc)
 
-!     # Uses Roe averages and other quantities which were
-!     # computed in rpn2eu and stored in the common block comroe.
+    ! Local storage
+    integer :: i, mw, mu, mv
+    real(kind=8) :: a(4), waveb(5,4), sb(4), rho_sqrtl, rho_sqrtr, rho_sq2
+    real(kind=8) :: u, v, u2v2, pl, pr, enth, c, g1c2, euv
 
-    dimension     ql(meqn, 1-mbc:maxm+mbc)
-    dimension     qr(meqn, 1-mbc:maxm+mbc)
-    dimension   asdq(meqn, 1-mbc:maxm+mbc)
-    dimension bmasdq(meqn, 1-mbc:maxm+mbc)
-    dimension bpasdq(meqn, 1-mbc:maxm+mbc)
-
+    ! Common block - ideal gas constant
+    real(kind=8) :: gamma, gamma1
     common /cparam/  gamma,gamma1
-    dimension waveb(5,4),sb(4)
-    parameter (maxm2 = 1800)
-!     # assumes at most maxm2 * maxm2 grid with mbc<=7
-!     common /comroe/ u2v2(-6:maxm2+7), &
-!     u(-6:maxm2+7),v(-6:maxm2+7), &
-!     enth(-6:maxm2+7),a(-6:maxm2+7), &
-!     g1a2(-6:maxm2+7),euv(-6:maxm2+7)
 
-    if (mbc > 7 .OR. maxm2 < maxm) then
-        write(6,*) 'need to increase maxm2 or 7 in rpt'
-        stop
-    endif
+    ! Initialize output
+    bmasdq = 0.d0
+    bpasdq = 0.d0
 
+    ! Normal and transverse direction indices
     if (ixy == 1) then
         mu = 2
         mv = 3
@@ -43,49 +47,49 @@
         mv = 2
     endif
 
-    do 20 i = 2-mbc, mx+mbc
+    ! Primary loop over grid cell interfaces
+    do i = 2-mbc, mx+mbc
         ! Roe averaged variables
-        rhsqrtl = dsqrt(qr(1,i-1))
-        rhsqrtr = dsqrt(ql(1,i))
-        rhsq2 = rhsqrtl + rhsqrtr
-        u = (qr(mu,i-1)/rhsqrtl + ql(mu,i)/rhsqrtr) / rhsq2
-        v = (qr(mv,i-1)/rhsqrtl + ql(mv,i)/rhsqrtr) / rhsq2
+        rho_sqrtl = dsqrt(qr(1,i-1))
+        rho_sqrtr = dsqrt(ql(1,i))
+        rho_sq2 = rho_sqrtl + rho_sqrtr
+        u = (qr(mu,i-1) / rho_sqrtl + ql(mu,i) / rho_sqrtr) / rho_sq2
+        v = (qr(mv,i-1) / rho_sqrtl + ql(mv,i) / rho_sqrtr) / rho_sq2
         u2v2 = u**2 + v**2
 
         pl = gamma1*(qr(4,i-1) - 0.5d0*(qr(2,i-1)**2 + qr(3,i-1)**2)/qr(1,i-1))
         pr = gamma1*(ql(4,i)   - 0.5d0*(ql(2,i)**2   + ql(3,i)**2)  /ql(1,i))
-        enth = (((qr(4,i-1)+pl)/rhsqrtl + (ql(4,i)+pr)/rhsqrtr)) / rhsq2
+        enth = (((qr(4,i-1)+pl)/rho_sqrtl + (ql(4,i)+pr)/rho_sqrtr)) / rho_sq2
 
-        a = sqrt(gamma1*(enth - 0.5d0*u2v2))
-        g1a2 = gamma1 / a**2
+        c = sqrt(gamma1*(enth - 0.5d0*u2v2))
+        g1c2 = gamma1 / c**2
         euv = enth - u2v2
 
-        a3 = g1a2 * (euv*asdq(1,i) + u*asdq(mu,i) + v*asdq(mv,i) - asdq(4,i))
-        a2 = asdq(mu,i) - u*asdq(1,i)
-        a4 = (asdq(mv,i) + (a-v)*asdq(1,i) - a*a3) &
-        / (2.d0*a)
-        a1 = asdq(1,i) - a3 - a4
+        a(3) = g1c2 * (euv*asdq(1,i) + u*asdq(mu,i) + v*asdq(mv,i) - asdq(4,i))
+        a(2) = asdq(mu,i) - u*asdq(1,i)
+        a(4) = (asdq(mv,i) + (c-v)*asdq(1,i) - c*a(3)) / (2.d0*c)
+        a(1) = asdq(1,i) - a(3) - a(4)
     
-        waveb(1,1) = a1
-        waveb(mu,1) = a1*u
-        waveb(mv,1) = a1*(v-a)
-        waveb(4,1) = a1*(enth - v*a)
+        waveb(1,1) = a(1)
+        waveb(mu,1) = a(1)*u
+        waveb(mv,1) = a(1)*(v-c)
+        waveb(4,1) = a(1)*(enth - v*c)
         waveb(5,1) = 0.d0
-        sb(1) = v - a
+        sb(1) = v - c
     
-        waveb(1,2) = a3
-        waveb(mu,2) = a3*u + a2
-        waveb(mv,2) = a3*v
-        waveb(4,2) = a3*0.5d0*u2v2 + a2*u
+        waveb(1,2) = a(3)
+        waveb(mu,2) = a(3)*u + a(2)
+        waveb(mv,2) = a(3)*v
+        waveb(4,2) = a(3)*0.5d0*u2v2 + a(2)*u
         waveb(5,2) = 0.d0
         sb(2) = v
     
-        waveb(1,3) = a4
-        waveb(mu,3) = a4*u
-        waveb(mv,3) = a4*(v+a)
-        waveb(4,3) = a4*(enth+v*a)
+        waveb(1,3) = a(4)
+        waveb(mu,3) = a(4)*u
+        waveb(mv,3) = a(4)*(v+c)
+        waveb(4,3) = a(4)*(enth+v*c)
         waveb(5,3) = 0.d0
-        sb(3) = v + a
+        sb(3) = v + c
     
         waveb(1,4) = 0.d0
         waveb(mu,4) = 0.d0
@@ -94,19 +98,11 @@
         waveb(5,4) = asdq(5,i)
         sb(4) = v
     
-    !           # compute the flux differences bmasdq and bpasdq
-    
-        do 10 m=1,meqn
-            bmasdq(m,i) = 0.d0
-            bpasdq(m,i) = 0.d0
-            do 10 mw=1,4
-                bmasdq(m,i) = bmasdq(m,i) &
-                + dmin1(sb(mw), 0.d0) * waveb(m,mw)
-                bpasdq(m,i) = bpasdq(m,i) &
-                + dmax1(sb(mw), 0.d0) * waveb(m,mw)
-        10 END DO
-    
-    20 END DO
+        ! Compute the flux differences bmasdq and bpasdq
+        do mw=1,4
+            bmasdq(:,i) = bmasdq(:,i) + min(sb(mw), 0.d0) * waveb(:,mw)
+            bpasdq(:,i) = bpasdq(:,i) + max(sb(mw), 0.d0) * waveb(:,mw)
+        end do
+    end do
 
-    return
-    end subroutine rpt2
+end subroutine rpt2
