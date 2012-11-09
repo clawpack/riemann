@@ -26,12 +26,6 @@ RIEMANN_SOLVERS = \
 SHARED_OBJECTS = $(addsuffix .so,$(RIEMANN_SOLVERS))
 
 COMPILER=gnu95
-ifeq ($(shell uname), Darwin)
-	LAPACK_LIB = -framework veclib
-endif
-ifeq ($(shell uname), Linux)
-	LAPACK_LIB = -llapack
-endif
 
 # Generic targets
 rp1_%.so: $(RIEMANN)/src/rp1_%.f90
