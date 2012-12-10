@@ -142,7 +142,7 @@ subroutine rp1(maxmx,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq,num_au
         ! ====================================================================
         ! Inundation cases
         if (dry_state_r(2).and.(.not.dry_state_l(2)).and.(h_l(2) + b_l > b_r)) then
-            print *,"Right inundation problem at i=",i
+            ! print *,"Right inundation problem at i=",i
             inundation = .true.
             if (inundation_method == 0) then
                 stop "Inundation not allowed."
@@ -196,7 +196,7 @@ subroutine rp1(maxmx,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq,num_au
                 s(:,i) = lambda                
             endif   
         else if (dry_state_l(2).and.(.not.dry_state_r(2)).and.(h_r(2) + b_r > b_l)) then
-            print *,"Left inundation problem at i=",i
+            ! print *,"Left inundation problem at i=",i
             inundation = .true.
             ! Inundation problem eigen
             if (inundation_method == 0) then
