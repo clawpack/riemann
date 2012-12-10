@@ -1,6 +1,7 @@
 one_d_riemann =   ['acoustics',
                    'advection',
                    'burgers',
+                   'traffic',
                    'euler_with_efix',
                    'nonlinear_elasticity_fwave',
                    'reactive_euler_with_efix',
