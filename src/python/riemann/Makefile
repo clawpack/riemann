@@ -7,6 +7,7 @@ RIEMANN_SOLVERS = \
 	rp1_nonlinear_elasticity_fwave \
 	rp1_reactive_euler_with_efix \
 	rp1_shallow_roe_with_efix \
+	rp1_layered_shallow_water \
 	rp1_traffic \
 	rp2_acoustics \
 	rp2_advection \
@@ -25,12 +26,6 @@ RIEMANN_SOLVERS = \
 SHARED_OBJECTS = $(addsuffix .so,$(RIEMANN_SOLVERS))
 
 COMPILER=gnu95
-ifeq ($(shell uname), Darwin)
-	LAPACK_LIB = -framework veclib
-endif
-ifeq ($(shell uname), Linux)
-	LAPACK_LIB = -llapack
-endif
 
 # Generic targets
 rp1_%.so: $(RIEMANN)/src/rp1_%.f90
