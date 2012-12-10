@@ -39,5 +39,10 @@ try:
     import rp2_vc_acoustics
     import rp2_vc_advection
     import rp3_vc_acoustics
-except ImportError:
-    print 'Warning: Some Riemannn solvers not found.  Remember to make in RIEMANN/src/python/riemann.'
+except ImportError as e:
+    import traceback
+    print "********************************************************************"
+    print 'Warning: Some Riemannn solvers were not able to be imported.'
+    print '         Did you run make in RIEMANN/src/python/riemann.'
+    traceback.print_exc()
+    print "********************************************************************"
