@@ -77,7 +77,7 @@ def rp_shallow_roe_1d(q_l,q_r,aux_l,aux_r,problem_data):
     # Compute roe-averaged quantities
     ubar = ( (q_l[1,:]/np.sqrt(q_l[0,:]) + q_r[1,:]/np.sqrt(q_r[0,:])) /
         (np.sqrt(q_l[0,:]) + np.sqrt(q_r[0,:])) )
-    cbar = np.sqrt(0.5 * problem_data['g'] * (q_l[0,:] + q_r[0,:]))
+    cbar = np.sqrt(0.5 * problem_data['grav'] * (q_l[0,:] + q_r[0,:]))
         
     # Compute Flux structure    
     delta = q_r - q_l
@@ -120,57 +120,56 @@ def rp_shallow_hll_1d(q_l,q_r,aux_l,aux_r,problem_data):
             
     :Version: 1.0 (2009-02-05)
     """
-    raise NotImplemented("This Riemann solver has not been interleaved!")
     # Array shapes
-    num_rp = q_l.shape[0]
+    num_rp = q_l.shape[1]
     num_eqn = 2
     num_waves = 2
     
     # Output arrays
-    wave = np.empty( (num_rp, num_eqn, num_waves) )
-    s = np.empty( (num_rp, num_waves) )
-    amdq = np.zeros( (num_rp, num_eqn) )
-    apdq = np.zeros( (num_rp, num_eqn) )
+    wave = np.empty( (num_eqn, num_waves, num_rp) )
+    s = np.empty( (num_waves, num_rp) )
+    amdq = np.zeros( (num_eqn, num_rp) )
+    apdq = np.zeros( (num_eqn, num_rp) )
 
     # Compute Roe and right and left speeds
-    ubar = ( (q_l[:,1]/np.sqrt(q_l[:,0]) + q_r[:,1]/np.sqrt(q_r[:,0])) /
-        (np.sqrt(q_l[:,0]) + np.sqrt(q_r[:,0])) )
-    cbar = np.sqrt(0.5 * problem_data['g'] * (q_l[:,0] + q_r[:,0]))
-    u_r = q_r[:,1] / q_r[:,0]
-    c_r = np.sqrt(problem_data['g'] * q_r[:,0])
-    u_l = q_l[:,1] / q_l[:,0]
-    c_l = np.sqrt(problem_data['g'] * q_l[:,0])
+    ubar = ( (q_l[1,:]/np.sqrt(q_l[0,:]) + q_r[1,:]/np.sqrt(q_r[0,:])) /
+        (np.sqrt(q_l[0,:]) + np.sqrt(q_r[0,:])) )
+    cbar = np.sqrt(0.5 * problem_data['grav'] * (q_l[0,:] + q_r[0,:]))
+    u_r = q_r[1,:] / q_r[0,:]
+    c_r = np.sqrt(problem_data['grav'] * q_r[0,:])
+    u_l = q_l[1,:] / q_l[0,:]
+    c_l = np.sqrt(problem_data['grav'] * q_l[0,:])
 
     # Compute Einfeldt speeds
-    s_index = np.empty((num_rp,4))
-    s_index[:,0] = ubar+cbar
-    s_index[:,1] = ubar-cbar
-    s_index[:,2] = u_l + c_l
-    s_index[:,3] = u_l - c_l
-    s[:,0] = np.min(s_index,axis=1)
-    s_index[:,2] = u_r + c_r
-    s_index[:,3] = u_r - c_r
-    s[:,1] = np.max(s_index,axis=1)
+    s_index = np.empty((4,num_rp))
+    s_index[0,:] = ubar+cbar
+    s_index[1,:] = ubar-cbar
+    s_index[2,:] = u_l + c_l
+    s_index[3,:] = u_l - c_l
+    s[0,:] = np.min(s_index,axis=0)
+    s_index[2,:] = u_r + c_r
+    s_index[3,:] = u_r - c_r
+    s[1,:] = np.max(s_index,axis=0)
 
     # Compute middle state
-    q_hat = np.empty((num_rp,2))
-    q_hat[:,0] = ((q_r[:,1] - q_l[:,1] - s[:,1] * q_r[:,0] 
-                            + s[:,0] * q_l[:,0]) / (s[:,0] - s[:,1]))
-    q_hat[:,1] = ((q_r[:,1]**2/q_r[:,0] + 0.5 * problem_data['g'] * q_r[:,0]**2
-                - (q_l[:,1]**2/q_l[:,0] + 0.5 * problem_data['g'] * q_l[:,0]**2)
-                - s[:,1] * q_r[:,1] + s[:,0] * q_l[:,1]) / (s[:,0] - s[:,1]))
+    q_hat = np.empty((2,num_rp))
+    q_hat[0,:] = ((q_r[1,:] - q_l[1,:] - s[1,:] * q_r[0,:] 
+                            + s[0,:] * q_l[0,:]) / (s[0,:] - s[1,:]))
+    q_hat[1,:] = ((q_r[1,:]**2/q_r[0,:] + 0.5 * problem_data['grav'] * q_r[0,:]**2
+                - (q_l[1,:]**2/q_l[0,:] + 0.5 * problem_data['grav'] * q_l[0,:]**2)
+                - s[1,:] * q_r[1,:] + s[0,:] * q_l[1,:]) / (s[0,:] - s[1,:]))
 
     # Compute each family of waves
-    wave[:,:,0] = q_hat - q_l
-    wave[:,:,1] = q_r - q_hat
+    wave[:,0,:] = q_hat - q_l
+    wave[:,1,:] = q_r - q_hat
     
     # Compute variations
-    s_index = np.zeros((num_rp,2))
+    s_index = np.zeros((2,num_rp))
     for m in xrange(num_eqn):
         for mw in xrange(num_waves):
-            s_index[:,0] = s[:,mw]
-            amdq[:,m] += np.min(s_index,axis=1) * wave[:,m,mw]
-            apdq[:,m] += np.max(s_index,axis=1) * wave[:,m,mw]
+            s_index[0,:] = s[mw,:]
+            amdq[m,:] += np.min(s_index,axis=0) * wave[m,mw,:]
+            apdq[m,:] += np.max(s_index,axis=0) * wave[m,mw,:]
             
     return wave, s, amdq, apdq
     
