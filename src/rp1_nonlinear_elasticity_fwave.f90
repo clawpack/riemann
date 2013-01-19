@@ -38,7 +38,7 @@
 
     dimension auxl(num_aux,1-mbc:maxm+mbc)
     dimension auxr(num_aux,1-mbc:maxm+mbc)
-    dimension fwave(mwaves,meqn,1-mbc:maxm+mbc)
+    dimension fwave(meqn,mwaves,1-mbc:maxm+mbc)
     dimension    s(mwaves,1-mbc:maxm+mbc)
     dimension   ql(meqn,1-mbc:maxm+mbc)
     dimension   qr(meqn,1-mbc:maxm+mbc)
