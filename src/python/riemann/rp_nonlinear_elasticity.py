@@ -35,8 +35,8 @@ def rp_nonlinear_elasticity_1d(q_l,q_r,aux_l,aux_r,problem_data):
     1d nonlinear elasticity riemann solver
     
     *aux* is expected to contain -
-     - aux[i,0] - density in cell i
-     - aux[i,1] - bulk modulus in cell i
+     - aux[0,i] - density in cell i
+     - aux[1,i] - bulk modulus in cell i
     
     See :ref:`pyclaw_rp` for more details.
     

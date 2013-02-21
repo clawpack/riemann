@@ -1,10 +1,12 @@
 one_d_riemann =   ['acoustics',
                    'advection',
                    'burgers',
+                   'traffic',
                    'euler_with_efix',
                    'nonlinear_elasticity_fwave',
                    'reactive_euler_with_efix',
-                   'shallow_roe_with_efix']
+                   'shallow_roe_with_efix',
+                   'layered_shallow_water']
 
 two_d_riemann =   ['acoustics',
                    'advection',
