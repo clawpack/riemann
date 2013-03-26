@@ -19,7 +19,7 @@ two_d_riemann =   ['acoustics',
 
 three_d_riemann = ['vc_acoustics']
                    
-# special rules for rp2_kpp, rp2_euler_mapgrid, and rp3acv
+# special rules for rp2_kpp, rp2_euler_mapgrid
 
 def configuration(parent_package='',top_path=None):
     import os
@@ -58,9 +58,7 @@ def configuration(parent_package='',top_path=None):
       'srcs':['rpn2_kpp.f90','rpt2_dummy.f90']},
      {'ext' :'rp2_euler_mapgrid',
       'srcs':['rpn2_euler_mapgrid.f90','rpt2_euler_mapgrid.f90',
-              'euler_roe_solver_mapgrid.f90','getquadinfo_mapgrid.f90']},
-     {'ext' :'rp3acv',
-      'srcs':['rpn3acv.f90','rpt3acv.f90','rptt3acv.f90']}]
+              'euler_roe_solver_mapgrid.f90','getquadinfo_mapgrid.f90']}]
      # Not working yet!
      # {'ext':'rp2_layered_shallow_water',
      #  'srcs':['rpn2_layered_shallow_water.f90','rpt2_layered_shallow_water.f90','geoclaw_rp.f']}]
