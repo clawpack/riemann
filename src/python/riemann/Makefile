@@ -21,6 +21,7 @@ RIEMANN_SOLVERS = \
 	rp2_vc_acoustics \
 	rp2_vc_advection \
 	rp3_vc_acoustics \
+	rp3_euler
 
 SHARED_OBJECTS = $(addsuffix .so,$(RIEMANN_SOLVERS))
 
