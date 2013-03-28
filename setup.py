@@ -17,7 +17,7 @@ two_d_riemann =   ['acoustics',
                    'vc_acoustics',
                    'vc_advection']
 
-three_d_riemann = ['vc_acoustics']
+three_d_riemann = ['vc_acoustics',
                     'euler']
                    
 # special rules for rp2_kpp, rp2_euler_mapgrid
