@@ -19,7 +19,7 @@ two_d_riemann =   ['acoustics',
 
 three_d_riemann = ['vc_acoustics',
                     'euler']
-                   
+
 # special rules for rp2_kpp, rp2_euler_mapgrid
 
 import os
@@ -34,19 +34,19 @@ def configuration(parent_package='',top_path=None):
     for rp in one_d_riemann:
         rp_ext = 'rp1_'+rp
         rp_src = [os.path.join(src_dir,rp_ext+'.f90')]
-        config.add_extension(rp_ext,rp_src)
+        config.add_extension(rp_ext,rp_src, libraries = ['blas', 'lapack'])
 
     for rp in two_d_riemann:
         rp_ext = 'rp2_'+rp
         rp_src = [os.path.join(src_dir,prefix+rp+'.f90')
                   for prefix in ['rpn2_','rpt2_']]
-        config.add_extension(rp_ext,rp_src)
+        config.add_extension(rp_ext,rp_src, libraries = ['blas', 'lapack'])
 
     for rp in three_d_riemann:
         rp_ext = 'rp3_'+rp
         rp_src = [os.path.join(src_dir,prefix+rp+'.f90')
                   for prefix in ['rpn3_','rpt3_','rptt3_']]
-        config.add_extension(rp_ext,rp_src)
+        config.add_extension(rp_ext,rp_src, libraries = ['blas', 'lapack'])
 
     # special targets
     special_target_list = \
@@ -57,11 +57,11 @@ def configuration(parent_package='',top_path=None):
               'euler_roe_solver_mapgrid.f90','getquadinfo_mapgrid.f90']},
      {'ext' :'rp2_euler_4wave',
       'srcs':['rpn2_euler_4wave.f90','rpt2_euler.f90']}]
-    
+
     for rp_dict in special_target_list:
         rp_ext = rp_dict['ext']
         rp_src = [os.path.join(src_dir,src) for src in rp_dict['srcs']]
-        config.add_extension(rp_ext,rp_src)
+        config.add_extension(rp_ext,rp_src, libraries = ['blas', 'lapack'])
     return config
 
 if __name__ == '__main__':
