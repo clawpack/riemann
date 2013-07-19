@@ -40,6 +40,7 @@ try:
     import rp2_vc_acoustics
     import rp2_vc_advection
     import rp3_vc_acoustics
+    import rp3_euler
 except ImportError as e:
     import traceback
     print "********************************************************************"

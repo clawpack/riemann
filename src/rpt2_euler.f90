@@ -82,6 +82,5 @@
 !                 
    20       continue
 !
-!       write(*,*) 'called!'
       return
       end

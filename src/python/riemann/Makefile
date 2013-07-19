@@ -21,7 +21,7 @@ RIEMANN_SOLVERS = \
 	rp2_vc_acoustics \
 	rp2_vc_advection \
 	rp3_vc_acoustics \
-	rp3acv
+	rp3_euler
 
 SHARED_OBJECTS = $(addsuffix .so,$(RIEMANN_SOLVERS))
 
@@ -59,9 +59,6 @@ rp2_euler_mapgrid.so: $(RIEMANN)/src/rpn2_euler_mapgrid.f90 $(RIEMANN)/src/rpt2_
 	f2py --fcompiler=$(COMPILER) -m $(basename $(notdir $@)) -c $^
 	
 rp2_euler_4wave.so: $(RIEMANN)/src/rpn2_euler_4wave.f90 $(RIEMANN)/src/rpt2_euler.f90
-	f2py --fcompiler=$(COMPILER) -m $(basename $(notdir $@)) -c $^
-	
-rp3acv.so: $(RIEMANN)/src/rpn3acv.f90 $(RIEMANN)/src/rpt3acv.f90 $(RIEMANN)/src/rptt3acv.f90
 	f2py --fcompiler=$(COMPILER) -m $(basename $(notdir $@)) -c $^
 	
 rp2_layered_shallow_water.so: $(RIEMANN)/src/rpn2_layered_shallow_water.f90 $(RIEMANN)/src/rpt2_layered_shallow_water.f90 $(GEOCLAW)/src/2d/riemannsolvers.f
