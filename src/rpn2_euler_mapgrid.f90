@@ -27,22 +27,15 @@
     double precision :: u, enth, delta(4), rho, v
     double precision :: wave_local(3,4), s_local(3),uv(2)
     double precision :: speeds(2,3), u2v2l, u2v2r
-    integer :: i, m, mw, mu, mv, ixy1
-    logical :: efix, in_rpt
+    integer :: i, m, mw, mu, mv, ixy1, info
+    logical :: efix
 
     integer :: mcapa,locrot, locarea
     double precision :: rot(4), area
 
-    double precision :: dtcom, dxcom, dycom, tcom
-    integer :: icom, jcom, info
-
-    common /comrp/ in_rpt
     common /param/  gamma,gamma1
-    common /comxyt/ dtcom,dxcom,dycom,tcom,icom,jcom
 
     data efix /.true./
-
-    in_rpt = .false.
 
     call get_aux_locations_n(ixy,mcapa,locrot,locarea)
 
@@ -89,12 +82,6 @@
             delta(m) = qr_state(m) - ql_state(m)
         enddo
 
-        if (ixy == 1) then
-            icom = i
-        else
-            jcom = i
-        endif
-
         ixy1 = 1
         call roe_solver(ixy1,uv,enth,delta,wave_local,s_local,info)
 
@@ -102,7 +89,6 @@
             write(6,*) 'ixy = ', ixy
             write(6,*) 'enth = ', enth
             write(6,*) 'Called from rpn2 '
-            write(6,*) 'i,j = ', icom, jcom
             write(6,*) ' '
             do m = 1,meqn
                 write(6,'(2E24.16)') ql_state(m), qr_state(m)
