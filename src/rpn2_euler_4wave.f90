@@ -42,11 +42,12 @@
       dimension delta(4)
       logical efix
       common /cparam/  gamma
-      common /comroe/ u2v2(-6:maxm2+7), &
-            u(-6:maxm2+7),v(-6:maxm2+7),enth(-6:maxm2+7),a(-6:maxm2+7), &
-            g1a2(-6:maxm2+7),euv(-6:maxm2+7) 
 !
       data efix /.true./    !# use entropy fix for transonic rarefactions
+
+      double precision u2v2(-6:maxm2+7), &
+            u(-6:maxm2+7),v(-6:maxm2+7),enth(-6:maxm2+7),a(-6:maxm2+7), &
+            g1a2(-6:maxm2+7),euv(-6:maxm2+7) 
 !
       if (mbc > 7 .OR. maxm2 < maxm) then
          write(6,*) 'need to increase maxm2 or 7 in rpn'

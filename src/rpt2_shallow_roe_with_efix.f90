@@ -13,9 +13,6 @@
 !     # into down-going flux difference bmasdq (= B^- A^* \Delta q)
 !     #    and up-going flux difference bpasdq (= B^+ A^* \Delta q)
 
-!     # Uses Roe averages and other quantities which were
-!     # computed in rpn2sh and stored in the common block comroe.
-
     dimension     ql(meqn, 1-mbc:maxm+mbc)
     dimension     qr(meqn, 1-mbc:maxm+mbc)
     dimension   asdq(meqn, 1-mbc:maxm+mbc)
@@ -23,10 +20,11 @@
     dimension bpasdq(meqn, 1-mbc:maxm+mbc)
 
     dimension waveb(3,3),sb(3)
-    parameter (maxm2 = 1800)
-    common /comroe/ u(-6:maxm2+7),v(-6:maxm2+7),a(-6:maxm2+7), &
-    h(-6:maxm2+7)
 
+!     # Roe averages quantities of each interface
+    parameter (maxm2 = 1800)
+    double precision u(-6:maxm2+7),v(-6:maxm2+7),a(-6:maxm2+7), &
+                     h(-6:maxm2+7)
 
     if (ixy == 1) then
         mu = 2
@@ -36,6 +34,16 @@
         mv = 2
     endif
             
+    do 10 i = 2-mbc, mx+mbc
+        h(i) = (qr(1,i-1)+ql(1,i))*0.50d0
+        hsqrtl = dsqrt(qr(1,i-1))
+        hsqrtr = dsqrt(ql(1,i))
+        hsq2 = hsqrtl + hsqrtr
+        u(i) = (qr(mu,i-1)/hsqrtl + ql(mu,i)/hsqrtr) / hsq2
+        v(i) = (qr(mv,i-1)/hsqrtl + ql(mv,i)/hsqrtr) / hsq2
+        a(i) = dsqrt(grav*h(i))
+    10 END DO
+
 
     do 20 i = 2-mbc, mx+mbc
         a1 = (0.50d0/a(i))*((v(i)+a(i))*asdq(1,i)-asdq(mv,i))
@@ -59,15 +67,15 @@
     
     !           # compute the flux differences bmasdq and bpasdq
     
-        do 10 m=1,meqn
+        do 30 m=1,meqn
             bmasdq(m,i) = 0.d0
             bpasdq(m,i) = 0.d0
-            do 10 mw=1,mwaves
+            do 30 mw=1,mwaves
                 bmasdq(m,i) = bmasdq(m,i) &
                 + dmin1(sb(mw), 0.d0) * waveb(m,mw)
                 bpasdq(m,i) = bpasdq(m,i) &
                 + dmax1(sb(mw), 0.d0) * waveb(m,mw)
-        10 END DO
+        30 END DO
     
     20 END DO
 

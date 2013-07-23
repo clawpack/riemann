@@ -44,11 +44,9 @@
     common /cparam/ grav
 
 !     # Roe averages quantities of each interface
-!     # These arrays are used afterwards in the transverse Riemann
-!     # solver, i.e. rpt2sw.f
     parameter (maxm2 = 1800)
-    common /comroe/ u(-6:maxm2+7),v(-6:maxm2+7),a(-6:maxm2+7), &
-    h(-6:maxm2+7)
+    double precision u(-6:maxm2+7),v(-6:maxm2+7),a(-6:maxm2+7), &
+                     h(-6:maxm2+7)
 
 
 !     local arrays
@@ -80,8 +78,6 @@
 
 
 !     # Compute the Roe-averaged variables needed in the Roe solver.
-!     # These are stored in the common block comroe since they are
-!     # later used in routine rpt2sh to do the transverse wave splitting.
 
     do 10 i = 2-mbc, mx+mbc
         h(i) = (qr(1,i-1)+ql(1,i))*0.50d0

@@ -7,14 +7,8 @@
     double precision :: a1, a2, a3, a4, a5
     double precision :: gamma, gamma1
     integer :: m, p, mu, mv, ixy, i, j, k, info
-    logical :: in_rpt
-
-    double precision :: dtcom, dxcom, dycom, tcom
-    integer :: icom, jcom
 
     common /param/ gamma, gamma1
-    common /comxyt/ dtcom,dxcom,dycom,tcom,icom,jcom
-    common /comrp/ in_rpt
 
 
     info = 0
