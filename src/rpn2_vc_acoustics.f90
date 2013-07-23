@@ -50,8 +50,6 @@
 !     ------------
     dimension delta(3)
 
-    common /comxyt/ dtcom,dxcom,dycom,tcom,icom,jcom
-
 !     # set mu to point to  the component of the system that corresponds
 !     # to velocity in the direction of this slice, mv to the orthogonal
 !     # velocity.

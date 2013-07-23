@@ -63,15 +63,12 @@
     double precision :: gamma, gamma1
 
     double precision :: dtcom, dxcom, dycom, tcom
-    integer :: icom, jcom, info
+    integer :: info
 
     logical :: in_rpt
 
     common /param/  gamma,gamma1
-    common /comxyt/ dtcom,dxcom,dycom,tcom,icom,jcom
-    common /comrp/ in_rpt
 
-    in_rpt = .true.
     useroe = .true.
 
     call get_aux_locations_t(ixy, mcapa, locrot,locarea)
@@ -160,18 +157,11 @@
         call roe_solver(ixy1,uvm_rot,enth,deltam, &
         wave_local,s_local,info)
 
-        if (ixy == 1) then
-            icom = i
-        else
-            jcom = i
-        endif
-
         if (info /= 0) then
             write(6,*) 'ixy = ', ixy
             write(6,*) 'ilr = ', ilr
             write(6,*) 'enth = ', enth
             write(6,*) 'Called from rpt2  (A-DQ)'
-            write(6,*) 'i,j = ', icom, jcom
             write(6,*) ' '
             write(6,'(24A,24A)') '        Left State      ', &
             '       Right State      '
@@ -209,7 +199,6 @@
             write(6,*) 'ilr = ', ilr
             write(6,*) 'enth = ', enth
             write(6,*) 'Called from rpt2  (A+DQ)'
-            write(6,*) 'i,j = ', icom, jcom
             write(6,*) ' '
             write(6,'(24A,24A)') '        Left State      ', &
             '       Right State      '

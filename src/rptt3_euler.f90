@@ -7,9 +7,6 @@
 !     # Riemann solver in the transverse direction for the
 !     # Euler equations.
 !     #
-!     # Uses Roe averages and other quantities which were
-!     # computed in rpn3eu and stored in the common block comroe.
-!
 !     # On input,
 !
 !     #    ql,qr is the data along some one-dimensional slice, as in rpn3
@@ -68,7 +65,7 @@
       parameter (maxmrp = 1002)
       integer tflag
 
-      common /comroe/ u2v2w2(-1:maxmrp), &
+      double precision u2v2w2(-1:maxmrp), &
             u(-1:maxmrp),v(-1:maxmrp),w(-1:maxmrp),enth(-1:maxmrp), &
             a(-1:maxmrp),g1a2(-1:maxmrp),euv(-1:maxmrp)
 !
@@ -94,6 +91,50 @@
 !     # Solve Riemann problem in the second coordinate direction
 !
       if( icoor .eq. 2 )then
+
+      do 10 i = 2-mbc, mx+mbc
+         if (qr(1,i-1) .le. 0.d0 .or. ql(1,i) .le. 0.d0) then
+            write(*,*) i, mu, mv, mw
+            write(*,990) (qr(j,i-1),j=1,5)
+            write(*,990) (ql(j,i),j=1,5)
+ 990        format(5e12.4)
+             if (ixyz .eq. 1) &
+               write(6,*) '*** rho .le. 0 in x-sweep at ',i
+             if (ixyz .eq. 2) &
+               write(6,*) '*** rho .le. 0 in y-sweep at ',i
+             if (ixyz .eq. 3) &
+               write(6,*) '*** rho .le. 0 in z-sweep at ',i
+             write(6,*) 'stopped with rho < 0...'
+             stop
+             endif
+         rhsqrtl = dsqrt(qr(1,i-1))
+         rhsqrtr = dsqrt(ql(1,i))
+         pl = gamma1*(qr(5,i-1) - 0.5d0*(qr(mu,i-1)**2 + &
+                qr(mv,i-1)**2 + qr(mw,i-1)**2)/qr(1,i-1))
+         pr = gamma1*(ql(5,i) - 0.5d0*(ql(mu,i)**2 + &
+                ql(mv,i)**2 + ql(mw,i)**2)/ql(1,i))
+         rhsq2 = rhsqrtl + rhsqrtr
+         u(i) = (qr(mu,i-1)/rhsqrtl + ql(mu,i)/rhsqrtr) / rhsq2
+         v(i) = (qr(mv,i-1)/rhsqrtl + ql(mv,i)/rhsqrtr) / rhsq2
+         w(i) = (qr(mw,i-1)/rhsqrtl + ql(mw,i)/rhsqrtr) / rhsq2
+         enth(i) = (((qr(5,i-1)+pl)/rhsqrtl &
+                    + (ql(5,i)+pr)/rhsqrtr)) / rhsq2
+         u2v2w2(i) = u(i)**2 + v(i)**2 + w(i)**2
+         a2 = gamma1*(enth(i) - .5d0*u2v2w2(i))
+         if (a2 .le. 0.d0) then
+             if (ixyz .eq. 1) &
+               write(6,*) '*** a2 .le. 0 in x-sweep at ',i
+             if (ixyz .eq. 2) &
+               write(6,*) '*** a2 .le. 0 in y-sweep at ',i
+             if (ixyz .eq. 3) &
+               write(6,*) '*** a2 .le. 0 in z-sweep at ',i
+             write(6,*) 'stopped with a2 < 0...'
+             stop
+             endif
+         a(i) = dsqrt(a2)
+         g1a2(i) = gamma1 / a2
+         euv(i) = enth(i) - u2v2w2(i)
+   10 continue
 
       do 20 i = 2-mbc, mx+mbc
             a4 = g1a2(i) * (euv(i)*asdq(1,i) &

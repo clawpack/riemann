@@ -34,18 +34,14 @@
       dimension auxl(maux, 1-mbc:maxm+mbc)
       dimension auxr(maux, 1-mbc:maxm+mbc)
 !
-!     local arrays -- common block comroe is passed to rpt3eu
-!
-!     ------------
       parameter (maxmrp = 1002)
       dimension delta(5)
       logical efix
 
-      common /comxyzt/ dtcom,dxcom,dycom,dzcom,tcom,icom,jcom,kcom
-      common /comroe/ u2v2w2(-1:maxmrp), &
+      double precision u2v2w2(-1:maxmrp), &
             u(-1:maxmrp),v(-1:maxmrp),w(-1:maxmrp),enth(-1:maxmrp), &
             a(-1:maxmrp),g1a2(-1:maxmrp),euv(-1:maxmrp)
-
+!
       common /cparam/ gamma
 !
       data efix /.true./    !# use entropy fix for transonic rarefactions
@@ -93,9 +89,6 @@
 !
 !
 !     # Compute the Roe-averaged variables needed in the Roe solver.
-!     # These are stored in the common block comroe since they are
-!     # later used in routine rpt3eu to do the transverse wave
-!     # splitting.
 !
       do 10 i = 2-mbc, mx+mbc
          if (qr(1,i-1) .le. 0.d0 .or. ql(1,i) .le. 0.d0) then
@@ -104,11 +97,11 @@
             write(*,990) (ql(j,i),j=1,5)
  990        format(5e12.4)
              if (ixyz .eq. 1) &
-               write(6,*) '*** rho .le. 0 in x-sweep at ',i,jcom,kcom
+               write(6,*) '*** rho .le. 0 in x-sweep at ',i
              if (ixyz .eq. 2) &
-               write(6,*) '*** rho .le. 0 in y-sweep at ',icom,i,kcom
+               write(6,*) '*** rho .le. 0 in y-sweep at ',i
              if (ixyz .eq. 3) &
-               write(6,*) '*** rho .le. 0 in z-sweep at ',icom,jcom,i
+               write(6,*) '*** rho .le. 0 in z-sweep at ',i
              write(6,*) 'stopped with rho < 0...'
              stop
              endif
@@ -128,11 +121,11 @@
          a2 = gamma1*(enth(i) - .5d0*u2v2w2(i))
          if (a2 .le. 0.d0) then
              if (ixyz .eq. 1) &
-               write(6,*) '*** a2 .le. 0 in x-sweep at ',i,jcom,kcom
+               write(6,*) '*** a2 .le. 0 in x-sweep at ',i
              if (ixyz .eq. 2) &
-               write(6,*) '*** a2 .le. 0 in y-sweep at ',icom,i,kcom
+               write(6,*) '*** a2 .le. 0 in y-sweep at ',i
              if (ixyz .eq. 3) &
-               write(6,*) '*** a2 .le. 0 in z-sweep at ',icom,jcom,i
+               write(6,*) '*** a2 .le. 0 in z-sweep at ',i
              write(6,*) 'stopped with a2 < 0...'
              stop
              endif
