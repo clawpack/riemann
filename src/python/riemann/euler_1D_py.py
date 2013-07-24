@@ -44,7 +44,7 @@ import numpy as np
 num_eqn = 3
 num_waves = 3
 
-def rp_euler_roe_1d(q_l,q_r,aux_l,aux_r,problem_data):
+def euler_roe_1D(q_l,q_r,aux_l,aux_r,problem_data):
     r"""
     Roe Euler solver in 1d
     

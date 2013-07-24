@@ -36,7 +36,7 @@ to calculate the impedence :math:`= Z` and speed of sound `= c`.
 num_eqn = 2
 num_waves = 2
 
-def rp_acoustics_1d(q_l,q_r,aux_l,aux_r,problem_data):
+def acoustics_1D(q_l,q_r,aux_l,aux_r,problem_data):
     r"""
     Basic 1d acoustics riemann solver, with interleaved arrays
     
