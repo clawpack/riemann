@@ -30,7 +30,7 @@ and the flux vector is
 
 import numpy as np
 
-def rp_nonlinear_elasticity_1d(q_l,q_r,aux_l,aux_r,problem_data):
+def nonlinear_elasticity_1D(q_l,q_r,aux_l,aux_r,problem_data):
     r"""
     1d nonlinear elasticity riemann solver
     

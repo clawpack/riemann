@@ -22,7 +22,7 @@ num_waves = 1
 
 import numpy as np
 
-def rp_burgers_1d(q_l,q_r,aux_l,aux_r,problem_data):
+def burgers_1D(q_l,q_r,aux_l,aux_r,problem_data):
     r"""
     Riemann solver for Burgers equation in 1d
          

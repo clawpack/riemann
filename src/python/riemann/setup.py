@@ -32,30 +32,30 @@ def configuration(parent_package='',top_path=None):
     src_dir = os.path.join(os.path.dirname(__file__),'src')
 
     for rp in one_d_riemann:
-        rp_ext = 'rp1_'+rp
-        rp_src = [os.path.join(src_dir,rp_ext+'.f90')]
+        rp_ext = rp+'_1D'
+        rp_src = [os.path.join(src_dir,'rp1_'+rp+'.f90')]
         config.add_extension(rp_ext,rp_src, libraries = ['blas', 'lapack'])
 
     for rp in two_d_riemann:
-        rp_ext = 'rp2_'+rp
+        rp_ext = rp+'_2D'
         rp_src = [os.path.join(src_dir,prefix+rp+'.f90')
                   for prefix in ['rpn2_','rpt2_']]
         config.add_extension(rp_ext,rp_src, libraries = ['blas', 'lapack'])
 
     for rp in three_d_riemann:
-        rp_ext = 'rp3_'+rp
+        rp_ext = rp+'_3D'
         rp_src = [os.path.join(src_dir,prefix+rp+'.f90')
                   for prefix in ['rpn3_','rpt3_','rptt3_']]
         config.add_extension(rp_ext,rp_src, libraries = ['blas', 'lapack'])
 
     # special targets
     special_target_list = \
-    [{'ext' :'rp2_kpp',
+    [{'ext' :'kpp_2D',
       'srcs':['rpn2_kpp.f90','rpt2_dummy.f90']},
-     {'ext' :'rp2_euler_mapgrid',
+     {'ext' :'euler_mapgrid_2D',
       'srcs':['rpn2_euler_mapgrid.f90','rpt2_euler_mapgrid.f90',
               'euler_roe_solver_mapgrid.f90','getquadinfo_mapgrid.f90']},
-     {'ext' :'rp2_euler_4wave',
+     {'ext' :'euler_4wave_2D',
       'srcs':['rpn2_euler_4wave.f90','rpt2_euler.f90']}]
 
     for rp_dict in special_target_list:

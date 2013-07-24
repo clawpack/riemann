@@ -25,7 +25,7 @@ num_waves = 1
 
 import numpy as np
 
-def rp_advection_1d(q_l,q_r,aux_l,aux_r,problem_data):
+def advection_1D(q_l,q_r,aux_l,aux_r,problem_data):
     r"""Basic 1d advection riemann solver
     
     *problem_data* should contain -

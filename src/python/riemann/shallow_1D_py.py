@@ -41,7 +41,7 @@ import numpy as np
 num_eqn = 2
 num_waves = 2
 
-def rp_shallow_roe_1d(q_l,q_r,aux_l,aux_r,problem_data):
+def shallow_roe_1D(q_l,q_r,aux_l,aux_r,problem_data):
     r"""
     Roe shallow water solver in 1d::
     
@@ -105,7 +105,7 @@ def rp_shallow_roe_1d(q_l,q_r,aux_l,aux_r,problem_data):
             
     return wave, s, amdq, apdq
     
-def rp_shallow_hll_1d(q_l,q_r,aux_l,aux_r,problem_data):
+def shallow_hll_1D(q_l,q_r,aux_l,aux_r,problem_data):
     r"""
     HLL shallow water solver ::
     
@@ -173,7 +173,7 @@ def rp_shallow_hll_1d(q_l,q_r,aux_l,aux_r,problem_data):
             
     return wave, s, amdq, apdq
     
-def rp_shallow_exact_1d(q_l,q_r,aux_l,aux_r,problem_data):
+def shallow_exact_1D(q_l,q_r,aux_l,aux_r,problem_data):
     r"""
     Exact shallow water Riemann solver
     

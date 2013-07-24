@@ -9,38 +9,38 @@ rp_solver_list_2d = []
 rp_solver_list_3d = []
 
 # Import 1d Riemann solvers
-from rp_advection import rp_advection_1d
-from rp_vc_advection import rp_vc_advection_1d
-from rp_acoustics import rp_acoustics_1d
-from rp_burgers import rp_burgers_1d
-from rp_shallow import rp_shallow_roe_1d, rp_shallow_hll_1d, rp_shallow_exact_1d
-from rp_euler import rp_euler_roe_1d
-from rp_nonlinear_elasticity import rp_nonlinear_elasticity_1d
+from advection_1D_py import advection_1D
+from vc_advection_1D_py import vc_advection_1D
+from acoustics_1D_py import acoustics_1D
+from burgers_1D_py import burgers_1D
+from shallow_1D_py import shallow_roe_1D, shallow_hll_1D, shallow_exact_1D
+from euler_1D_py import euler_roe_1D
+from nonlinear_elasticity_1D_py import nonlinear_elasticity_1D
 import static
 
 try:
-    import rp1_acoustics
-    import rp1_advection
-    import rp1_burgers
-    import rp1_euler_with_efix
-    import rp1_nonlinear_elasticity_fwave
-    import rp1_reactive_euler_with_efix
-    import rp1_shallow_roe_with_efix
-    import rp1_layered_shallow_water
-    import rp1_traffic
-    import rp2_acoustics
-    import rp2_advection
-    import rp2_euler_mapgrid
-    import rp2_euler_5wave
-    import rp2_euler_4wave
-    import rp2_kpp
-    import rp2_psystem
-    import rp2_shallow_roe_with_efix
-    import rp2_shallow_sphere
-    import rp2_vc_acoustics
-    import rp2_vc_advection
-    import rp3_vc_acoustics
-    import rp3_euler
+    import acoustics_1D
+    import advection_1D
+    import burgers_1D
+    import euler_with_efix_1D
+    import nonlinear_elasticity_fwave_1D
+    import reactive_euler_with_efix_1D
+    import shallow_roe_with_efix_1D
+    import layered_shallow_water_1D
+    import traffic_1D
+    import acoustics_2D
+    import advection_2D
+    import euler_mapgrid_2D
+    import euler_5wave_2D
+    import euler_4wave_2D
+    import kpp_2D
+    import psystem_2D
+    import shallow_roe_with_efix_2D
+    import shallow_sphere_2D
+    import vc_acoustics_2D
+    import vc_advection_2D
+    import vc_acoustics_3D
+    import euler_3D
 except ImportError as e:
     import traceback
     print "********************************************************************"
