@@ -53,5 +53,5 @@ num_waves = {
         'shallow_sphere_2D' : 3,
         'vc_acoustics_2D' : 2,
         'vc_advection_2D' : 1,
-        'vc_acoustics_3D' : 4
+        'vc_acoustics_3D' : 2
         }
