@@ -77,7 +77,7 @@
         delta(2) = ql(mu,i) - qr(mu,i-1)
     !        # impedances:
         zi = auxl(1,i)
-        zim = auxl(1,i-1)
+        zim = auxr(1,i-1)
 
         a1 = (-delta(1) + zi*delta(2)) / (zim + zi)
         a2 =  (delta(1) + zim*delta(2)) / (zim + zi)
