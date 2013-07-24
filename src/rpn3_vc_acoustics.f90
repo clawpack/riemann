@@ -90,7 +90,7 @@
         wave(mu,1,i) = a1
         wave(mv,1,i) = 0.d0
         wave(mw,1,i) = 0.d0
-        s(1,i) = -auxl(2,i-1)
+        s(1,i) = -auxr(2,i-1)
     
         wave(1,2,i) = a2*zi
         wave(mu,2,i) = a2
