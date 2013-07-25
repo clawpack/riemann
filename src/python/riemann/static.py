@@ -48,7 +48,7 @@ num_waves = {
         'euler_5wave_2D' : 5,
         'euler_4wave_2D' : 4,
         'kpp_2D' : 1,
-        'psystem_2D' : 3,
+        'psystem_2D' : 2,
         'shallow_roe_with_efix_2D' : 3,
         'shallow_sphere_2D' : 3,
         'vc_acoustics_2D' : 2,
