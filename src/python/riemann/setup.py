@@ -10,6 +10,7 @@ one_d_riemann =   ['acoustics',
 
 two_d_riemann =   ['acoustics',
                    'advection',
+                   'burgers',
                    'euler_5wave',
                    'psystem',
                    'shallow_roe_with_efix',
@@ -18,7 +19,9 @@ two_d_riemann =   ['acoustics',
                    'vc_advection']
 
 three_d_riemann = ['vc_acoustics',
-                    'euler']
+                   'euler',
+                   'burgers',
+                   'vc_advection']
 
 # special rules for rp2_kpp, rp2_euler_mapgrid
 
