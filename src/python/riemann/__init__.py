@@ -48,6 +48,6 @@ except ImportError as e:
     import traceback
     print "********************************************************************"
     print 'Warning: Some Riemannn solvers were not able to be imported.'
-    print '         Did you run make in RIEMANN/src/python/riemann.'
+    print '         Did you run "pip install" in your clawpack directory?'
     traceback.print_exc()
     print "********************************************************************"
