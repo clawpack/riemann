@@ -30,6 +30,7 @@ try:
     import traffic_1D
     import acoustics_2D
     import advection_2D
+    import burgers_2D
     import euler_mapgrid_2D
     import euler_5wave_2D
     import euler_4wave_2D
@@ -41,6 +42,8 @@ try:
     import vc_advection_2D
     import vc_acoustics_3D
     import euler_3D
+    import burgers_3D
+    import vc_advection_3D
 except ImportError as e:
     import traceback
     print "********************************************************************"
