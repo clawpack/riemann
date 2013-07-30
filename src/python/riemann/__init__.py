@@ -40,6 +40,7 @@ try:
     import shallow_sphere_2D
     import vc_acoustics_2D
     import vc_advection_2D
+    import vc_elasticity_2D
     import vc_acoustics_3D
     import euler_3D
     import burgers_3D
