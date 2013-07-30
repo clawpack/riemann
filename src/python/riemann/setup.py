@@ -16,7 +16,8 @@ two_d_riemann =   ['acoustics',
                    'shallow_roe_with_efix',
                    'shallow_sphere',
                    'vc_acoustics',
-                   'vc_advection']
+                   'vc_advection',
+                   'vc_elasticity']
 
 three_d_riemann = ['vc_acoustics',
                    'euler',
