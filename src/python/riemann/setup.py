@@ -1,3 +1,8 @@
+import os
+from numpy.distutils.misc_util import Configuration
+from numpy.distutils import __config__ as numpy_config
+from collections import defaultdict
+
 one_d_riemann =   ['acoustics',
                    'advection',
                    'burgers',
@@ -26,11 +31,9 @@ three_d_riemann = ['vc_acoustics',
 
 # special rules for rp2_kpp, rp2_euler_mapgrid
 
-import os
 
 def configuration(parent_package='',top_path=None):
-    from numpy.distutils.misc_util import Configuration
-
+    
     config = Configuration('riemann', parent_package, top_path)
 
     src_dir = os.path.join(os.path.dirname(__file__),'src')
@@ -62,10 +65,26 @@ def configuration(parent_package='',top_path=None):
      {'ext' :'euler_4wave_2D',
       'srcs':['rpn2_euler_4wave.f90','rpt2_euler.f90']}]
 
+    # configuration updates for lapack/blas
+    config_kwargs = defaultdict(list)
+
+    def update_dict_of_lists(base_dict, update_dict):
+        """Appends list items from update_dict into defaultdict base_dict"""
+
+        for key, row in update_dict.iteritems():
+            config_kwargs[key] += row
+            
+
+    blas_config = numpy_config.blas_opt_info
+    lapack_config = numpy_config.lapack_opt_info
+
+    update_dict_of_lists(config_kwargs, blas_config)
+    update_dict_of_lists(config_kwargs, lapack_config)
+    
     for rp_dict in special_target_list:
         rp_ext = rp_dict['ext']
         rp_src = [os.path.join(src_dir,src) for src in rp_dict['srcs']]
-        config.add_extension(rp_ext,rp_src, libraries = ['blas', 'lapack'])
+        config.add_extension(rp_ext,rp_src, **config_kwargs)
     return config
 
 if __name__ == '__main__':
