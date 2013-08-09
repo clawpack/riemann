@@ -1,8 +1,3 @@
-import os
-from numpy.distutils.misc_util import Configuration
-from numpy.distutils import __config__ as numpy_config
-from collections import defaultdict
-
 one_d_riemann =   ['acoustics',
                    'advection',
                    'burgers',
@@ -31,45 +26,31 @@ three_d_riemann = ['vc_acoustics',
 
 # special rules for rp2_kpp, rp2_euler_mapgrid
 
+import os
 
 def configuration(parent_package='',top_path=None):
-    
+    from numpy.distutils.misc_util import Configuration
+
     config = Configuration('riemann', parent_package, top_path)
 
-    # configuration updates for lapack/blas
-    config_kwargs = defaultdict(list)
-
-    def update_dict_of_lists(base_dict, update_dict):
-        """Appends list items from update_dict into defaultdict base_dict"""
-
-        for key, row in update_dict.iteritems():
-            config_kwargs[key] += row
-            
-
-    blas_config = numpy_config.blas_opt_info
-    lapack_config = numpy_config.lapack_opt_info
-
-    update_dict_of_lists(config_kwargs, blas_config)
-    update_dict_of_lists(config_kwargs, lapack_config)
-    
     src_dir = os.path.join(os.path.dirname(__file__),'src')
 
     for rp in one_d_riemann:
         rp_ext = rp+'_1D'
         rp_src = [os.path.join(src_dir,'rp1_'+rp+'.f90')]
-        config.add_extension(rp_ext,rp_src, **config_kwargs)
+        config.add_extension(rp_ext,rp_src, libraries = ['blas', 'lapack'])
 
     for rp in two_d_riemann:
         rp_ext = rp+'_2D'
         rp_src = [os.path.join(src_dir,prefix+rp+'.f90')
                   for prefix in ['rpn2_','rpt2_']]
-        config.add_extension(rp_ext,rp_src, **config_kwargs)
+        config.add_extension(rp_ext,rp_src, libraries = ['blas', 'lapack'])
 
     for rp in three_d_riemann:
         rp_ext = rp+'_3D'
         rp_src = [os.path.join(src_dir,prefix+rp+'.f90')
                   for prefix in ['rpn3_','rpt3_','rptt3_']]
-        config.add_extension(rp_ext,rp_src, **config_kwargs)
+        config.add_extension(rp_ext,rp_src, libraries = ['blas', 'lapack'])
 
     # special targets
     special_target_list = \
@@ -84,7 +65,7 @@ def configuration(parent_package='',top_path=None):
     for rp_dict in special_target_list:
         rp_ext = rp_dict['ext']
         rp_src = [os.path.join(src_dir,src) for src in rp_dict['srcs']]
-        config.add_extension(rp_ext,rp_src, **config_kwargs)
+        config.add_extension(rp_ext,rp_src, libraries = ['blas', 'lapack'])
     return config
 
 if __name__ == '__main__':
