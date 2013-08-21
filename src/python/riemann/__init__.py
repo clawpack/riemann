@@ -28,7 +28,7 @@ try:
     import shallow_roe_with_efix_1D
     import layered_shallow_water_1D
     import traffic_1D
-    import vc_traffic_1D
+    import traffic_vc_1D
     import acoustics_2D
     import advection_2D
     import burgers_2D
