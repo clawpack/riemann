@@ -170,19 +170,15 @@
          wave(ku,4,i) = 0.d0
          wave(kv,4,i) = -a4*csr
          s(4,i) = csr
-!
-      enddo
-!
-!
-!
-!     # compute the leftgoing and rightgoing flux differences:
-!     # Note s(i,1),s(i,3) < 0   and   s(i,2),s(i,4) > 0.
-!
-      do m=1,meqn
-         do i = 2-mbc, mx+mbc
-            amdq(m,i) = s(1,i)*wave(m,1,i) + s(3,i)*wave(m,3,i)
-            apdq(m,i) = s(2,i)*wave(m,2,i) + s(4,i)*wave(m,4,i)
+
+
+!        # compute the leftgoing and rightgoing flux differences:
+!        # Note s(i,1),s(i,3) < 0   and   s(i,2),s(i,4) > 0.
+         do m=1,meqn
+             amdq(m,i) = s(1,i)*wave(m,1,i) + s(3,i)*wave(m,3,i)
+             apdq(m,i) = s(2,i)*wave(m,2,i) + s(4,i)*wave(m,4,i)
          enddo
+!
       enddo
 !
       return
