@@ -65,6 +65,10 @@
             u(-1:maxmrp),v(-1:maxmrp),w(-1:maxmrp),enth(-1:maxmrp), &
             a(-1:maxmrp),g1a2(-1:maxmrp),euv(-1:maxmrp)
 !
+
+      common /cparam/ gamma, gamma1
+!
+
       if (-3.gt.1-mbc .or. maxmrp .lt. maxm+mbc) then
       write(6,*) 'need to increase maxmrp in rp3t'
       stop
@@ -180,45 +184,45 @@
 !
 !        # Solve Riemann problem in the third coordinate direction
 !
-      do 30 i = 2-mbc, mx+mbc
+         do 30 i = 2-mbc, mx+mbc
             a4 = g1a2(i) * (euv(i)*asdq(1,i) &
                   + u(i)*asdq(mu,i) + v(i)*asdq(mv,i) &
                   + w(i)*asdq(mw,i) - asdq(5,i))
-        a2 = asdq(mu,i) - u(i)*asdq(1,i)
+            a2 = asdq(mu,i) - u(i)*asdq(1,i)
             a3 = asdq(mv,i) - v(i)*asdq(1,i)
-        a5 = (asdq(mw,i) + (a(i)-w(i))*asdq(1,i) - a(i)*a4) &
+            a5 = (asdq(mw,i) + (a(i)-w(i))*asdq(1,i) - a(i)*a4) &
                    / (2.d0*a(i))
-        a1 = asdq(1,i) - a4 - a5
+            a1 = asdq(1,i) - a4 - a5
 !
             waveb(1,1)  = a1
             waveb(mu,1) = a1*u(i)
             waveb(mv,1) = a1*v(i)
             waveb(mw,1) = a1*(w(i) - a(i))
             waveb(5,1)  = a1*(enth(i) - w(i)*a(i))
-        sb(1) = w(i) - a(i)
+            sb(1) = w(i) - a(i)
 !
             waveb(1,2)  = a4
             waveb(mu,2) = a2 + u(i)*a4
             waveb(mv,2) = a3 + v(i)*a4
             waveb(mw,2) = w(i)*a4
             waveb(5,2)  = a4*0.5d0*u2v2w2(i) + a2*u(i) + a3*v(i)
-        sb(2) = w(i)
+            sb(2) = w(i)
 !
             waveb(1,3)  = a5
             waveb(mu,3) = a5*u(i)
             waveb(mv,3) = a5*v(i)
             waveb(mw,3) = a5*(w(i)+a(i))
             waveb(5,3)  = a5*(enth(i)+w(i)*a(i))
-        sb(3) = w(i) + a(i)
+            sb(3) = w(i) + a(i)
 !
-      do 35 m=1,meqn
-        bmasdq(m,i) = 0.d0
-        bpasdq(m,i) = 0.d0
-        do 35 mws=1,mwaves
-           bmasdq(m,i) = bmasdq(m,i) &
-                    + dmin1(sb(mws), 0.d0) * waveb(m,mws)
-           bpasdq(m,i) = bpasdq(m,i) &
-                    + dmax1(sb(mws), 0.d0) * waveb(m,mws)
+            do 35 m=1,meqn
+               bmasdq(m,i) = 0.d0
+               bpasdq(m,i) = 0.d0
+               do 35 mws=1,mwaves
+                   bmasdq(m,i) = bmasdq(m,i) &
+                            + dmin1(sb(mws), 0.d0) * waveb(m,mws)
+                   bpasdq(m,i) = bpasdq(m,i) &
+                            + dmax1(sb(mws), 0.d0) * waveb(m,mws)
  35         continue
 !
  30      continue
