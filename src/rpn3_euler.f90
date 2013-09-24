@@ -41,8 +41,10 @@
       double precision u2v2w2(-1:maxmrp), &
             u(-1:maxmrp),v(-1:maxmrp),w(-1:maxmrp),enth(-1:maxmrp), &
             a(-1:maxmrp),g1a2(-1:maxmrp),euv(-1:maxmrp)
+
+      double precision gamma1
 !
-      common /cparam/ gamma, gamma1
+      common /cparam/ gamma
 !
       data efix /.true./    !# use entropy fix for transonic rarefactions
 !

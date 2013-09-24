@@ -69,8 +69,11 @@
             u(-1:maxmrp),v(-1:maxmrp),w(-1:maxmrp),enth(-1:maxmrp), &
             a(-1:maxmrp),g1a2(-1:maxmrp),euv(-1:maxmrp)
 
-      common /cparam/ gamma, gamma1
+      double precision gamma1
+
+      common /cparam/ gamma
 !
+      gamma1 = gamma - 1.d0
 !
       if (-3.gt.1-mbc .or. maxmrp .lt. maxm+mbc) then
       write(6,*) 'need to increase maxmrp in rp3t'
