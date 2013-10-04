@@ -1,19 +1,15 @@
-c
-c
-c     =====================================================
-      subroutine rpt2(ixy,maxm,meqn,maux,mwaves,mbc,mx,
-     &                  ql,qr,aux1,aux2,aux3,
-     &                  ilr,asdq,bmasdq,bpasdq)
-c     =====================================================
+! =====================================================
+subroutine rpt2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,aux1,aux2,aux3,ilr,asdq,bmasdq,bpasdq)
+! =====================================================
       use geoclaw_module, only: g => grav, tol => dry_tolerance
       use geoclaw_module, only: coordinate_system,earth_radius,deg2rad
 
       implicit none
-c
-c     # Riemann solver in the transverse direction using an einfeldt
-c     Jacobian.
+!
+!     # Riemann solver in the transverse direction using an einfeldt
+!     Jacobian.
 
-c-----------------------last modified 1/10/05----------------------
+!-----------------------last modified 1/10/05----------------------
 
       integer ixy,maxm,meqn,maux,mwaves,mbc,mx,ilr
 
@@ -56,7 +52,7 @@ c-----------------------last modified 1/10/05----------------------
          hvl=qr(mv,i-1) 
          hvr=ql(mv,i)
 
-c===========determine velocity from momentum===========================
+!===========determine velocity from momentum===========================
        if (hl.lt.abs_tol) then
           hl=0.d0
           ul=0.d0

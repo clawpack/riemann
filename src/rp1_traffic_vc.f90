@@ -1,8 +1,5 @@
-!
-!
 ! =========================================================
-subroutine rp1(maxm,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr, &
-     		 fwave,s,amdq,apdq,maux)
+subroutine rp1(maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq)
 ! =========================================================
 !
 !     # solve Riemann problems for the traffic equation.

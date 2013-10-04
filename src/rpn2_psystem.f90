@@ -1,7 +1,6 @@
-!     =====================================================
-    subroutine rpn2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr, &
-    auxl,auxr,fwave,s,amdq,apdq,num_aux)
-!     =====================================================
+! =====================================================
+subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq)
+! =====================================================
 
 !     # Aproximate Riemann solver for the nonlinear P-system in 2d
 !     # with variable coefficients.
@@ -40,8 +39,8 @@
     dimension   qr(meqn,1-mbc:maxm+mbc)
     dimension apdq(meqn,1-mbc:maxm+mbc)
     dimension amdq(meqn,1-mbc:maxm+mbc)
-    dimension auxl(num_aux,1-mbc:maxm+mbc)
-    dimension auxr(num_aux,1-mbc:maxm+mbc)
+    dimension auxl(maux,1-mbc:maxm+mbc)
+    dimension auxr(maux,1-mbc:maxm+mbc)
           
     do 10 i=2-mbc,mx+mbc
     ! material properties

@@ -1,7 +1,6 @@
-!     ==================================================================
-      subroutine rpn3(ixyz,maxm,meqn,mwaves,mbc,mx,ql,qr, &
-                      auxl,auxr,maux,wave,s,amdq,apdq)
-!     ==================================================================
+! ==================================================================
+subroutine rpn3(ixyz,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
+! ==================================================================
 !
 !     # Roe-solver for the Euler equations
 !      -----------------------------------------------------------
@@ -25,6 +24,7 @@
 !
       implicit real*8(a-h,o-z)
 !
+      integer, intent(in) :: ixyz, maxm, meqn, mwaves, mbc, mx, maux
       dimension wave(meqn, mwaves, 1-mbc:maxm+mbc)
       dimension    s(mwaves, 1-mbc:maxm+mbc)
       dimension   ql(meqn, 1-mbc:maxm+mbc)
@@ -41,8 +41,6 @@
       double precision u2v2w2(-1:maxmrp), &
             u(-1:maxmrp),v(-1:maxmrp),w(-1:maxmrp),enth(-1:maxmrp), &
             a(-1:maxmrp),g1a2(-1:maxmrp),euv(-1:maxmrp)
-
-      double precision gamma1
 !
       common /cparam/ gamma
 !

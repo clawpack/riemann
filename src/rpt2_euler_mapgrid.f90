@@ -1,6 +1,5 @@
 ! =========================================================
-    subroutine rpt2(ixy,maxm,meqn,mwaves,mbc, &
-                mx,ql,qr,aux1,aux2, aux3, ilr,asdq, bmasdq, bpasdq,num_aux)
+subroutine rpt2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,aux1,aux2, aux3,ilr,asdq, bmasdq, bpasdq)
 ! =========================================================
 
 !     # solve Riemann problems for the 1D Euler equations using Roe's
@@ -20,7 +19,7 @@
 
     implicit none
 
-    integer :: maxm, meqn, mwaves, mbc, mx, ilr, ixy, num_aux
+    integer :: maxm, meqn, mwaves, mbc, mx, ilr, ixy, maux
     double precision ::    ql(meqn,   1-mbc:maxm+mbc)
     double precision ::    qr(meqn,   1-mbc:maxm+mbc)
     double precision ::     s(mwaves, 1-mbc:maxm+mbc)
@@ -28,9 +27,9 @@
     double precision ::  asdq(meqn,   1-mbc:maxm+mbc)
     double precision ::  bmasdq(meqn, 1-mbc:maxm+mbc)
     double precision ::  bpasdq(meqn, 1-mbc:maxm+mbc)
-    double precision ::  aux1(num_aux,      1-mbc:maxm+mbc)
-    double precision ::  aux2(num_aux,      1-mbc:maxm+mbc)
-    double precision ::  aux3(num_aux,      1-mbc:maxm+mbc)
+    double precision ::  aux1(maux,      1-mbc:maxm+mbc)
+    double precision ::  aux2(maux,      1-mbc:maxm+mbc)
+    double precision ::  aux3(maux,      1-mbc:maxm+mbc)
 
 !     # For Roe solver
     double precision :: rhol, ul, vl, el, cl, pl

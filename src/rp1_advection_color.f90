@@ -1,8 +1,5 @@
-
-
 ! =========================================================
-    subroutine rp1(maxmx,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr, &
-    wave,s,amdq,apdq,num_aux)
+subroutine rp1(maxmx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 ! =========================================================
 
 !     # Solve Riemann problems for the 1D advection equation q_t + u(x)*q_x = 0
@@ -26,8 +23,8 @@
     implicit double precision (a-h,o-z)
     dimension   ql(meqn,1-mbc:maxmx+mbc)
     dimension   qr(meqn,1-mbc:maxmx+mbc)
-    dimension  auxl(num_aux,1-mbc:maxmx+mbc)
-    dimension  auxr(num_aux,1-mbc:maxmx+mbc)
+    dimension  auxl(maux,1-mbc:maxmx+mbc)
+    dimension  auxr(maux,1-mbc:maxmx+mbc)
     dimension    s(mwaves,1-mbc:maxmx+mbc)
     dimension wave(meqn, mwaves,1-mbc:maxmx+mbc)
     dimension amdq(meqn,1-mbc:maxmx+mbc)
