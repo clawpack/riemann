@@ -1,10 +1,6 @@
-
-
-
-!     ==================================================================
-    subroutine rpn3(ixyz,maxm,meqn,mwaves,mbc,mx,ql,qr, &
-    auxl,auxr,num_aux,wave,s,amdq,apdq)
-!     ==================================================================
+! ==================================================================
+subroutine rpn3(ixyz,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
+! ==================================================================
 
 !     # Riemann solver for the acoustics equations in 3d, with varying
 !     # material properties.
@@ -28,20 +24,18 @@
 !     # From the basic clawpack routines, this routine is called with ql = qr
 
 
-    implicit real*8(a-h,o-z)
-    dimension wave(meqn,mwaves,1-mbc:maxm+mbc)
-    dimension    s(mwaves,1-mbc:maxm+mbc)
-    dimension   ql(meqn,1-mbc:maxm+mbc)
-    dimension   qr(meqn,1-mbc:maxm+mbc)
-    dimension amdq(meqn,1-mbc:maxm+mbc)
-    dimension apdq(meqn,1-mbc:maxm+mbc)
-    dimension auxl(num_aux,1-mbc:maxm+mbc)
-    dimension auxr(num_aux,1-mbc:maxm+mbc)
-
-!     local arrays
-!     ------------
-    dimension delta(3)
-
+    implicit none
+    double precision :: wave(meqn,mwaves,1-mbc:maxm+mbc)
+    double precision ::    s(mwaves,1-mbc:maxm+mbc)
+    double precision ::   ql(meqn,1-mbc:maxm+mbc)
+    double precision ::   qr(meqn,1-mbc:maxm+mbc)
+    double precision :: amdq(meqn,1-mbc:maxm+mbc)
+    double precision :: apdq(meqn,1-mbc:maxm+mbc)
+    double precision :: auxl(maux,1-mbc:maxm+mbc)
+    double precision :: auxr(maux,1-mbc:maxm+mbc)
+    double precision :: delta(3), zi, zim, a1, a2 
+    integer :: ixyz, mu, mv, mw, maxm,meqn,mwaves,mbc,mx, maux
+    integer :: i,m
 
 
 

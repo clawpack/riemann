@@ -1,10 +1,6 @@
-
-
-!     ==================================================================
-    subroutine rptt3(ixyz,icoor,maxm,meqn,mwaves,mbc,mx, &
-    ql,qr,aux1,aux2,aux3,num_aux,imp,impt,bsasdq, &
-    cmbsasdq,cpbsasdq)
-!     ==================================================================
+! ==================================================================
+subroutine rptt3(ixyz,icoor,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,aux1,aux2,aux3,imp,impt,bsasdq,cmbsasdq,cpbsasdq)
+! ==================================================================
 
 !     # Double transverse Riemann solver for the acoustics equations
 !     # with varying material properties.
@@ -75,9 +71,9 @@
     dimension   bsasdq(meqn,1-mbc:maxm+mbc)
     dimension cmbsasdq(meqn,1-mbc:maxm+mbc)
     dimension cpbsasdq(meqn,1-mbc:maxm+mbc)
-    dimension     aux1(num_aux,1-mbc:maxm+mbc,3)
-    dimension     aux2(num_aux,1-mbc:maxm+mbc,3)
-    dimension     aux3(num_aux,1-mbc:maxm+mbc,3)
+    dimension     aux1(maux,1-mbc:maxm+mbc,3)
+    dimension     aux2(maux,1-mbc:maxm+mbc,3)
+    dimension     aux3(maux,1-mbc:maxm+mbc,3)
 
 
 !     # set iuvw = 2,3,4, depending on which component of q represents

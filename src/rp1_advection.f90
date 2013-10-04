@@ -1,8 +1,5 @@
-
-
 ! =========================================================
-    subroutine rp1(maxmx,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr, &
-    wave,s,amdq,apdq,num_aux)
+subroutine rp1(maxmx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 ! =========================================================
 
 !     # solve Riemann problems for the 1D advection equation q_t + u*q_x = 0.

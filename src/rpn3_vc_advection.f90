@@ -1,5 +1,4 @@
-subroutine rpn3(ixyz,maxm,meqn,mwaves,mbc,mx,ql,qr, &
-                auxl,auxr,maux,wave,s,amdq,apdq)
+subroutine rpn3(ixyz,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
     ! Riemann-solver for the advection equation
     !    q_t  +  u*q_x + v*q_y + w*q_z = 0
     ! where u and v are a given velocity field.
