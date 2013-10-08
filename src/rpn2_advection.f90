@@ -1,10 +1,6 @@
-
-
-
-!     =====================================================
-    subroutine rpn2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr, &
-    wave,s,amdq,apdq,num_aux)
-!     =====================================================
+! =====================================================
+subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
+! =====================================================
 
 !     # Riemann solver for the sample scalar equation
 !     #  q_t + u*q_x + v*q_y = 0

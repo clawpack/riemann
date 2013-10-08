@@ -1,6 +1,5 @@
 !     ==================================================================
-      subroutine rpn3(ixyz,maxm,meqn,mwaves,mbc,mx,ql,qr, &
-                      auxl,auxr,maux,wave,s,amdq,apdq)
+      subroutine rpn3(ixyz,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 !     ==================================================================
 !
 !     # Roe-solver for the Euler equations

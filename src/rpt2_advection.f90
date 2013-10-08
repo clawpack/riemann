@@ -1,9 +1,6 @@
-
-
-!     =====================================================
-    subroutine rpt2(ixy,maxm,meqn,mwaves,mbc,mx, &
-                ql,qr,aux1,aux2,aux3,ilr,asdq,bmasdq,bpasdq,num_aux)
-!     =====================================================
+! =====================================================
+subroutine rpt2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,aux1,aux2,aux3,ilr,asdq,bmasdq,bpasdq)
+! =====================================================
     implicit double precision (a-h,o-z)
 
 !     # Riemann solver in the transverse direction for the scalar equation

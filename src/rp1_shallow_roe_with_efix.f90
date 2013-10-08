@@ -1,6 +1,5 @@
 ! =========================================================
-    subroutine rp1(maxmx,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr, &
-    wave,s,amdq,apdq,num_aux)
+subroutine rp1(maxmx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 ! =========================================================
 
 !     # Solve Riemann problems for the 1D shallow water equations

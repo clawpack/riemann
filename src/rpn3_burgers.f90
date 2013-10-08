@@ -1,5 +1,4 @@
-subroutine rpn3(ixyz,maxm,meqn,mwaves,mbc,mx,ql,qr, &
-                auxl,auxr,maux,wave,s,amdq,apdq)
+subroutine rpn3(ixyz,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
     ! Riemann-solver for the 3d Burgers' equation
     !    q_t  +  u*(.5*q^2)_x + v*(.5*q^2)_y + w*(.5*q^2)_z = 0
     ! where u,v,w are a given scalars, stored in the vector coeff
