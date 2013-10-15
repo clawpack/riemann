@@ -1,5 +1,6 @@
 ! =====================================================
-subroutine rpt2(ixy,imp,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,aux1,aux2,aux3,asdq,bmasdq,bpasdq)
+      subroutine rpt2(ixy,imp,maxm,meqn,mwaves,maux,mbc,mx,
+     &                ql,qr,aux1,aux2,aux3,asdq,bmasdq,bpasdq)
 ! =====================================================
       use geoclaw_module, only: g => grav, tol => dry_tolerance
       use geoclaw_module, only: coordinate_system,earth_radius,deg2rad
