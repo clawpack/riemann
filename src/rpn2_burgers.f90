@@ -1,8 +1,5 @@
-
-
 !   ===============================================================
-    subroutine rpn2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr,&
-    wave,s,amdq,apdq)
+subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 !   ===============================================================
 
 !     # Riemann solver for Burgers' equation in 2d:

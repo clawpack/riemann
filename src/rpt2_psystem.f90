@@ -1,10 +1,6 @@
-
-
-!     =====================================================
-    subroutine rpt2(ixy,maxm,meqn,mwaves,mbc,mx, &
-    ql,qr,aux1,aux2,aux3, &
-    imp,asdq,bmasdq,bpasdq,num_aux)
-!     =====================================================
+! =====================================================
+subroutine rpt2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,aux1,aux2,aux3,imp,asdq,bmasdq,bpasdq)
+! =====================================================
 
 !     # Riemann solver in the transverse direction.
 !     # This is a dummy routine that returns zeros and is only intended
@@ -25,9 +21,9 @@
     dimension   asdq(meqn,1-mbc:maxm+mbc)
     dimension bmasdq(meqn,1-mbc:maxm+mbc)
     dimension bpasdq(meqn,1-mbc:maxm+mbc)
-    dimension   aux1(num_aux,1-mbc:maxm+mbc)
-    dimension   aux2(num_aux,1-mbc:maxm+mbc)
-    dimension   aux3(num_aux,1-mbc:maxm+mbc)
+    dimension   aux1(maux,1-mbc:maxm+mbc)
+    dimension   aux2(maux,1-mbc:maxm+mbc)
+    dimension   aux3(maux,1-mbc:maxm+mbc)
     dimension s (2,1-mbc:maxm+mbc)
 
     do 10 i = 2-mbc, mx+mbc

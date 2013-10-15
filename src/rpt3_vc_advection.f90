@@ -1,6 +1,4 @@
-subroutine rpt3(ixyz,icoor,maxm,meqn,mwaves,mbc,mx, &
-                ql,qr,aux1,aux2,aux3,maux,imp,asdq, &
-                bmasdq,bpasdq)
+subroutine rpt3(ixyz,icoor,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,aux1,aux2,aux3,imp,asdq,bmasdq,bpasdq)
     ! Riemann solver in the transverse direction for the
     ! advection equations.
     !

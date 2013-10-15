@@ -1,4 +1,4 @@
-subroutine rpt2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr,aux1,aux2,aux3,imp,asdq,bmasdq,bpasdq,num_aux)
+subroutine rpt2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,aux1,aux2,aux3,imp,asdq,bmasdq,bpasdq)
 ! ============================================================================
 !  Solves transverse Riemann problem for the multilayer shallow water 
 !  equations in 2D with topography and wind forcing:
@@ -32,10 +32,10 @@ subroutine rpt2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr,aux1,aux2,aux3,imp,asdq,bmasdq
     implicit none
 
     ! Input arguments
-    integer, intent(in) :: ixy,maxm,meqn,mwaves,mbc,mx,imp,num_aux
+    integer, intent(in) :: ixy,maxm,meqn,mwaves,mbc,mx,imp,maux
     double precision, dimension(meqn,1-mbc:maxm+mbc), intent(in) :: ql,qr
     double precision, dimension(meqn,1-mbc:maxm+mbc), intent(inout) :: asdq
-    double precision, dimension(num_aux,1-mbc:maxm+mbc), intent(in) :: aux1,aux2,aux3
+    double precision, dimension(maux,1-mbc:maxm+mbc), intent(in) :: aux1,aux2,aux3
     
     ! Ouput
     double precision, dimension(meqn,1-mbc:maxm+mbc), intent(out) :: bmasdq,bpasdq

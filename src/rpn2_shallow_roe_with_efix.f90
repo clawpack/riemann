@@ -1,9 +1,6 @@
-
-
-!     =====================================================
-    subroutine rpn2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr, &
-    wave,s,amdq,apdq,num_aux)
-!     =====================================================
+! =====================================================
+subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
+! =====================================================
 
 !     # Roe-solver for the 2D shallow water equations
 !     # solve Riemann problems along one slice of data.

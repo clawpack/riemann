@@ -1,4 +1,6 @@
 !
+subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
+!
 ! Roe-solver for the Euler equations with a tracer variable and separate shear
 ! and entropy waves.
 !
@@ -22,17 +24,16 @@
 ! This routine has been made thread safe by removing the common block storage
 ! of the Roe-averages.
 !
-subroutine rpn2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq, &
-                num_aux)
+
     
     implicit none
 
     ! Input
-    integer, intent(in) :: ixy, maxm, meqn, mwaves, mbc, mx, num_aux
+    integer, intent(in) :: ixy, maxm, meqn, mwaves, mbc, mx, maux
     real(kind=8), intent(in) :: ql(meqn, 1-mbc:maxm+mbc)
     real(kind=8), intent(in) :: qr(meqn, 1-mbc:maxm+mbc)
-    real(kind=8), intent(in) :: auxl(num_aux, 1-mbc:maxm+mbc)
-    real(kind=8), intent(in) :: auxr(num_aux, 1-mbc:maxm+mbc)
+    real(kind=8), intent(in) :: auxl(maux, 1-mbc:maxm+mbc)
+    real(kind=8), intent(in) :: auxr(maux, 1-mbc:maxm+mbc)
 
     ! Output
     real(kind=8), intent(in out) :: wave(meqn, mwaves, 1-mbc:maxm+mbc)

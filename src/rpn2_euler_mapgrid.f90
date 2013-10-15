@@ -1,7 +1,4 @@
-
-
-    subroutine rpn2(ixy,maxm, meqn,mwaves,mbc,mx, ql,qr, &
-    auxl,auxr,wave,s,amdq,apdq,num_aux)
+subroutine rpn2(ixy,maxm, meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 
 !     # Roe-solver for the Euler equations with mapped grids
 
@@ -9,15 +6,15 @@
 
     implicit none
 
-    integer :: ixy, maxm, meqn, mwaves, mbc, mx, my, num_aux
+    integer :: ixy, maxm, meqn, mwaves, mbc, mx, my, maux
     double precision ::    ql(meqn,   1-mbc:maxm+mbc)
     double precision ::    qr(meqn,   1-mbc:maxm+mbc)
     double precision ::     s(mwaves, 1-mbc:maxm+mbc)
     double precision ::  wave(meqn,   mwaves, 1-mbc:maxm+mbc)
     double precision ::  amdq(meqn,   1-mbc:maxm+mbc)
     double precision ::  apdq(meqn,   1-mbc:maxm+mbc)
-    double precision ::  auxl(num_aux,      1-mbc:maxm+mbc)
-    double precision ::  auxr(num_aux,      1-mbc:maxm+mbc)
+    double precision ::  auxl(maux,      1-mbc:maxm+mbc)
+    double precision ::  auxr(maux,      1-mbc:maxm+mbc)
 
     double precision :: gamma, gamma1
     double precision :: ql_state(4), qr_state(4)

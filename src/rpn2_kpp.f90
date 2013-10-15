@@ -1,7 +1,6 @@
-!     =====================================================
-    subroutine rpn2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr, &
-    auxl,auxr,wave,s,amdq,apdq,num_aux)
-!     =====================================================
+! =====================================================
+subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
+! =====================================================
 
 !     # Aproximate Riemann solver for the nonlinear KPP system:
 
