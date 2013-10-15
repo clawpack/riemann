@@ -53,9 +53,9 @@
       dimension   asdq(meqn, 1-mbc:maxm+mbc)
       dimension bmasdq(meqn, 1-mbc:maxm+mbc)
       dimension bpasdq(meqn, 1-mbc:maxm+mbc)
-      dimension   aux1(maux, 3, 1-mbc:maxm+mbc)
-      dimension   aux2(maux, 3, 1-mbc:maxm+mbc)
-      dimension   aux3(maux, 3, 1-mbc:maxm+mbc)
+      dimension   aux1(maux, 1-mbc:maxm+mbc, 3)
+      dimension   aux2(maux, 1-mbc:maxm+mbc, 3)
+      dimension   aux3(maux, 1-mbc:maxm+mbc, 3)
 !
       dimension waveb(5,3),sb(3)
       parameter (maxmrp = 1002)
