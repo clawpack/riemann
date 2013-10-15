@@ -7,18 +7,17 @@
 ! Uses Roe averages and other quantities which were
 ! computed in rpn2eu and stored in the common block comroe.
 !
-subroutine rpt2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr,aux1,aux2,aux3,ilr,asdq, &
-                bmasdq,bpasdq,num_aux)
+subroutine rpt2(ixy,imp,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,aux1,aux2,aux3,asdq,bmasdq,bpasdq)
 
     implicit none
 
     ! Input
-    integer, intent(in) :: ixy, maxm, meqn, mwaves, mbc, mx, ilr, num_aux
+    integer, intent(in) :: ixy, imp, maxm, meqn, mwaves, mbc, mx, maux
     real(kind=8), intent(in) :: ql(meqn, 1-mbc:maxm+mbc)
     real(kind=8), intent(in) :: qr(meqn, 1-mbc:maxm+mbc)
-    real(kind=8), intent(in) :: aux1(num_aux, 1-mbc:maxm+mbc)
-    real(kind=8), intent(in) :: aux2(num_aux, 1-mbc:maxm+mbc)
-    real(kind=8), intent(in) :: aux3(num_aux, 1-mbc:maxm+mbc)
+    real(kind=8), intent(in) :: aux1(maux, 1-mbc:maxm+mbc)
+    real(kind=8), intent(in) :: aux2(maux, 1-mbc:maxm+mbc)
+    real(kind=8), intent(in) :: aux3(maux, 1-mbc:maxm+mbc)
     real(kind=8), intent(in) :: asdq(meqn, 1-mbc:maxm+mbc)
     
     ! Output

@@ -1,4 +1,4 @@
-subroutine rpn2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq,num_aux)
+subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq)
 ! ============================================================================
 !  Solves normal Riemann problem for the multilayer shallow water equations in
 !  2D with topography and wind forcing:
@@ -32,9 +32,9 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq,nu
     implicit none
 
     ! Input arguments
-    integer, intent(in) :: ixy,maxm,meqn,mwaves,mbc,mx,num_aux
+    integer, intent(in) :: ixy,maxm,meqn,mwaves,mbc,mx,maux
     double precision, dimension(meqn,1-mbc:maxm+mbc), intent(in) :: ql,qr
-    double precision, dimension(num_aux,1-mbc:maxm+mbc), intent(in) :: auxl,auxr
+    double precision, dimension(maux,1-mbc:maxm+mbc), intent(in) :: auxl,auxr
 
     ! Output arguments
     double precision, dimension(meqn, mwaves, 1-mbc:maxm+mbc), intent(out) :: fwave

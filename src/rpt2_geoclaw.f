@@ -1,21 +1,18 @@
-c
-c
-c     =====================================================
-      subroutine rpt2(ixy,maxm,meqn,maux,mwaves,mbc,mx,
-     &                  ql,qr,aux1,aux2,aux3,
-     &                  ilr,asdq,bmasdq,bpasdq)
-c     =====================================================
+! =====================================================
+      subroutine rpt2(ixy,imp,maxm,meqn,mwaves,maux,mbc,mx,
+     &                ql,qr,aux1,aux2,aux3,asdq,bmasdq,bpasdq)
+! =====================================================
       use geoclaw_module, only: g => grav, tol => dry_tolerance
       use geoclaw_module, only: coordinate_system,earth_radius,deg2rad
 
       implicit none
-c
-c     # Riemann solver in the transverse direction using an einfeldt
-c     Jacobian.
+!
+!     # Riemann solver in the transverse direction using an einfeldt
+!     Jacobian.
 
-c-----------------------last modified 1/10/05----------------------
+!-----------------------last modified 1/10/05----------------------
 
-      integer ixy,maxm,meqn,maux,mwaves,mbc,mx,ilr
+      integer ixy,maxm,meqn,maux,mwaves,mbc,mx,imp
 
       double precision  ql(meqn,1-mbc:maxm+mbc)
       double precision  qr(meqn,1-mbc:maxm+mbc)
@@ -56,7 +53,7 @@ c-----------------------last modified 1/10/05----------------------
          hvl=qr(mv,i-1) 
          hvr=ql(mv,i)
 
-c===========determine velocity from momentum===========================
+!===========determine velocity from momentum===========================
        if (hl.lt.abs_tol) then
           hl=0.d0
           ul=0.d0
@@ -88,7 +85,7 @@ c===========determine velocity from momentum===========================
       if (hl <= tol .and. hr <= tol) go to 90
 
 *      !check and see if cell that transverse waves are going in is high and dry
-       if (ilr.eq.1) then
+       if (imp.eq.1) then
             eta = qr(1,i-1)  + aux2(1,i-1)
             topo1 = aux1(1,i-1)
             topo3 = aux3(1,i-1)
@@ -110,7 +107,7 @@ c            s2 = 0.5d0*(s1+s3)
              dxdcp=(earth_radius*deg2rad)
             dxdcm = dxdcp
          else
-            if (ilr.eq.1) then
+            if (imp.eq.1) then
                dxdcp = earth_radius*cos(aux3(3,i-1))*deg2rad
                dxdcm = earth_radius*cos(aux1(3,i-1))*deg2rad
             else

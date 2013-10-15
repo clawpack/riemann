@@ -1,9 +1,6 @@
-
-
-!     =====================================================
-    subroutine rpt2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr, &
-    aux1,aux2,aux3,imp,asdq,bmasdq,bpasdq,num_aux)
-!     =====================================================
+! =====================================================
+subroutine rpt2(ixy,imp,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,aux1,aux2,aux3,asdq,bmasdq,bpasdq)
+! =====================================================
     implicit double precision (a-h,o-z)
 
 !     # Riemann solver in the transverse direction for the acoustics equations
@@ -24,9 +21,9 @@
     dimension    asdq(meqn, 1-mbc:maxm+mbc)
     dimension bmasdq(meqn, 1-mbc:maxm+mbc)
     dimension bpasdq(meqn, 1-mbc:maxm+mbc)
-    dimension   aux1(num_aux, 1-mbc:maxm+mbc)
-    dimension   aux2(num_aux, 1-mbc:maxm+mbc)
-    dimension   aux3(num_aux, 1-mbc:maxm+mbc)
+    dimension   aux1(maux, 1-mbc:maxm+mbc)
+    dimension   aux2(maux, 1-mbc:maxm+mbc)
+    dimension   aux3(maux, 1-mbc:maxm+mbc)
 
 
 

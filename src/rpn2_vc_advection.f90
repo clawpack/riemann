@@ -1,10 +1,6 @@
-
-
-
-!     =====================================================
-    subroutine rpn2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr, &
-    auxl,auxr,wave,s,amdq,apdq,num_aux)
-!     =====================================================
+! =====================================================
+subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
+! =====================================================
 
 !     # Riemann-solver for the advection equation
 !     #    q_t  +  u*q_x + v*q_y = 0
@@ -43,8 +39,8 @@
     dimension   qr(meqn, 1-mbc:maxm+mbc)
     dimension apdq(meqn,1-mbc:maxm+mbc)
     dimension amdq(meqn,1-mbc:maxm+mbc)
-    dimension auxl(num_aux,1-mbc:maxm+mbc)
-    dimension auxr(num_aux,1-mbc:maxm+mbc)
+    dimension auxl(maux,1-mbc:maxm+mbc)
+    dimension auxr(maux,1-mbc:maxm+mbc)
 
 
 !     # Set wave, speed, and flux differences:

@@ -1,5 +1,4 @@
-subroutine rpn2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr, &
-                auxl,auxr,wave,s,amdq,apdq,num_aux)
+subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 
     ! Riemann solver for the elasticity equations in 2d, with varying
     ! material properties rho, lambda, and mu 
@@ -49,7 +48,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr, &
 
     implicit none
 
-    integer, intent(in) :: ixy, maxm, meqn, mwaves, mbc, mx, num_aux
+    integer, intent(in) :: ixy, maxm, meqn, mwaves, mbc, mx, maux
     double precision, intent(in) :: ql, qr, auxl, auxr
     double precision, intent(out) :: wave, s, amdq, apdq
 
@@ -59,8 +58,8 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr, &
     dimension   qr(meqn, 1-mbc:maxm+mbc)
     dimension apdq(meqn, 1-mbc:maxm+mbc)
     dimension amdq(meqn, 1-mbc:maxm+mbc)
-    dimension auxl(num_aux, 1-mbc:maxm+mbc)
-    dimension auxr(num_aux, 1-mbc:maxm+mbc)
+    dimension auxl(maux, 1-mbc:maxm+mbc)
+    dimension auxr(maux, 1-mbc:maxm+mbc)
 
     integer :: ksig11, ksig22, ku, kv, i, m
     double precision :: dsig11, dsig22, dsig12, du, dv
