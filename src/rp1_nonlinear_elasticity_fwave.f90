@@ -1,6 +1,6 @@
-    subroutine rp1(maxm,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr, &
-    fwave,s,amdq,apdq,num_aux)
-!     =====================================================
+! =====================================================
+subroutine rp1(maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq)
+! =====================================================
 
 !     # This version uses interleaved arrays.
 !     # This version outputs f-waves.
@@ -36,8 +36,8 @@
 
     implicit double precision (a-h,o-z)
 
-    dimension auxl(num_aux,1-mbc:maxm+mbc)
-    dimension auxr(num_aux,1-mbc:maxm+mbc)
+    dimension auxl(maux,1-mbc:maxm+mbc)
+    dimension auxr(maux,1-mbc:maxm+mbc)
     dimension fwave(meqn,mwaves,1-mbc:maxm+mbc)
     dimension    s(mwaves,1-mbc:maxm+mbc)
     dimension   ql(meqn,1-mbc:maxm+mbc)

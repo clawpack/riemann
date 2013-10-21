@@ -1,15 +1,15 @@
 ! ============================================================================
 !  Reimann Solver for the two-layer shallow water equations
 ! ============================================================================
-subroutine rp1(maxmx,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq,num_aux)
+subroutine rp1(maxmx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq)
 
     implicit none
     
     ! Input arguments
-    integer, intent(in) :: maxmx,meqn,mwaves,mbc,mx,num_aux
+    integer, intent(in) :: maxmx,meqn,mwaves,mbc,mx,maux
     
     double precision, intent(in), dimension(meqn, 1-mbc:maxmx+mbc) :: ql,qr
-    double precision, intent(in), dimension(num_aux, 1-mbc:maxmx+mbc) :: auxl,auxr
+    double precision, intent(in), dimension(maux, 1-mbc:maxmx+mbc) :: auxl,auxr
     
     ! Output arguments
     double precision, intent(out) :: s(mwaves, 1-mbc:maxmx+mbc)

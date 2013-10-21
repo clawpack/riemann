@@ -1,6 +1,5 @@
 ! =========================================================
-    subroutine rpt2(ixy,maxm,meqn,mwaves,mbc, &
-                mx,ql,qr,aux1,aux2, aux3, ilr,asdq, bmasdq, bpasdq,num_aux)
+subroutine rpt2(ixy,imp,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,aux1,aux2,aux3,asdq,bmasdq,bpasdq)
 ! =========================================================
 
 !     # solve Riemann problems for the 1D Euler equations using Roe's
@@ -20,7 +19,7 @@
 
     implicit none
 
-    integer :: maxm, meqn, mwaves, mbc, mx, ilr, ixy, num_aux
+    integer :: maxm, meqn, mwaves, mbc, mx, imp, ixy, maux
     double precision ::    ql(meqn,   1-mbc:maxm+mbc)
     double precision ::    qr(meqn,   1-mbc:maxm+mbc)
     double precision ::     s(mwaves, 1-mbc:maxm+mbc)
@@ -28,9 +27,9 @@
     double precision ::  asdq(meqn,   1-mbc:maxm+mbc)
     double precision ::  bmasdq(meqn, 1-mbc:maxm+mbc)
     double precision ::  bpasdq(meqn, 1-mbc:maxm+mbc)
-    double precision ::  aux1(num_aux,      1-mbc:maxm+mbc)
-    double precision ::  aux2(num_aux,      1-mbc:maxm+mbc)
-    double precision ::  aux3(num_aux,      1-mbc:maxm+mbc)
+    double precision ::  aux1(maux,      1-mbc:maxm+mbc)
+    double precision ::  aux2(maux,      1-mbc:maxm+mbc)
+    double precision ::  aux3(maux,      1-mbc:maxm+mbc)
 
 !     # For Roe solver
     double precision :: rhol, ul, vl, el, cl, pl
@@ -74,7 +73,7 @@
     call get_aux_locations_t(ixy, mcapa, locrot,locarea)
 
     do i = 2-mbc,mx+mbc
-        i1 = i + ilr - 2
+        i1 = i + imp - 2
 
         do m = 1,meqn
             ql_state(m) = qr(m,i-1)
@@ -110,11 +109,11 @@
             enth = ((el + pl)/rhsqrtl + (er + pr)/rhsqrtr)/rhsq2
         else
         !           # This takes the values needed for the Roe matrix from the
-        !           # cell centers in either the  left (ilr == 1) or the
-        !           # right (ilr == 2) cell
+        !           # cell centers in either the  left (imp == 1) or the
+        !           # right (imp == 2) cell
 
             do m = 1,meqn
-                if (ilr == 1) then
+                if (imp == 1) then
                 !                 # Left (minus) cell
                     q_state(m) = ql_state(m)
                 else
@@ -159,7 +158,7 @@
 
         if (info /= 0) then
             write(6,*) 'ixy = ', ixy
-            write(6,*) 'ilr = ', ilr
+            write(6,*) 'imp = ', imp
             write(6,*) 'enth = ', enth
             write(6,*) 'Called from rpt2  (A-DQ)'
             write(6,*) ' '
@@ -196,7 +195,7 @@
 
         if (info /= 0) then
             write(6,*) 'ixy = ', ixy
-            write(6,*) 'ilr = ', ilr
+            write(6,*) 'imp = ', imp
             write(6,*) 'enth = ', enth
             write(6,*) 'Called from rpt2  (A+DQ)'
             write(6,*) ' '

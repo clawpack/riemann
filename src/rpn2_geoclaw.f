@@ -1,6 +1,6 @@
 c======================================================================
-      subroutine rpn2(ixy,maxm,meqn,maux,mwaves,mbc,mx,ql,qr,auxl,auxr,
-     &                  fwave,s,amdq,apdq)
+       subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,
+     &                 ql,qr,auxl,auxr,fwave,s,amdq,apdq)
 c======================================================================
 c
 c Solves normal Riemann problems for the 2D SHALLOW WATER equations

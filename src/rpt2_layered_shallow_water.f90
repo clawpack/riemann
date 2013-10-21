@@ -1,4 +1,4 @@
-subroutine rpt2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr,aux1,aux2,aux3,imp,asdq,bmasdq,bpasdq,num_aux)
+subroutine rpt2(ixy,imp,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,aux1,aux2,aux3,asdq,bmasdq,bpasdq)
 ! ============================================================================
 !  Solves transverse Riemann problem for the multilayer shallow water 
 !  equations in 2D with topography and wind forcing:
@@ -32,10 +32,10 @@ subroutine rpt2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr,aux1,aux2,aux3,imp,asdq,bmasdq
     implicit none
 
     ! Input arguments
-    integer, intent(in) :: ixy,maxm,meqn,mwaves,mbc,mx,imp,num_aux
+    integer, intent(in) :: ixy,maxm,meqn,mwaves,mbc,mx,imp,maux
     double precision, dimension(meqn,1-mbc:maxm+mbc), intent(in) :: ql,qr
     double precision, dimension(meqn,1-mbc:maxm+mbc), intent(inout) :: asdq
-    double precision, dimension(num_aux,1-mbc:maxm+mbc), intent(in) :: aux1,aux2,aux3
+    double precision, dimension(maux,1-mbc:maxm+mbc), intent(in) :: aux1,aux2,aux3
     
     ! Ouput
     double precision, dimension(meqn,1-mbc:maxm+mbc), intent(out) :: bmasdq,bpasdq
@@ -249,7 +249,7 @@ subroutine rpt2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr,aux1,aux2,aux3,imp,asdq,bmasdq
     
 end subroutine rpt2
 
-subroutine rpt2_single_layer(ixy,ql,qr,aux1,aux2,aux3,ilr,asdq,bmasdq,bpasdq)
+subroutine rpt2_single_layer(ixy,imp,ql,qr,aux1,aux2,aux3,asdq,bmasdq,bpasdq)
 ! Single layer point-wise transverse Riemann solver using an einfeldt Jacobian
 ! Note that there have been some changes to variable definitions in this
 ! routine from the original vectorized one. 
@@ -260,7 +260,7 @@ subroutine rpt2_single_layer(ixy,ql,qr,aux1,aux2,aux3,ilr,asdq,bmasdq,bpasdq)
 
     implicit none
 
-    integer ixy,ilr
+    integer ixy,imp
     
     integer, parameter :: meqn = 3
     integer, parameter :: mwaves = 3
@@ -347,7 +347,7 @@ subroutine rpt2_single_layer(ixy,ql,qr,aux1,aux2,aux3,ilr,asdq,bmasdq,bpasdq)
        if (hl.le.dry_tolerance.and.hr.le.dry_tolerance) go to 90
 
        !check and see if cell that transverse waves are going in is high and dry
-       if (ilr.eq.1) then
+       if (imp.eq.1) then
             eta = qr(1) + aux2(1,1)
             topo1 = aux1(1,1)
             topo3 = aux3(1,1)
@@ -363,7 +363,7 @@ subroutine rpt2_single_layer(ixy,ql,qr,aux1,aux2,aux3,ilr,asdq,bmasdq,bpasdq)
             dxdcp=(R_earth*pi/180.d0)
             dxdcm = dxdcp
          else
-            if (ilr.eq.1) then
+            if (imp.eq.1) then
                dxdcp = R_earth*pi*cos(aux3(1,3))/180.d0
                dxdcm = R_earth*pi*cos(aux1(1,3))/180.d0
             else
@@ -444,7 +444,7 @@ subroutine rpt2_single_layer(ixy,ql,qr,aux1,aux2,aux3,ilr,asdq,bmasdq,bpasdq)
 !     implicit none
 ! 
 !     ! Position input
-!     integer, intent(in) :: ixy,ilr,mwaves,meqn
+!     integer, intent(in) :: ixy,imp,mwaves,meqn
 ! 
 !     ! State Input/Output
 !     double precision, intent(in) :: q_l(meqn),q_r(meqn)
@@ -513,7 +513,7 @@ subroutine rpt2_single_layer(ixy,ql,qr,aux1,aux2,aux3,ilr,asdq,bmasdq,bpasdq)
 !     if (hl.le.dry_tolerance.and.hr.le.dry_tolerance) go to 90
 ! 
 !     ! check and see if cell that transverse waves are going in is high and dry
-!     if (ilr.eq.1) then
+!     if (imp.eq.1) then
 !         eta = q_l(1) + aux2(1,1)
 !         topo1 = aux1(1,1)
 !         topo3 = aux3(1,1)
@@ -529,7 +529,7 @@ subroutine rpt2_single_layer(ixy,ql,qr,aux1,aux2,aux3,ilr,asdq,bmasdq,bpasdq)
 !             dxdcp=(R_earth*pi/180.d0)
 !             dxdcm = dxdcp
 !         else
-!             if (ilr.eq.1) then
+!             if (imp.eq.1) then
 !                 dxdcp = R_earth*pi*cos(aux3(1,3))/180.d0
 !                 dxdcm = R_earth*pi*cos(aux1(1,3))/180.d0
 !             else
