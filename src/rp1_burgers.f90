@@ -24,8 +24,8 @@ subroutine rp1(maxmx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
         wave(1,1,i) = ql(1,i) - qr(1,i-1)
         s(1,i) = 0.5d0 * (qr(1,i-1) + ql(1,i))
 
-        amdq(i,1) = dmin1(s(1,i), 0.d0) * wave(1,1,i)
-        apdq(i,1) = dmax1(s(1,i), 0.d0) * wave(1,1,i)
+        amdq(1,i) = dmin1(s(1,i), 0.d0) * wave(1,1,i)
+        apdq(1,i) = dmax1(s(1,i), 0.d0) * wave(1,1,i)
 
         if (ql(1,i).gt.0.d0 .and. qr(1,i-1).lt.0.d0) then
             amdq(1,i) = - 1.d0/2.d0 * qr(1,i-1)**2
