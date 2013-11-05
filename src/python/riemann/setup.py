@@ -40,7 +40,9 @@ def configuration(parent_package='',top_path=None):
     # Create dictionary for LAPACK and BLAS linking
     lapack_args = numpy.__config__.blas_opt_info
     lapack_args.update(numpy.__config__.lapack_opt_info)
-    print "******** ",lapack_args
+    if len(lapack_args.keys()) == 0:
+        # Provide a default value
+        lapack_args['libraries'] = ['lapack','blas']
 
     for rp in one_d_riemann:
         rp_ext = rp+'_1D'
