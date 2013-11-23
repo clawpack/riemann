@@ -135,7 +135,7 @@ subroutine rpn2(ixy,maxm, meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,ap
     implicit none
 
     double precision :: ql(4), qr(4),wave_local(3,4)
-    double precision :: speeds(2,4), s1, s2, s3, s4
+    double precision :: speeds(2,3), s1, s2, s3, s4
     double precision :: sl, sml, smr, sr, qml(4),qmr(4)
     double precision :: ul, cl, ur, cr, pml, pmr, cml,cmr
     double precision :: sfract
