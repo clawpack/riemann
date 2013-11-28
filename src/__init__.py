@@ -68,6 +68,7 @@ try:
     import kpp_2D
     import psystem_2D
     import shallow_roe_with_efix_2D
+    import shallow_bathymetry_fwave_2D
     import shallow_sphere_2D
     import vc_acoustics_2D
     import vc_advection_2D
