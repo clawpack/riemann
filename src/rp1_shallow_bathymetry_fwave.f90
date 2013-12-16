@@ -19,8 +19,8 @@ subroutine rp1(maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq)
 ! #            amdq the  left-going flux difference  A^- \Delta q
 ! #            apdq the right-going flux difference  A^+ \Delta q
 !
-! # Note that the i'th Riemann problem has left state qr(i-1,:)
-! #                                    and right state ql(i,:)
+! # Note that the i'th Riemann problem has left state qr(:,i-1)
+! #                                    and right state ql(:,i)
 ! # From the basic clawpack routine step1, rp is called with ql = qr = q.
 
 
@@ -38,7 +38,7 @@ subroutine rp1(maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq)
     
     
     double precision :: grav
-    common /comrp/ grav
+    common /cparam/ grav
     
     double precision :: hl, ul, hr, ur, hbar, uhat, chat
     double precision :: R(2,2)
@@ -105,9 +105,9 @@ subroutine rp1(maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq)
             amdq(j,i) = 0.d0
             apdq(j,i) = 0.d0
             do k=1,meqn
-                if (s(i,k) .lt. 0.d0) then
+                if (s(k,i) .lt. 0.d0) then
                     amdq(j,i) = amdq(j,i) + fwave(j,k,i)
-                elseif (s(i,k) .ge.0) then
+                elseif (s(k,i) .ge.0) then
                     apdq(j,i) = apdq(j,i) + fwave(j,k,i)
                 else
                     amdq(j,i) = amdq(j,i) + 0.5*fwave(j,k,i)
