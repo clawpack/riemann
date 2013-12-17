@@ -40,7 +40,7 @@ subroutine rp1(maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq)
     double precision :: grav
     common /cparam/ grav
     
-    double precision :: hl, ul, hr, ur, hbar, uhat, chat
+    double precision :: hl, ul, hr, ur, hbar, uhat, chat, bl, br
     double precision :: R(2,2)
     double precision :: L(2,2)
     double precision :: fluxDiff(2), beta(2)
@@ -52,10 +52,12 @@ subroutine rp1(maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq)
         ! # Left states
         hl = qr(1,i-1)
         ul = qr(2,i-1)/hl
+        bl = auxr(1,i-1)
         
         ! # Right states
         hr = ql(1,i)
         ur = ql(2,i)/hr
+        br = auxl(1,i)
         
         ! # Average states (they come from the Roe's linearization)
         hbar = 0.5*(hr+hl)
@@ -64,7 +66,7 @@ subroutine rp1(maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq)
         
         ! # Flux differences
         fluxDiff(1) = (hr*ur) - (hl*ul)
-        fluxDiff(2) = (hr*ur*ur + 0.5*grav*hr**2) - (hl*ul*ul + 0.5*grav*hl**2) 
+        fluxDiff(2) = (hr*ur*ur + 0.5*grav*hr**2) - (hl*ul*ul + 0.5*grav*hl**2) + grav*hbar*(br-bl)
         
         ! # Wave speeds
         s(1,i) = uhat-chat
@@ -85,7 +87,7 @@ subroutine rp1(maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq)
         L(2,2) = 1.d0/(2.d0*chat)
         
         ! # Coefficients beta
-        do j=1,meqn
+        do j=1,mwaves
             beta(j) = 0.d0
             do k=1,meqn
                 beta(j) = beta(j) + L(j,k)*fluxDiff(k)
@@ -94,7 +96,7 @@ subroutine rp1(maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq)
 
         ! # Flux waves
         do j=1,meqn
-            do k=1,meqn
+            do k=1,mwaves
                 fwave(j,k,i) = beta(k)*R(j,k)
             enddo
         enddo
@@ -107,7 +109,7 @@ subroutine rp1(maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq)
             do k=1,meqn
                 if (s(k,i) .lt. 0.d0) then
                     amdq(j,i) = amdq(j,i) + fwave(j,k,i)
-                elseif (s(k,i) .ge.0) then
+                elseif (s(k,i) .ge. 0d0) then
                     apdq(j,i) = apdq(j,i) + fwave(j,k,i)
                 else
                     amdq(j,i) = amdq(j,i) + 0.5*fwave(j,k,i)
