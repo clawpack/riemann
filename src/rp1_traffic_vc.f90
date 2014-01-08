@@ -44,19 +44,19 @@ subroutine rp1(maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq)
          fwave(1,1,i) = fi - fim1
 
 !        # compute characteristic speed in each cell:
-	 sim1 = auxl(1,i-1)*(1.d0 - 2.d0*ql(1,i-1))
-	 si = auxl(1,i)*(1.d0 - 2.d0*ql(1,i))
+         sim1 = auxl(1,i-1)*(1.d0 - 2.d0*ql(1,i-1))
+         si = auxl(1,i)*(1.d0 - 2.d0*ql(1,i))
 
          if (sim1 .lt. 0.d0 .and. si .le. 0.d0) then
 !             # left-going
               s(1,i) = sim1
-	      amdq(1,i) = fwave(1,1,i)
-	      apdq(1,i) = 0.d0
+              amdq(1,i) = fwave(1,1,i)
+              apdq(1,i) = 0.d0
             else if (sim1 .ge. 0.d0 .and. si .gt. 0.d0) then
 !             # right-going
               s(1,i) = si
-	      amdq(1,i) = 0.d0
-	      apdq(1,i) = fwave(1,1,i)
+              amdq(1,i) = 0.d0
+              apdq(1,i) = fwave(1,1,i)
             else if (sim1 .lt. 0.d0 .and. si .gt. 0.d0) then
 !             # transonic rarefaction
 !             # split fwave between amdq and apdq:
@@ -80,8 +80,8 @@ subroutine rp1(maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq)
                    amdq(1,i) = 0.d0
                    apdq(1,i) = fwave(1,1,i)
                 else
-	           amdq(1,i) = 0.5d0 * fwave(1,1,i) 
-	           apdq(1,i) = 0.5d0 * fwave(1,1,i)
+                   amdq(1,i) = 0.5d0 * fwave(1,1,i) 
+                   apdq(1,i) = 0.5d0 * fwave(1,1,i)
                 endif
             endif
 !
