@@ -18,7 +18,6 @@ RIEMANN_SOLVERS = \
 	rp2_psystem \
 	rp2_shallow_roe_with_efix \
 	rp2_shallow_sphere \
-	rp2_layered_shallow_water \
 	rp2_vc_acoustics \
 	rp2_vc_advection \
 	rp3_vc_acoustics \
@@ -62,5 +61,7 @@ rp2_euler_mapgrid.so: $(CLAW)/riemann/src/rpn2_euler_mapgrid.f90 $(CLAW)/riemann
 rp2_euler_4wave.so: $(CLAW)/riemann/src/rpn2_euler_4wave.f90 $(CLAW)/riemann/src/rpt2_euler.f90
 	f2py --fcompiler=$(COMPILER) -m $(basename $(notdir $@)) -c $^
 	
+# This Riemann solver is not compatible with PyClaw - Fix some day but will
+# leave the rule here for the future
 rp2_layered_shallow_water.so: $(CLAW)/riemann/src/rpn2_layered_shallow_water.f90 $(CLAW)/riemann/src/rpt2_layered_shallow_water.f90 $(CLAW)/riemann/src/geoclaw_riemann_utils.f
 	f2py --fcompiler=$(COMPILER) -m $(basename $(notdir $@)) -c $^
