@@ -18,6 +18,7 @@ RIEMANN_SOLVERS = \
 	rp2_psystem \
 	rp2_shallow_roe_with_efix \
 	rp2_shallow_sphere \
+	rp2_layered_shallow_water \
 	rp2_vc_acoustics \
 	rp2_vc_advection \
 	rp3_vc_acoustics \
@@ -28,13 +29,13 @@ SHARED_OBJECTS = $(addsuffix .so,$(RIEMANN_SOLVERS))
 COMPILER=gnu95
 
 # Generic targets
-rp1_%.so: $(RIEMANN)/src/rp1_%.f90
+rp1_%.so: $(CLAW)/riemann/src/rp1_%.f90
 	f2py --fcompiler=$(COMPILER) -m $(basename $(notdir $@)) -c $^
 
-rp2_%.so: $(RIEMANN)/src/rpn2_%.f90 $(RIEMANN)/src/rpt2_%.f90
+rp2_%.so: $(CLAW)/riemann/src/rpn2_%.f90 $(CLAW)/riemann/src/rpt2_%.f90
 	f2py --fcompiler=$(COMPILER) -m $(basename $(notdir $@)) -c $^
 
-rp3_%.so: $(RIEMANN)/src/rpn3_%.f90 $(RIEMANN)/src/rpt3_%.f90 $(RIEMANN)/src/rptt3_%.f90
+rp3_%.so: $(CLAW)/riemann/src/rpn3_%.f90 $(CLAW)/riemann/src/rpt3_%.f90 $(CLAW)/riemann/src/rptt3_%.f90
 	f2py --fcompiler=$(COMPILER) -m $(basename $(notdir $@)) -c $^
 	
 # Phony targets
@@ -49,17 +50,17 @@ new:
 	$(MAKE) all
 
 # Special rules
-rp1_layered_shallow_water.so: $(RIEMANN)/src/rp1_layered_shallow_water.f90
+rp1_layered_shallow_water.so: $(CLAW)/riemann/src/rp1_layered_shallow_water.f90
 	f2py --fcompiler=$(COMPILER) --link-lapack_opt -m $(basename $(notdir $@)) -c $^
 
-rp2_kpp.so: $(RIEMANN)/src/rpn2_kpp.f90 $(RIEMANN)/src/rpt2_dummy.f90
+rp2_kpp.so: $(CLAW)/riemann/src/rpn2_kpp.f90 $(CLAW)/riemann/src/rpt2_dummy.f90
 	f2py --fcompiler=$(COMPILER) -m $(basename $(notdir $@)) -c $^
 
-rp2_euler_mapgrid.so: $(RIEMANN)/src/rpn2_euler_mapgrid.f90 $(RIEMANN)/src/rpt2_euler_mapgrid.f90 $(RIEMANN)/src/euler_roe_solver_mapgrid.f90 $(RIEMANN)/src/getquadinfo_mapgrid.f90
+rp2_euler_mapgrid.so: $(CLAW)/riemann/src/rpn2_euler_mapgrid.f90 $(CLAW)/riemann/src/rpt2_euler_mapgrid.f90 $(CLAW)/riemann/src/euler_roe_solver_mapgrid.f90 $(CLAW)/riemann/src/getquadinfo_mapgrid.f90
 	f2py --fcompiler=$(COMPILER) -m $(basename $(notdir $@)) -c $^
 	
-rp2_euler_4wave.so: $(RIEMANN)/src/rpn2_euler_4wave.f90 $(RIEMANN)/src/rpt2_euler.f90
+rp2_euler_4wave.so: $(CLAW)/riemann/src/rpn2_euler_4wave.f90 $(CLAW)/riemann/src/rpt2_euler.f90
 	f2py --fcompiler=$(COMPILER) -m $(basename $(notdir $@)) -c $^
 	
-rp2_layered_shallow_water.so: $(RIEMANN)/src/rpn2_layered_shallow_water.f90 $(RIEMANN)/src/rpt2_layered_shallow_water.f90 $(GEOCLAW)/src/2d/riemannsolvers.f
+rp2_layered_shallow_water.so: $(CLAW)/riemann/src/rpn2_layered_shallow_water.f90 $(CLAW)/riemann/src/rpt2_layered_shallow_water.f90 $(CLAW)/riemann/src/geoclaw_riemann_utils.f
 	f2py --fcompiler=$(COMPILER) -m $(basename $(notdir $@)) -c $^
