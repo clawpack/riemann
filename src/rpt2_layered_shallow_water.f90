@@ -232,8 +232,8 @@ subroutine rpt2(ixy,imp,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,aux1,aux2,aux3,asdq,b
             endif
         enddo
     enddo
-    
-contains
+
+end subroutine rpt2
 
     subroutine rpt2_single_layer(ixy,imp,ql,qr,aux1,aux2,aux3,asdq,bmasdq,bpasdq)
     ! Single layer point-wise transverse Riemann solver using an einfeldt Jacobian
@@ -242,11 +242,16 @@ contains
     !
     ! Adapted from geoclaw 4-23-2011
 
+        use amr_module, only: mcapa
+
         use geoclaw_module, only: g => grav, earth_radius, pi
         use multilayer_module, only: num_layers, eigen_method, inundation_method
         use multilayer_module, only: dry_tolerance
 
         implicit none
+
+        integer, parameter :: meqn = 3
+        integer, parameter :: mwaves = 3
 
         integer, intent(in) :: ixy,imp
 
@@ -268,9 +273,6 @@ contains
         real(kind=8) :: uhat,vhat,hhat,roe1,roe3,s1,s2,s3,s1l,s3r
         real(kind=8) :: delf1,delf2,delf3,dxdcd,dxdcu
         real(kind=8) :: dxdcm,dxdcp,topo1,topo3,eta,tol
-
-        integer, parameter :: meqn = 3
-        integer, parameter :: mwaves = 3
 
         integer ::  m,mw,mu,mv
         
@@ -418,4 +420,3 @@ contains
 
     end subroutine rpt2_single_layer
 
-end subroutine rpt2

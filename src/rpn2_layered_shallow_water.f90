@@ -29,7 +29,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
     use geoclaw_module, only: g => grav, pi, earth_radius
 
     use multilayer_module, only: num_layers, eigen_method, inundation_method
-    use multilayer_module, only: dry_tolerance, aux_layer_index
+    use multilayer_module, only: dry_tolerance, aux_layer_index, rho, r
 
     use multilayer_eigen_module
 
@@ -73,9 +73,6 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
     real(kind=8) :: s_l,s_r,s_roe(2),s_E(2),u_hat,c_hat,sm(2)
     real(kind=8) :: h_star,h_star_test,h_star_HLL,s_l_test,s_r_test
     logical, dimension(num_layers) :: rare
-
-    ! Common block variables
-    real(kind=8) :: rho(num_layers),r    
 
     external dgesv
     
@@ -462,6 +459,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
         !  Note that the solution (betas) are in delta after the call
         A = eig_vec ! We need to do this as the return matrix is modified and
                     ! we have to use eig_vec again to compute fwaves
+        info = 0            
         call dgesv(6,1,A,6,pivot,delta,6,info)
         if (.not.(info == 0)) then
             if (dry_state_l(2)) then
@@ -483,7 +481,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
             print "(a,i2)","In normal solver: ixy=",ixy
             print "(a,i3)","  Error solving R beta = delta,",info
 !             print "(a,i3,a,i3)","  Location: ",icom," ",jcom
-            print "(a,6d16.8)","  Eigenspeeds: ",s(i,:)
+            print "(a,6d16.8)","  Eigenspeeds: ",s(:,i)
             print "(a)","  Eigenvectors:"
             do j=1,6
                 print "(a,6d16.8)","  ",(eig_vec(j,mw),mw=1,6)
