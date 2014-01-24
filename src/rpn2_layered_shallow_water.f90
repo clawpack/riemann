@@ -1,13 +1,13 @@
 subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq)
 ! ============================================================================
 !  Solves normal Riemann problem for the multilayer shallow water equations in
-!  2D with topography and wind forcing:
-!    (h_1)_t + (h_1 u_1)_x + (h_1 v_1)_y = 0
-!    (h_1 u_1)_t + (h_1 u_1^2 + 1/2 g h_1^2)_x + (h_1 u_1 v_1)_y = -gh_1(r(h_2)_x + B_x)
-!    (h_1 v_1)_t + (h_1 u_1 v_1)_x + (h_1 v_1^2 + 1/2 g h_1^2)_y = -gh_1(r(h_2)_y + B_y)
-!    (h_2)_t + (h_2 u_2)_x + (h_2 v_2)_y = 0
-!    (h_2 u_2)_t + (h_2 u_2^2 + 1/2 g h_2^2)_x + (h_2 u_2 v_2)_y = -gh_2(h_1 + B)_x + Tau |W| W_x
-!    (h_2 v_2)_t + (h_2 u_2 v_2)_x + (h_2 v_2^2 + 1/2 g h_2^2)_y = -gh_2(h_1 + B)_y + Tau |W| W_y
+!  2D with topography:
+!    (rho_1 h_1)_t + (rho_1 h_1 u_1)_x + (rho_1 h_1 v_1)_y = 0
+!    (rho_1 h_1 u_1)_t + (rho_1 h_1 u_1^2 + 1/2 g rho_1 h_1^2)_x + (rho_1 h_1 u_1 v_1)_y = -g rho_1 h_1(r(h_2)_x + B_x)
+!    (rho_1 h_1 v_1)_t + (rho_1 h_1 u_1 v_1)_x + (rho_1 h_1 v_1^2 + 1/2 g rho_1 h_1^2)_y = -g rho_1 h_1(r(h_2)_y + B_y)
+!    (rho_2 h_2)_t + (rho_2 h_2 u_2)_x + (rho_2 h_2 v_2)_y = 0
+!    (rho_2 h_2 u_2)_t + (rho_2 h_2 u_2^2 + 1/2 g rho_2 h_2^2)_x + (rho_2 h_2 u_2 v_2)_y = -g rho_2 h_2(h_1 + B)_x
+!    (rho_2 h_2 v_2)_t + (rho_2 h_2 u_2 v_2)_x + (rho_2 h_2 v_2^2 + 1/2 g rho_2 h_2^2)_y = -g rho_2 h_2(h_1 + B)_y
 !
 !  On input, ql contains the state vector at the left edge of each cell and qr
 !  contains the state vector at the right edge of each cell
@@ -24,30 +24,33 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
 !  Kyle T. Mandli (10-11-2010)
 ! ============================================================================
 
-!     use geoclaw_module
-!     use amr_module, only: mcapa
-!     use hurricane_module
-!     use multilayer_module
+    use amr_module, only: mcapa
+
+    use geoclaw_module, only: g => grav, pi, earth_radius
+
+    use multilayer_module, only: num_layers, eigen_method, inundation_method
+    use multilayer_module, only: dry_tolerance, aux_layer_index
+
+    use multilayer_eigen_module
 
     implicit none
 
     ! Input arguments
     integer, intent(in) :: ixy,maxm,meqn,mwaves,mbc,mx,maux
-    double precision, dimension(meqn,1-mbc:maxm+mbc), intent(in) :: ql,qr
-    double precision, dimension(maux,1-mbc:maxm+mbc), intent(in) :: auxl,auxr
+    real(kind=8), dimension(meqn,1-mbc:maxm+mbc), intent(in) :: ql, qr
+    real(kind=8), dimension(maux,1-mbc:maxm+mbc), intent(in) :: auxl, auxr
 
     ! Output arguments
-    double precision, dimension(meqn, mwaves, 1-mbc:maxm+mbc), intent(out) :: fwave
-    double precision, dimension(mwaves, 1-mbc:maxm+mbc), intent(out) :: s
-    double precision, dimension(meqn, 1-mbc:maxm+mbc), intent(out) :: apdq, amdq
+    real(kind=8), dimension(meqn, mwaves, 1-mbc:maxm+mbc), intent(out) :: fwave
+    real(kind=8), dimension(mwaves, 1-mbc:maxm+mbc), intent(out) :: s
+    real(kind=8), dimension(meqn, 1-mbc:maxm+mbc), intent(out) :: apdq, amdq
 
     ! Counters
     integer :: i,j,m,mw,k,maxiter,info
     integer :: n_index,t_index,layer_index
     
     ! Physics
-    double precision :: dxdc
-    integer, parameter :: num_layers = 2
+    real(kind=8) :: dxdc
     
     ! State variables
     real(kind=8), dimension(num_layers) :: h_l,h_r,hu_l,hu_r,hv_l,hv_r
@@ -72,12 +75,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
     logical, dimension(num_layers) :: rare
 
     ! Common block variables
-    real(kind=8) :: rho(num_layers),r
-    real(kind=8) :: g,R_earth,pi,capa_index
-    integer :: eigen_method, inundation_method
-    real(kind=8) :: dry_tolerance
-    
-    common /cparam/ rho,R_earth
+    real(kind=8) :: rho(num_layers),r    
 
     external dgesv
     
@@ -115,13 +113,13 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
             hu_r(j) = ql(layer_index+n_index,i) / rho(j)
             hv_r(j) = ql(layer_index+t_index,i) / rho(j)
             
-            h_hat_l(j) = auxr(j+6,i-1)
-            h_hat_r(j) = auxl(j+6,i)
+            h_hat_l(j) = auxr(j+aux_layer_index-1,i-1)
+            h_hat_r(j) = auxl(j+aux_layer_index-1,i)
             
             h_ave(:) = 0.5d0 * (h_l(:) + h_r(:))
             
             ! Check for dry states
-            if (h_l(j) < dry_tolerance) then
+            if (h_l(j) < dry_tolerance(j)) then
                 dry_state_l(j) = .true.
                 hu_l(j) = 0.d0
                 hv_l(j) = 0.d0
@@ -131,7 +129,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
                 u_l(j) = hu_l(j) / h_l(j)
                 v_l(j) = hv_l(j) / h_l(j)
             endif
-            if (h_r(j) < dry_tolerance) then
+            if (h_r(j) < dry_tolerance(j)) then
                 dry_state_r(j) = .true.
                 hu_r(j) = 0.d0
                 hv_r(j) = 0.d0
@@ -145,17 +143,6 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
         
         b_l = auxr(1,i-1)
         b_r = auxl(1,i)
-        
-        ! Calculate wind stress
-!         w_normal = 0.5d0 * (auxr(i-1,n_index+2) + auxl(i,n_index+2))
-!         w_transverse = 0.5d0 * (auxr(i-1,t_index+2) + auxl(i,t_index+2))
-!         wind_speed = sqrt(w_normal**2 + w_transverse**2)
-!         tau = wind_drag(wind_speed) * rho_air * wind_speed
-!         if (ixy == 1) then
-!             wind_stress = tau * w_normal
-!         else if (ixy == 2) then
-!             wind_stress = tau * w_normal
-!         endif
 
         ! ====================================================================
         !  Top layer only
@@ -175,7 +162,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
             phi_r(1) = 0.5d0 * g * h_r(1)**2 + h_r(1) * u_r(1)**2
              
             ! Check for dry state to right
-            if (h_r(1) <= dry_tolerance) then
+            if (h_r(1) <= dry_tolerance(1)) then
                 call riemanntype(h_l(1),h_l(1),u_l(1),-u_l(1),h_star, &
                                  sm(1),sm(2),rare(1),rare(2),1,dry_tolerance,g)
                 h_star_test = max(h_l(1),h_star)
@@ -192,7 +179,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
                     b_r = h_l(1) + b_l
                 endif
             ! Check for drystate to left, i.e right surface is lower than left topo
-            else if (h_l(1) <= dry_tolerance) then 
+            else if (h_l(1) <= dry_tolerance(1)) then 
                 call riemanntype(h_r(1),h_r(1),-u_r(1),u_r(1),h_star, &
                                  sm(1),sm(2),rare(1),rare(2),1,dry_tolerance,g)
                 h_star_test = max(h_r(1),h_star)
@@ -227,7 +214,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
              call riemann_aug_JCP(max_iterations,3,3,h_l(1),h_r(1),hu_l(1), &
                                     hu_r(1),hv_l(1),hv_r(1),b_l,b_r,u_l(1), &
                                     u_r(1),v_l(1),v_r(1),phi_l(1),phi_r(1), &
-                                    s_E(1),s_E(2),dry_tolerance,g,sw,fw)
+                                    s_E(1),s_E(2),dry_tolerance(1),g,sw,fw)
             
             ! Eliminate ghost fluxes for wall
             do mw=1,3
@@ -276,12 +263,12 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
                         n_index,t_index,lambda,eig_vec)
                 else if (inundation_method == 2) then
                     ! Linearized with eigenspace with small depth
-                    temp_depth = [h_r(1),dry_tolerance]
+                    temp_depth = [h_r(1),dry_tolerance(1)]
                     call linearized_eigen(h_l,temp_depth,u_l,u_r,v_l,v_r, &
                         n_index,t_index,lambda,eig_vec)
                 else if (inundation_method == 3) then
                     ! Velocity difference with eigenspace with small depth
-                    temp_depth = [h_r(1),dry_tolerance]
+                    temp_depth = [h_r(1),dry_tolerance(1)]
                     call vel_diff_eigen(h_l,temp_depth,u_l,u_r,v_l,v_r, &
                         n_index,t_index,lambda,eig_vec)
                 else if (inundation_method == 4) then
@@ -291,7 +278,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
                         n_index,t_index,lambda,eig_vec)
                 else if (inundation_method == 5) then
                     ! LAPACK with small depth
-                    temp_depth = [h_r(1),dry_tolerance]
+                    temp_depth = [h_r(1),dry_tolerance(1)]
                     call lapack_eigen(h_l,temp_depth,u_l,u_r,v_l,v_r, &
                         n_index,t_index,lambda,eig_vec)
                 endif
@@ -340,13 +327,13 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
                     temp_depth = [h_l(1),0.d0]
                     call linearized_eigen(temp_depth,h_r,u_l,u_r,v_l,v_r,n_index,t_index,lambda,eig_vec)
                 else if (inundation_method == 2) then
-                    temp_depth = [h_l(1),dry_tolerance]
+                    temp_depth = [h_l(1),dry_tolerance(1)]
                     call linearized_eigen(temp_depth,h_r,u_l,u_r,v_l,v_r,n_index,t_index,lambda,eig_vec)
                 else if (inundation_method == 3) then
-                    temp_depth = [h_l(1),dry_tolerance]
+                    temp_depth = [h_l(1),dry_tolerance(1)]
                     call vel_diff_eigen(temp_depth,h_r,u_l,u_r,v_l,v_r,n_index,t_index,lambda,eig_vec)
                 else if (inundation_method == 4) then
-                    temp_depth = [h_l(1),dry_tolerance]
+                    temp_depth = [h_l(1),dry_tolerance(1)]
                     call lapack_eigen(temp_depth,h_r,u_l,u_r,v_l,v_r,n_index,t_index,lambda,eig_vec)
                 else if (inundation_method == 5) then
                     temp_depth = [h_l(1),0.d0]
@@ -516,10 +503,10 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
     
     ! ========================================================================
     ! Capacity for mapping from latitude longitude to physical space
-    if (capa_index > 0) then
+    if (mcapa > 0) then
         do i=2-mbc,mx+mbc
             if (ixy == 1) then
-                dxdc=(R_earth*pi/180.d0)
+                dxdc=(earth_radius*pi/180.d0)
             else
                 dxdc=auxl(i,3)
             endif
@@ -544,8 +531,8 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
             h_l(1) = qr(1,i-1) / rho(1)
             h_r(2) = ql(4,i) / rho(2)
             h_l(2) = qr(4,i-1) / rho(2)
-            dry_state_r(2) = h_r(2) < dry_tolerance
-            dry_state_l(2) = h_l(2) < dry_tolerance
+            dry_state_r(2) = h_r(2) < dry_tolerance(2)
+            dry_state_l(2) = h_l(2) < dry_tolerance(2)
             rare(1) = h_l(2) + b_l > b_r
             rare(2) = h_r(2) + b_r > b_l
             if (dry_state_r(2).and.(.not.dry_state_l(2)).and.(.not.rare(1)) &
