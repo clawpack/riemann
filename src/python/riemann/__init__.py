@@ -56,4 +56,4 @@ except ImportError as e:
 try:
     import layered_shallow_water_1D
 except:
-    pass
+    print 'Failed to import layered shallow water Riemann solver.'
