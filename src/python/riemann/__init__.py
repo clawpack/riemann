@@ -26,7 +26,6 @@ try:
     import nonlinear_elasticity_fwave_1D
     import reactive_euler_with_efix_1D
     import shallow_roe_with_efix_1D
-    import layered_shallow_water_1D
     import traffic_1D
     import traffic_vc_1D
     import acoustics_2D
@@ -53,3 +52,8 @@ except ImportError as e:
     print '         Did you run "pip install" in your clawpack directory?'
     traceback.print_exc()
     print "********************************************************************"
+
+try:
+    import layered_shallow_water_1D
+except:
+    pass
