@@ -53,7 +53,6 @@ except ImportError as e:
     traceback.print_exc()
     print "********************************************************************"
 
-try:
+import os
+if os.path.exists('./layered_shallow_water_1D.so'):
     import layered_shallow_water_1D
-except:
-    print 'Failed to import layered shallow water Riemann solver.'

@@ -1,3 +1,8 @@
+# We don't compile the layered shallow water solver by default.
+# To compile it, do
+#
+# f2py -c ../../rp1_layered_shallow_water.f90 -m layered_shallow_water_1D
+
 one_d_riemann =   ['acoustics',
                    'advection',
                    'burgers',
@@ -39,6 +44,7 @@ def configuration(parent_package='',top_path=None):
     for rp in one_d_riemann:
         rp_ext = rp+'_1D'
         rp_src = [os.path.join(src_dir,'rp1_'+rp+'.f90')]
+        config.add_extension(rp_ext,rp_src)
 
     for rp in two_d_riemann:
         rp_ext = rp+'_2D'
