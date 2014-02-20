@@ -6,8 +6,7 @@ one_d_riemann =   ['acoustics',
                    'euler_with_efix',
                    'nonlinear_elasticity_fwave',
                    'reactive_euler_with_efix',
-                   'shallow_roe_with_efix',
-                   'layered_shallow_water']
+                   'shallow_roe_with_efix']
 
 two_d_riemann =   ['acoustics',
                    'advection',
@@ -37,17 +36,9 @@ def configuration(parent_package='',top_path=None):
 
     src_dir = os.path.join(os.path.dirname(__file__),'src')
 
-    # Create dictionary for LAPACK and BLAS linking
-    lapack_args = numpy.__config__.blas_opt_info
-    lapack_args.update(numpy.__config__.lapack_opt_info)
-
     for rp in one_d_riemann:
         rp_ext = rp+'_1D'
         rp_src = [os.path.join(src_dir,'rp1_'+rp+'.f90')]
-        if rp == 'layered_shallow_water':
-            config.add_extension(rp_ext, rp_src, **lapack_args)
-        else:
-            config.add_extension(rp_ext,rp_src)
 
     for rp in two_d_riemann:
         rp_ext = rp+'_2D'
