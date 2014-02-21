@@ -46,33 +46,36 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
     real(kind=8), dimension(meqn, 1-mbc:maxm+mbc), intent(out) :: apdq, amdq
 
     ! Counters
-    integer :: i,j,m,mw,k,maxiter,info
-    integer :: n_index,t_index,layer_index
+    integer :: i, j, m, mw, info
+    integer :: n_index, t_index, layer_index
     
     ! Physics
     real(kind=8) :: dxdc
     
     ! State variables
-    real(kind=8), dimension(num_layers) :: h_l,h_r,hu_l,hu_r,hv_l,hv_r
-    real(kind=8), dimension(num_layers) :: u_l,u_r,v_l,v_r,advected_speed
-    real(kind=8) :: b_l,b_r,w_normal,w_transverse,kappa_l,kappa_r
-    real(kind=8), dimension(num_layers) :: eta_l,eta_r,h_ave,momentum_transfer
-    real(kind=8), dimension(num_layers) :: h_hat_l,h_hat_r,gamma_l,gamma_r
-    real(kind=8) :: flux_transfer_l,flux_transfer_r,lambda(6)
-    real(kind=8), dimension(num_layers) :: temp_depth,temp_u,temp_v
+    real(kind=8), dimension(num_layers) :: h_l, h_r, hu_l, hu_r, hv_l, hv_r
+    real(kind=8), dimension(num_layers) :: u_l, u_r, v_l, v_r
+    real(kind=8), dimension(num_layers) :: h_ave, momentum_transfer
+    real(kind=8), dimension(num_layers) :: h_hat_l, h_hat_r
+    real(kind=8), dimension(num_layers) :: temp_depth, temp_u, temp_v
+    real(kind=8) :: b_l, b_r, flux_transfer_l, flux_transfer_r, lambda(6)
+
+    ! real(kind=8) :: advected_speed, eta_l, eta_r, gamma_l, gamma_r, kappa_l, kappa_r, w_normal, w_transverse
 
     ! Solver variables
-    real(kind=8), dimension(6) :: delta,flux_r,flux_l,pivot
-    real(kind=8), dimension(6,6) :: eig_vec,A
-    real(kind=8) :: beta(6),alpha(4)
+    real(kind=8), dimension(6) :: delta, flux_r, flux_l, pivot
+    real(kind=8), dimension(6,6) :: eig_vec, A
+    real(kind=8) :: beta(6), alpha(4)
     logical, dimension(num_layers) :: dry_state_l, dry_state_r
     
     ! Single layer locals
     integer, parameter :: max_iterations = 1
-    real(kind=8) :: wall(3),fw(3,3),sw(3),phi_r(2),phi_l(2)
-    real(kind=8) :: s_l,s_r,s_roe(2),s_E(2),u_hat,c_hat,sm(2)
-    real(kind=8) :: h_star,h_star_test,h_star_HLL,s_l_test,s_r_test
+    real(kind=8) :: wall(3), fw(3,3), sw(3), phi_r(2), phi_l(2)
+    real(kind=8) :: s_l, s_r, s_roe(2), s_E(2), u_hat, c_hat, sm(2)
+    real(kind=8) :: h_star, h_star_test
     logical, dimension(num_layers) :: rare
+
+    ! real(kind=8) :: h_star_HLL, s_l_test, s_r_test
 
     external dgesv
     
@@ -237,7 +240,6 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
             ! outside of this loop
             cycle
         endif
-
         
         ! ====================================================================
         !  Calculate Eigenstructure
@@ -536,7 +538,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
             if (dry_state_r(2).and.(.not.dry_state_l(2)).and.(.not.rare(1)) &
              .or.(dry_state_l(2).and.(.not.dry_state_r(2)).and.(.not.rare(2)))) then
                 do m=4,6
-                    if (apdq(i,m) /= 0.d0) then
+                    if (abs(apdq(i,m)) <= 1.d-8) then
                         print *,"========================"
                         print *,"Wave ",mw," equation ",m
                         print *,"s = ",s(mw,i)
