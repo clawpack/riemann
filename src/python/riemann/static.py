@@ -26,7 +26,8 @@ num_eqn = {
         'vc_advection_2D' : 1,
         'vc_acoustics_2D' : 3,
         'vc_elasticity_2D' : 5,
-        'vc_acoustics_3D' : 4
+        'vc_acoustics_3D' : 4,
+        'euler_3D' : 5
         }
 
 num_waves = {
@@ -57,5 +58,6 @@ num_waves = {
         'vc_advection_2D' : 1,
         'vc_acoustics_2D' : 2,
         'vc_elasticity_2D' : 4,
-        'vc_acoustics_3D' : 2
+        'vc_acoustics_3D' : 2,
+        'euler_3D' : 3
         }
