@@ -14,9 +14,19 @@ in order to ensure the new solver is importable in PyClaw.  To make things
 concrete, suppose you are committing a 2D elasticity solver, so your Fortran 
 files are named rpn2_elasticity.f90 and rpt2_elasticity.f90.  Then you should:
 
-- Add the following to src/python/riemann/__init__.py:
+1. Add the following to src/python/riemann/__init__.py:
 ```
 import vc_elasticity_2D
 ```
-- Add 'elasticity' to two_d_riemann in src/python/riemann/setup.py.
-- Add appropriate entries for num_eqn and num_waves in src/python/riemann/static.py.
+2. Add 'vc_elasticity' to two_d_riemann in src/python/riemann/setup.py.
+3. Add appropriate entries for num_eqn and num_waves in src/python/riemann/static.py.
+
+If you are adding a Python solver, then you should have a vc_elasticity_2D_py.py 
+file in src/python/riemann. Assuming it contains a function vc_elasticity_2D, then 
+you should do:
+
+1. Add the following to src/python/riemann/__init__.py:
+```
+from vc_elasticity_2D_py import vc_elasticity_2D
+```
+2. Add appropriate entries for num_eqn and num_waves in src/python/riemann/static.py.
