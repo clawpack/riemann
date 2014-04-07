@@ -1,4 +1,9 @@
-one_d_riemann =   ['acoustics',
+# We don't compile the layered shallow water solver by default.
+# To compile it, do
+#
+# f2py -c ../../rp1_layered_shallow_water.f90 -m layered_shallow_water_1D
+
+one_d_riemann = ['acoustics',
                    'advection',
                    'burgers',
                    'traffic',
@@ -6,10 +11,9 @@ one_d_riemann =   ['acoustics',
                    'euler_with_efix',
                    'nonlinear_elasticity_fwave',
                    'reactive_euler_with_efix',
-                   'shallow_roe_with_efix',
-                   'layered_shallow_water']
+                   'shallow_roe_with_efix']
 
-two_d_riemann =   ['acoustics',
+two_d_riemann = ['acoustics',
                    'advection',
                    'burgers',
                    'euler_5wave',
@@ -37,29 +41,22 @@ def configuration(parent_package='',top_path=None):
 
     src_dir = os.path.join(os.path.dirname(__file__),'src')
 
-    # Create dictionary for LAPACK and BLAS linking
-    lapack_args = numpy.__config__.blas_opt_info
-    lapack_args.update(numpy.__config__.lapack_opt_info)
-    if len(lapack_args.keys()) == 0:
-        # Provide a default value
-        lapack_args['libraries'] = ['lapack','blas']
-
     for rp in one_d_riemann:
         rp_ext = rp+'_1D'
         rp_src = [os.path.join(src_dir,'rp1_'+rp+'.f90')]
-        config.add_extension(rp_ext, rp_src, **lapack_args)
-        
+        config.add_extension(rp_ext,rp_src)
+
     for rp in two_d_riemann:
         rp_ext = rp+'_2D'
         rp_src = [os.path.join(src_dir,prefix+rp+'.f90')
                   for prefix in ['rpn2_','rpt2_']]
-        config.add_extension(rp_ext, rp_src, **lapack_args) 
+        config.add_extension(rp_ext,rp_src)
 
     for rp in three_d_riemann:
         rp_ext = rp+'_3D'
         rp_src = [os.path.join(src_dir,prefix+rp+'.f90')
                   for prefix in ['rpn3_','rpt3_','rptt3_']]
-        config.add_extension(rp_ext, rp_src, **lapack_args)
+        config.add_extension(rp_ext,rp_src)
 
     # special targets
     special_target_list = \
@@ -74,8 +71,8 @@ def configuration(parent_package='',top_path=None):
     for rp_dict in special_target_list:
         rp_ext = rp_dict['ext']
         rp_src = [os.path.join(src_dir,src) for src in rp_dict['srcs']]
-        config.add_extension(rp_ext, rp_src, **lapack_args) 
     
+        config.add_extension(rp_ext,rp_src)
     return config
 
 if __name__ == '__main__':
