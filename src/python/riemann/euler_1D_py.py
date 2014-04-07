@@ -68,18 +68,10 @@ def euler_roe_1D(q_l,q_r,aux_l,aux_r,problem_data):
     apdq = np.zeros( (num_eqn, num_rp) )
     
     # Solver parameters
-    gamma = problem_data['gamma']
     gamma1 = problem_data['gamma1']
 
     # Calculate Roe averages
-    rhsqrtl = np.sqrt(q_l[0,...])
-    rhsqrtr = np.sqrt(q_r[0,...])
-    pl = gamma1 * (q_l[2,...] - 0.5 * (q_l[1,...]**2) / q_l[0,...])
-    pr = gamma1 * (q_r[2,...] - 0.5 * (q_r[1,...]**2) / q_r[0,...])
-    rhsq2 = rhsqrtl + rhsqrtr
-    u = (q_l[1,...] / rhsqrtl + q_r[1,...] / rhsqrtr) / rhsq2
-    enthalpy = ((q_l[2,...] + pl) / rhsqrtl + (q_r[2,...] + pr) / rhsqrtr) / rhsq2
-    a = np.sqrt(gamma1 * (enthalpy - 0.5 * u**2))
+    u, a, enthalpy = roe_averages(q_l,q_r,problem_data)[0:3]
 
     # Find eigenvector coefficients
     delta = q_r - q_l
@@ -149,15 +141,7 @@ def euler_hll_1D(q_l,q_r,aux_l,aux_r,problem_data):
     gamma1 = problem_data['gamma1']
     
     # Calculate Roe averages, right and left speeds
-    rhsqrtl = np.sqrt(q_l[0,...])
-    rhsqrtr = np.sqrt(q_r[0,...])
-    pl = gamma1 * (q_l[2,...] - 0.5 * (q_l[1,...]**2) / q_l[0,...])
-    pr = gamma1 * (q_r[2,...] - 0.5 * (q_r[1,...]**2) / q_r[0,...])
-    rhsq2 = rhsqrtl + rhsqrtr
-    u = (q_l[1,...] / rhsqrtl + q_r[1,...] / rhsqrtr) / rhsq2
-    enthalpy = ((q_l[2,...] + pl) / rhsqrtl + (q_r[2,...] + pr) / rhsqrtr) / rhsq2
-    a = np.sqrt(gamma1 * (enthalpy - 0.5 * u**2))
-
+    u, a, _, pl, pr = roe_averages(q_l,q_r,problem_data)
     H_r = (q_r[2,:] + pr) / q_r[0,:]
     H_l = (q_l[2,:] + pl) / q_l[0,:]
     u_r = q_r[1,:] / q_r[0,:]
@@ -207,4 +191,21 @@ def euler_exact_1D(q_l,q_r,aux_l,aux_r,problem_data):
         This solver has not been implemented.
     
     """
-    raise NotImplementedError("The exact swe solver has not been implemented.")
+    raise NotImplementedError("The exact Riemann solver has not been implemented.")
+
+def roe_averages(q_l,q_r,problem_data):
+    # Solver parameters
+    gamma1 = problem_data['gamma1']
+
+    # Calculate Roe averages
+    rhsqrtl = np.sqrt(q_l[0,...])
+    rhsqrtr = np.sqrt(q_r[0,...])
+    pl = gamma1 * (q_l[2,...] - 0.5 * (q_l[1,...]**2) / q_l[0,...])
+    pr = gamma1 * (q_r[2,...] - 0.5 * (q_r[1,...]**2) / q_r[0,...])
+    rhsq2 = rhsqrtl + rhsqrtr
+    u = (q_l[1,...] / rhsqrtl + q_r[1,...] / rhsqrtr) / rhsq2
+    enthalpy = ((q_l[2,...] + pl) / rhsqrtl + (q_r[2,...] + pr) / rhsqrtr) / rhsq2
+    a = np.sqrt(gamma1 * (enthalpy - 0.5 * u**2))
+
+    return u, a, enthalpy, pl, pr
+
