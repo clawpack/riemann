@@ -3,7 +3,7 @@
 #
 # f2py -c ../../rp1_layered_shallow_water.f90 -m layered_shallow_water_1D
 
-one_d_riemann =   ['acoustics',
+one_d_riemann = ['acoustics',
                    'advection',
                    'burgers',
                    'traffic',
@@ -13,7 +13,7 @@ one_d_riemann =   ['acoustics',
                    'reactive_euler_with_efix',
                    'shallow_roe_with_efix']
 
-two_d_riemann =   ['acoustics',
+two_d_riemann = ['acoustics',
                    'advection',
                    'burgers',
                    'euler_5wave',
