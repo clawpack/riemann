@@ -7,12 +7,14 @@ num_eqn = {
         'traffic_1D' : 1,
         'traffic_vc_1D' : 1,
         'euler_with_efix_1D' : 3,
-        'euler_1D_py' : 3,
+        'euler_roe_1D' : 3,
+        'euler_hll_1D' : 3,
         'nonlinear_elasticity_fwave_1D' : 2,
         'nonlinear_elasticity_1D_py' : 2,
         'reactive_euler_with_efix_1D' : 4,
         'shallow_roe_with_efix_1D' : 2,
-        'shallow_1D_py' : 2,
+        'shallow_roe_1D' : 2,
+        'shallow_hll_1D' : 2,
         'vc_advection_1D' : 1,
         'acoustics_2D' : 3,
         'advection_2D' : 1,
@@ -26,7 +28,8 @@ num_eqn = {
         'vc_advection_2D' : 1,
         'vc_acoustics_2D' : 3,
         'vc_elasticity_2D' : 5,
-        'vc_acoustics_3D' : 4
+        'vc_acoustics_3D' : 4,
+        'euler_3D' : 5
         }
 
 num_waves = {
@@ -38,12 +41,14 @@ num_waves = {
         'traffic_1D' : 1,
         'traffic_vc_1D' : 1,
         'euler_with_efix_1D' : 3,
-        'euler_1D_py' : 3,
+        'euler_roe_1D' : 3,
+        'euler_hll_1D' : 2,
         'nonlinear_elasticity_fwave_1D' : 2,
         'nonlinear_elasticity_1D_py' : 2,
         'reactive_euler_with_efix_1D' : 4,
         'shallow_roe_with_efix_1D' : 2,
-        'shallow_1D_py' : 2,
+        'shallow_roe_1D' : 2,
+        'shallow_hll_1D' : 2,
         'vc_advection_1D' : 1,
         'acoustics_2D' : 2,
         'advection_2D' : 1,
@@ -57,5 +62,6 @@ num_waves = {
         'vc_advection_2D' : 1,
         'vc_acoustics_2D' : 2,
         'vc_elasticity_2D' : 4,
-        'vc_acoustics_3D' : 2
+        'vc_acoustics_3D' : 2,
+        'euler_3D' : 3
         }

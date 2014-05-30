@@ -42,7 +42,6 @@ Unless otherwise noted, the ideal gas equation of state is used:
 import numpy as np
 
 num_eqn = 3
-num_waves = 3
 
 def euler_roe_1D(q_l,q_r,aux_l,aux_r,problem_data):
     r"""
@@ -60,6 +59,7 @@ def euler_roe_1D(q_l,q_r,aux_l,aux_r,problem_data):
     
     # Problem dimensions
     num_rp = q_l.shape[1]
+    num_waves = 3
 
     # Return values
     wave = np.empty( (num_eqn, num_waves, num_rp) )
@@ -68,18 +68,10 @@ def euler_roe_1D(q_l,q_r,aux_l,aux_r,problem_data):
     apdq = np.zeros( (num_eqn, num_rp) )
     
     # Solver parameters
-    gamma = problem_data['gamma']
     gamma1 = problem_data['gamma1']
 
     # Calculate Roe averages
-    rhsqrtl = np.sqrt(q_l[0,...])
-    rhsqrtr = np.sqrt(q_r[0,...])
-    pl = gamma1 * (q_l[2,...] - 0.5 * (q_l[1,...]**2) / q_l[0,...])
-    pr = gamma1 * (q_r[2,...] - 0.5 * (q_r[1,...]**2) / q_r[0,...])
-    rhsq2 = rhsqrtl + rhsqrtr
-    u = q_l[1,...] / rhsqrtl + q_r[1,...] / rhsqrtr
-    enthalpy = ((q_l[2,...] + pl) / rhsqrtl + (q_r[2,...] + pr) / rhsqrtr) / rhsq2
-    a = np.sqrt(gamma1 * (enthalpy - 0.5 * u**2))
+    u, a, enthalpy = roe_averages(q_l,q_r,problem_data)[0:3]
 
     # Find eigenvector coefficients
     delta = q_r - q_l
@@ -117,3 +109,103 @@ def euler_roe_1D(q_l,q_r,aux_l,aux_r,problem_data):
     
 
     return wave,s,amdq,apdq
+
+def euler_hll_1D(q_l,q_r,aux_l,aux_r,problem_data):
+    r"""
+    HLL euler solver ::
+    
+         
+        W_1 = Q_hat - Q_l    s_1 = min(u_l-c_l,u_l+c_l,lambda_roe_1,lambda_roe_2)
+        W_2 = Q_r - Q_hat    s_2 = max(u_r-c_r,u_r+c_r,lambda_roe_1,lambda_roe_2)
+    
+        Q_hat = ( f(q_r) - f(q_l) - s_2 * q_r + s_1 * q_l ) / (s_1 - s_2)
+    
+    *problem_data* should contain:
+     - *gamma* - (float) Ratio of the heat capacities
+     - *gamma1* - (float) :math:`1 - \gamma`
+
+    :Version: 1.0 (2014-03-04)
+    """
+
+    # Problem dimensions
+    num_rp = q_l.shape[1]
+    num_waves = 2
+
+    # Return values
+    wave = np.empty( (num_eqn, num_waves, num_rp) )
+    s = np.empty( (num_waves, num_rp) )
+    amdq = np.zeros( (num_eqn, num_rp) )
+    apdq = np.zeros( (num_eqn, num_rp) )
+    
+    # Solver parameters
+    gamma1 = problem_data['gamma1']
+    
+    # Calculate Roe averages, right and left speeds
+    u, a, _, pl, pr = roe_averages(q_l,q_r,problem_data)
+    H_r = (q_r[2,:] + pr) / q_r[0,:]
+    H_l = (q_l[2,:] + pl) / q_l[0,:]
+    u_r = q_r[1,:] / q_r[0,:]
+    u_l = q_l[1,:] / q_l[0,:]
+    a_r = np.sqrt(gamma1 * (H_r - 0.5 * u_r**2))
+    a_l = np.sqrt(gamma1 * (H_l - 0.5 * u_l**2))
+
+    # Compute Einfeldt speeds
+    s_index = np.empty((4,num_rp))
+    s_index[0,:] = u + a
+    s_index[1,:] = u - a
+    s_index[2,:] = u_l + a_l
+    s_index[3,:] = u_l - a_l
+    s[0,:]  = np.min(s_index,axis=0)
+    s_index[2,:] = u_r + a_r
+    s_index[3,:] = u_r - a_r
+    s[1,:] = np.max(s_index,axis=0)
+
+    # Compute middle state
+    q_hat = np.empty((num_eqn,num_rp))
+    q_hat[0,:] = (q_r[1,:] - q_l[1,:] 
+                    - s[1,:] * q_r[0,:] + s[0,:] * q_l[0,:]) / (s[0,:] - s[1,:])
+    q_hat[1,:] = (q_r[1,:]**2/q_r[0,:] + pr - (q_l[1,:]**2/q_l[0,:] + pl)
+                    - s[1,:] * q_r[1,:] + s[0,:] * q_l[1,:]) / (s[0,:] - s[1,:])
+    q_hat[2,:] = ((q_r[2,:] + pr)*q_r[1,:]/q_r[0,:] - (q_l[2,:] + pl)*q_l[1,:]/q_l[0,:] 
+                    - s[1,:] * q_r[2,:] + s[0,:] * q_l[2,:]) / (s[0,:] - s[1,:])
+
+    # Compute each family of waves
+    wave[:,0,:] = q_hat - q_l
+    wave[:,1,:] = q_r - q_hat
+    
+    # Compute variations
+    s_index = np.zeros((2,num_rp))
+    for m in xrange(num_eqn):
+        for mw in xrange(num_waves):
+            s_index[0,:] = s[mw,:]
+            amdq[m,:] += np.min(s_index,axis=0) * wave[m,mw,:]
+            apdq[m,:] += np.max(s_index,axis=0) * wave[m,mw,:]
+            
+    return wave, s, amdq, apdq
+
+def euler_exact_1D(q_l,q_r,aux_l,aux_r,problem_data):
+    r"""
+    Exact euler Riemann solver
+    
+    .. warning::
+        This solver has not been implemented.
+    
+    """
+    raise NotImplementedError("The exact Riemann solver has not been implemented.")
+
+def roe_averages(q_l,q_r,problem_data):
+    # Solver parameters
+    gamma1 = problem_data['gamma1']
+
+    # Calculate Roe averages
+    rhsqrtl = np.sqrt(q_l[0,...])
+    rhsqrtr = np.sqrt(q_r[0,...])
+    pl = gamma1 * (q_l[2,...] - 0.5 * (q_l[1,...]**2) / q_l[0,...])
+    pr = gamma1 * (q_r[2,...] - 0.5 * (q_r[1,...]**2) / q_r[0,...])
+    rhsq2 = rhsqrtl + rhsqrtr
+    u = (q_l[1,...] / rhsqrtl + q_r[1,...] / rhsqrtr) / rhsq2
+    enthalpy = ((q_l[2,...] + pl) / rhsqrtl + (q_r[2,...] + pr) / rhsqrtr) / rhsq2
+    a = np.sqrt(gamma1 * (enthalpy - 0.5 * u**2))
+
+    return u, a, enthalpy, pl, pr
+

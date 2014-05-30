@@ -37,9 +37,9 @@
       dimension delta(5)
       logical efix
 
-      double precision u2v2w2(-1:maxmrp), &
-            u(-1:maxmrp),v(-1:maxmrp),w(-1:maxmrp),enth(-1:maxmrp), &
-            a(-1:maxmrp),g1a2(-1:maxmrp),euv(-1:maxmrp)
+      double precision u2v2w2(-6:maxmrp+7), &
+            u(-6:maxmrp+7),v(-6:maxmrp+7),w(-6:maxmrp+7),enth(-6:maxmrp+7), &
+            a(-6:maxmrp+7),g1a2(-6:maxmrp+7),euv(-6:maxmrp+7)
 
       double precision gamma1
 !
@@ -49,11 +49,10 @@
 !
       gamma1 = gamma - 1.d0
 
-      if (-1.gt.1-mbc .or. maxmrp .lt. maxm+mbc) then
-         write(6,*) 'need to increase maxmrp in rpn3eu'
-         write(6,*) 'maxm+mbc=',maxm+mbc
+      if (mbc > 7 .OR. maxmrp < maxm) then
+         write(6,*) 'need to increase maxm2 or 7 in rpn'
          stop
-         endif
+      endif
 
       if (mwaves .ne. 3) then
          write(6,*) '*** Should have mwaves=3 for this Riemann solver'
@@ -105,7 +104,7 @@
                write(6,*) '*** rho .le. 0 in z-sweep at ',i
              write(6,*) 'stopped with rho < 0...'
              stop
-             endif
+         endif
          rhsqrtl = dsqrt(qr(1,i-1))
          rhsqrtr = dsqrt(ql(1,i))
          pl = gamma1*(qr(5,i-1) - 0.5d0*(qr(mu,i-1)**2 + &
@@ -129,7 +128,7 @@
                write(6,*) '*** a2 .le. 0 in z-sweep at ',i
              write(6,*) 'stopped with a2 < 0...'
              stop
-             endif
+         endif
          a(i) = dsqrt(a2)
          g1a2(i) = gamma1 / a2
          euv(i) = enth(i) - u2v2w2(i)
