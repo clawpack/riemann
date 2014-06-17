@@ -196,7 +196,7 @@
             amdq(m,i) = 0.d0
             apdq(m,i) = 0.d0
             do 90 mws=1,mwaves
-                if (s(m,iws) .lt. 0.d0) then
+                if (s(mws,i) .lt. 0.d0) then
                     amdq(m,i) = amdq(m,i) + s(mws,i)*wave(m,mws,i)
                 else
                     apdq(m,i) = apdq(m,i) + s(mws,i)*wave(m,mws,i)
