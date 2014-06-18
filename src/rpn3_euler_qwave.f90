@@ -31,6 +31,7 @@
 !          amdq <REAL>     : left-going flux differences
 !          apdq <REAL>     : right-going flux differences
 !
+! Adapted from rpn3_euler.f90 in $CLAWHOME/riemann/src
 !-----------------------------------------------------------------------------------
 SUBROUTINE rpn3(ixyz,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,qwave,s,amdq,apdq)
 
