@@ -31,14 +31,6 @@
 !          amdq <REAL>     : left-going flux differences
 !          apdq <REAL>     : right-going flux differences
 !
-! Adapted from rpn3_euler.f90 in $CLAWHOME/riemann/src
-!   by: Wes Lowrie <wlowrie@ara.com>
-!   Last Edit: 18 June 2014
-!
-! Code Description:
-!   Language: Python 2.7.X
-!   Framework: Clawpack/PyClaw 5.1.X
-!
 !-----------------------------------------------------------------------------------
 SUBROUTINE rpn3(ixyz,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,qwave,s,amdq,apdq)
 
