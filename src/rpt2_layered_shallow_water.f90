@@ -128,23 +128,37 @@ subroutine rpt2(ixy,imp,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,aux1,aux2,aux3,asdq,b
         ! ====================================================================
         !  Check for dry states in the bottom layer, 
         !  This is if we are right next to a wall, use single layer solver
-        if ((h(2) < dry_tolerance(2))) then
+        if (h(1) < dry_tolerance(1) .or. h(2) < dry_tolerance(2)) then
             ! Storage for single layer rpt2
-            ql_sl = ql(1:3,i) / rho(1)
-            qr_sl = qr(1:3,i-1) / rho(1)
+            if (h(1) < dry_tolerance(1)) then
+                ql_sl = ql(1:3,i) / rho(1)
+                qr_sl = qr(1:3,i-1) / rho(1)
+                asdq_sl = asdq(1:3,i) / rho(1)
+            else if (h(2) < dry_tolerance(2)) then
+                ql_sl = ql(4:6,i) / rho(2)
+                qr_sl = qr(4:6,i-1) / rho(2)
+                asdq_sl = asdq(4:6,i) / rho(2)
+            else
+                print *, "Invalid dry-state found."
+                print *, "  h = ", h
+                stop
+            end if
+
             aux1_sl = aux1(1:3,i-1:i)
             aux2_sl = aux2(1:3,i-1:i)
             aux3_sl = aux3(1:3,i-1:i)
-            asdq_sl = asdq(1:3,i) / rho(1)
             
             ! Call solve
             call rpt2_single_layer(ixy,imp,ql_sl,qr_sl,aux1_sl,aux2_sl, &
                                    aux3_sl,asdq_sl,bmasdq_sl,bpasdq_sl)
             
-            bmasdq(1:3,i) = bmasdq_sl * rho(1)
-            bmasdq(4:6,i) = 0.d0
-            bpasdq(1:3,i) = bpasdq_sl * rho(1)
-            bpasdq(4:6,i) = 0.d0
+            if (h(1) < dry_tolerance(1)) then
+                bmasdq(1:3,i) = bmasdq_sl * rho(1)
+                bpasdq(1:3,i) = bpasdq_sl * rho(1)
+            else if (h(2) < dry_tolerance(2)) then
+                bmasdq(4:6,i) = bmasdq_sl * rho(2)
+                bpasdq(4:6,i) = bpasdq_sl * rho(2)
+            end if
             cycle
         endif
         
@@ -235,188 +249,189 @@ subroutine rpt2(ixy,imp,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,aux1,aux2,aux3,asdq,b
 
 end subroutine rpt2
 
-    subroutine rpt2_single_layer(ixy,imp,ql,qr,aux1,aux2,aux3,asdq,bmasdq,bpasdq)
-    ! Single layer point-wise transverse Riemann solver using an einfeldt Jacobian
-    ! Note that there have been some changes to variable definitions in this
-    ! routine from the original vectorized one. 
-    !
-    ! Adapted from geoclaw 4-23-2011
 
-        use amr_module, only: mcapa
+subroutine rpt2_single_layer(ixy,imp,ql,qr,aux1,aux2,aux3,asdq,bmasdq,bpasdq)
+! Single layer point-wise transverse Riemann solver using an einfeldt Jacobian
+! Note that there have been some changes to variable definitions in this
+! routine from the original vectorized one. 
+!
+! Adapted from geoclaw 4-23-2011
 
-        use geoclaw_module, only: g => grav, earth_radius, pi
-        use multilayer_module, only: num_layers, eigen_method, inundation_method
-        use multilayer_module, only: dry_tolerance
+    use amr_module, only: mcapa
 
-        implicit none
+    use geoclaw_module, only: g => grav, earth_radius, pi
+    use multilayer_module, only: num_layers, eigen_method, inundation_method
+    use multilayer_module, only: dry_tolerance
 
-        integer, parameter :: meqn = 3
-        integer, parameter :: mwaves = 3
+    implicit none
 
-        integer, intent(in) :: ixy,imp
+    integer, parameter :: meqn = 3
+    integer, parameter :: mwaves = 3
 
-        real(kind=8), intent(in) :: ql(meqn) ! = ql(i,meqn)
-        real(kind=8), intent(in) :: qr(meqn) ! = qr(i-1,meqn)
-        real(kind=8), intent(in out) :: asdq(meqn)
-        real(kind=8), intent(in out) :: bmasdq(meqn)
-        real(kind=8), intent(in out) :: bpasdq(meqn)
-        ! Since we need two values of aux, 1 = i-1 and 2 = i
-        real(kind=8), intent(in) :: aux1(2,3)
-        real(kind=8), intent(in) :: aux2(2,3)
-        real(kind=8), intent(in) :: aux3(2,3)
+    integer, intent(in) :: ixy,imp
 
-        real(kind=8) :: s(3)
-        real(kind=8) :: r(3,3)
-        real(kind=8) :: beta(3)
-        real(kind=8) :: abs_tol
-        real(kind=8) :: hl,hr,hul,hur,hvl,hvr,vl,vr,ul,ur,bl,br
-        real(kind=8) :: uhat,vhat,hhat,roe1,roe3,s1,s2,s3,s1l,s3r
-        real(kind=8) :: delf1,delf2,delf3,dxdcd,dxdcu
-        real(kind=8) :: dxdcm,dxdcp,topo1,topo3,eta,tol
+    real(kind=8), intent(in) :: ql(meqn) ! = ql(i,meqn)
+    real(kind=8), intent(in) :: qr(meqn) ! = qr(i-1,meqn)
+    real(kind=8), intent(in out) :: asdq(meqn)
+    real(kind=8), intent(in out) :: bmasdq(meqn)
+    real(kind=8), intent(in out) :: bpasdq(meqn)
+    ! Since we need two values of aux, 1 = i-1 and 2 = i
+    real(kind=8), intent(in) :: aux1(2,3)
+    real(kind=8), intent(in) :: aux2(2,3)
+    real(kind=8), intent(in) :: aux3(2,3)
 
-        integer ::  m,mw,mu,mv
-        
-        tol = dry_tolerance(1)
-        abs_tol = tol
+    real(kind=8) :: s(3)
+    real(kind=8) :: r(3,3)
+    real(kind=8) :: beta(3)
+    real(kind=8) :: abs_tol
+    real(kind=8) :: hl,hr,hul,hur,hvl,hvr,vl,vr,ul,ur,bl,br
+    real(kind=8) :: uhat,vhat,hhat,roe1,roe3,s1,s2,s3,s1l,s3r
+    real(kind=8) :: delf1,delf2,delf3,dxdcd,dxdcu
+    real(kind=8) :: dxdcm,dxdcp,topo1,topo3,eta,tol
 
-        if (ixy.eq.1) then
-         mu = 2
-         mv = 3
-        else
-         mu = 3
-         mv = 2
-        endif
+    integer ::  m,mw,mu,mv
+    
+    tol = dry_tolerance(1)
+    abs_tol = tol
 
-
-           hl=qr(1)
-           hr=ql(1)
-           hul=qr(mu)
-           hur=ql(mu)
-           hvl=qr(mv)
-           hvr=ql(mv)
-
-    !===========determine velocity from momentum===========================
-           if (hl.lt.abs_tol) then
-              hl=0.d0
-              ul=0.d0
-              vl=0.d0
-           else
-              ul=hul/hl
-              vl=hvl/hl
-           endif
-
-           if (hr.lt.abs_tol) then
-              hr=0.d0
-              ur=0.d0
-              vr=0.d0
-           else
-              ur=hur/hr
-              vr=hvr/hr
-           endif
-
-           do mw=1,mwaves
-              s(mw)=0.d0
-              beta(mw)=0.d0
-              do m=1,meqn
-                 r(m,mw)=0.d0
-              enddo
-           enddo
-          dxdcp = 1.d0
-          dxdcm = 1.d0
-
-           if (hl.le.dry_tolerance(1).and.hr.le.dry_tolerance(1)) go to 90
-
-           !check and see if cell that transverse waves are going in is high and dry
-           if (imp.eq.1) then
-                eta = qr(1) + aux2(1,1)
-                topo1 = aux1(1,1)
-                topo3 = aux3(1,1)
-           else
-                eta = ql(1) + aux2(2,1)
-                topo1 = aux1(2,1)
-                topo3 = aux3(2,1)
-           endif
-           if (eta.lt.max(topo1,topo3)) go to 90
-
-          if (mcapa > 0) then
-             if (ixy.eq.2) then
-                dxdcp=(earth_radius*pi/180.d0)
-                dxdcm = dxdcp
-             else
-                if (imp.eq.1) then
-                   dxdcp = earth_radius*pi*cos(aux3(1,3))/180.d0
-                   dxdcm = earth_radius*pi*cos(aux1(1,3))/180.d0
-                else
-                   dxdcp = earth_radius*pi*cos(aux3(2,3))/180.d0
-                   dxdcm = earth_radius*pi*cos(aux1(2,3))/180.d0
-                endif
-             endif
-          endif
-
-    !=====Determine some speeds necessary for the Jacobian=================
-                vhat=(vr*dsqrt(hr))/(dsqrt(hr)+dsqrt(hl)) + &
-                 (vl*dsqrt(hl))/(dsqrt(hr)+dsqrt(hl))
-
-                uhat=(ur*dsqrt(hr))/(dsqrt(hr)+dsqrt(hl)) + &
-                 (ul*dsqrt(hl))/(dsqrt(hr)+dsqrt(hl))
-                hhat=(hr+hl)/2.d0
-
-                roe1=vhat-dsqrt(g*hhat)
-                roe3=vhat+dsqrt(g*hhat)
-
-                s1l=vl-dsqrt(g*hl)
-                s3r=vr+dsqrt(g*hr)
-
-                s1=dmin1(roe1,s1l)
-                s3=dmax1(roe3,s3r)
-
-                s2=0.5d0*(s1+s3)
-
-               s(1)=s1
-               s(2)=s2
-               s(3)=s3
-    !=======================Determine asdq decomposition (beta)============
-             delf1=asdq(1)
-             delf2=asdq(mu)
-             delf3=asdq(mv)
-
-             beta(1) = (s3*delf1/(s3-s1))-(delf3/(s3-s1))
-             beta(2) = -s2*delf1 + delf2
-             beta(3) = (delf3/(s3-s1))-(s1*delf1/(s3-s1))
-    !======================End =================================================
-
-    !=====================Set-up eigenvectors===================================
-             r(1,1) = 1.d0
-             r(2,1) = s2
-             r(3,1) = s1
-
-             r(1,2) = 0.d0
-             r(2,2) = 1.d0
-             r(3,2) = 0.d0
-
-             r(1,3) = 1.d0
-             r(2,3) = s2
-             r(3,3) = s3
-    !============================================================================
-    90      continue
-    !============= compute fluctuations==========================================
-
-                do  m=1,meqn
-                   bmasdq(m)=0.0d0
-                   bpasdq(m)=0.0d0
-                enddo
-                do  mw=1,3
-                   if (s(mw).lt.0.d0) then
-                     bmasdq(1) =bmasdq(1) + dxdcm*s(mw)*beta(mw)*r(1,mw)
-                     bmasdq(mu)=bmasdq(mu)+ dxdcm*s(mw)*beta(mw)*r(2,mw)
-                     bmasdq(mv)=bmasdq(mv)+ dxdcm*s(mw)*beta(mw)*r(3,mw)
-                   elseif (s(mw).gt.0.d0) then
-                     bpasdq(1) =bpasdq(1) + dxdcp*s(mw)*beta(mw)*r(1,mw)
-                     bpasdq(mu)=bpasdq(mu)+ dxdcp*s(mw)*beta(mw)*r(2,mw)
-                     bpasdq(mv)=bpasdq(mv)+ dxdcp*s(mw)*beta(mw)*r(3,mw)
-                   endif
-                enddo
+    if (ixy.eq.1) then
+     mu = 2
+     mv = 3
+    else
+     mu = 3
+     mv = 2
+    endif
 
 
-    end subroutine rpt2_single_layer
+       hl=qr(1)
+       hr=ql(1)
+       hul=qr(mu)
+       hur=ql(mu)
+       hvl=qr(mv)
+       hvr=ql(mv)
+
+!===========determine velocity from momentum===========================
+       if (hl.lt.abs_tol) then
+          hl=0.d0
+          ul=0.d0
+          vl=0.d0
+       else
+          ul=hul/hl
+          vl=hvl/hl
+       endif
+
+       if (hr.lt.abs_tol) then
+          hr=0.d0
+          ur=0.d0
+          vr=0.d0
+       else
+          ur=hur/hr
+          vr=hvr/hr
+       endif
+
+       do mw=1,mwaves
+          s(mw)=0.d0
+          beta(mw)=0.d0
+          do m=1,meqn
+             r(m,mw)=0.d0
+          enddo
+       enddo
+      dxdcp = 1.d0
+      dxdcm = 1.d0
+
+       if (hl.le.dry_tolerance(1).and.hr.le.dry_tolerance(1)) go to 90
+
+       !check and see if cell that transverse waves are going in is high and dry
+       if (imp.eq.1) then
+            eta = qr(1) + aux2(1,1)
+            topo1 = aux1(1,1)
+            topo3 = aux3(1,1)
+       else
+            eta = ql(1) + aux2(2,1)
+            topo1 = aux1(2,1)
+            topo3 = aux3(2,1)
+       endif
+       if (eta.lt.max(topo1,topo3)) go to 90
+
+      if (mcapa > 0) then
+         if (ixy.eq.2) then
+            dxdcp=(earth_radius*pi/180.d0)
+            dxdcm = dxdcp
+         else
+            if (imp.eq.1) then
+               dxdcp = earth_radius*pi*cos(aux3(1,3))/180.d0
+               dxdcm = earth_radius*pi*cos(aux1(1,3))/180.d0
+            else
+               dxdcp = earth_radius*pi*cos(aux3(2,3))/180.d0
+               dxdcm = earth_radius*pi*cos(aux1(2,3))/180.d0
+            endif
+         endif
+      endif
+
+!=====Determine some speeds necessary for the Jacobian=================
+            vhat=(vr*dsqrt(hr))/(dsqrt(hr)+dsqrt(hl)) + &
+             (vl*dsqrt(hl))/(dsqrt(hr)+dsqrt(hl))
+
+            uhat=(ur*dsqrt(hr))/(dsqrt(hr)+dsqrt(hl)) + &
+             (ul*dsqrt(hl))/(dsqrt(hr)+dsqrt(hl))
+            hhat=(hr+hl)/2.d0
+
+            roe1=vhat-dsqrt(g*hhat)
+            roe3=vhat+dsqrt(g*hhat)
+
+            s1l=vl-dsqrt(g*hl)
+            s3r=vr+dsqrt(g*hr)
+
+            s1=dmin1(roe1,s1l)
+            s3=dmax1(roe3,s3r)
+
+            s2=0.5d0*(s1+s3)
+
+           s(1)=s1
+           s(2)=s2
+           s(3)=s3
+!=======================Determine asdq decomposition (beta)============
+         delf1=asdq(1)
+         delf2=asdq(mu)
+         delf3=asdq(mv)
+
+         beta(1) = (s3*delf1/(s3-s1))-(delf3/(s3-s1))
+         beta(2) = -s2*delf1 + delf2
+         beta(3) = (delf3/(s3-s1))-(s1*delf1/(s3-s1))
+!======================End =================================================
+
+!=====================Set-up eigenvectors===================================
+         r(1,1) = 1.d0
+         r(2,1) = s2
+         r(3,1) = s1
+
+         r(1,2) = 0.d0
+         r(2,2) = 1.d0
+         r(3,2) = 0.d0
+
+         r(1,3) = 1.d0
+         r(2,3) = s2
+         r(3,3) = s3
+!============================================================================
+90      continue
+!============= compute fluctuations==========================================
+
+            do  m=1,meqn
+               bmasdq(m)=0.0d0
+               bpasdq(m)=0.0d0
+            enddo
+            do  mw=1,3
+               if (s(mw).lt.0.d0) then
+                 bmasdq(1) =bmasdq(1) + dxdcm*s(mw)*beta(mw)*r(1,mw)
+                 bmasdq(mu)=bmasdq(mu)+ dxdcm*s(mw)*beta(mw)*r(2,mw)
+                 bmasdq(mv)=bmasdq(mv)+ dxdcm*s(mw)*beta(mw)*r(3,mw)
+               elseif (s(mw).gt.0.d0) then
+                 bpasdq(1) =bpasdq(1) + dxdcp*s(mw)*beta(mw)*r(1,mw)
+                 bpasdq(mu)=bpasdq(mu)+ dxdcp*s(mw)*beta(mw)*r(2,mw)
+                 bpasdq(mv)=bpasdq(mv)+ dxdcp*s(mw)*beta(mw)*r(3,mw)
+               endif
+            enddo
+
+
+end subroutine rpt2_single_layer
 

@@ -91,7 +91,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
         n_index = 3
         t_index = 2
     endif
-    
+
     ! ========================================================================
     ! Loop through Riemann problems
     ! ========================================================================
@@ -145,82 +145,112 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
         b_r = auxl(1,i)
 
         ! ====================================================================
-        !  Top layer only
+        !  Top layer or bottom layer only
         ! ====================================================================
-        if (dry_state_l(2).and.dry_state_r(2)) then
-            wall = 1.d0
+        if ((dry_state_l(1).and.dry_state_r(1)) .or.            &
+            (dry_state_l(2).and.dry_state_r(2))) then
             
             ! Completely dry cell
-            if (dry_state_l(1).and.dry_state_r(1)) then
+            if (dry_state_l(1).and.dry_state_r(1) .and.         &
+                dry_state_l(2).and.dry_state_r(2)) then
                 s(:,i) = 0.d0
                 fwave(:,:,i) = 0.d0
                 cycle
             endif
+
+            ! Set wet layer index so that we can handle both the bottom and top
+            ! layers being dry while the other is wet
+            if (dry_state_l(1) .and. dry_state_r(1)) then
+                layer_index = 2
+            else if (dry_state_l(2) .and. dry_state_r(2)) then
+                layer_index = 1
+            else
+                print *, "Invalid dry layer state reached."
+                print *, " dry_state_r = ", dry_state_r
+                print *, " dry_state_l = ", dry_state_l
+                stop
+            end if
+
+            wall = 1.d0
             
             ! Calculate momentum fluxes
-            phi_l(1) = 0.5d0 * g * h_l(1)**2 + h_l(1) * u_l(1)**2
-            phi_r(1) = 0.5d0 * g * h_r(1)**2 + h_r(1) * u_r(1)**2
+            phi_l(1) = 0.5d0 * g * h_l(layer_index)**2      &
+                                + h_l(layer_index) * u_l(layer_index)**2
+            phi_r(1) = 0.5d0 * g * h_r(layer_index)**2      &
+                                + h_r(layer_index) * u_r(layer_index)**2
              
             ! Check for dry state to right
-            if (h_r(1) <= dry_tolerance(1)) then
-                call riemanntype(h_l(1),h_l(1),u_l(1),-u_l(1),h_star, &
-                                 sm(1),sm(2),rare(1),rare(2),1,dry_tolerance,g)
-                h_star_test = max(h_l(1),h_star)
+            if (h_r(layer_index) <= dry_tolerance(layer_index)) then
+                call riemanntype(h_l(layer_index), h_l(layer_index),   &
+                                 u_l(layer_index),-u_l(layer_index),   &
+                                 h_star, sm(1), sm(2), rare(1), rare(2), 1,    &
+                                 dry_tolerance(layer_index), g)
+                h_star_test = max(h_l(layer_index), h_star)
                 ! Right state should become ghost values that mirror left for wall problem
                 if (h_star_test + b_l < b_r) then 
                     wall(2:3)=0.d0
-                    h_r(1) = h_l(1)
-                    hu_r(1) = -hu_l(1)
+                    h_r(layer_index) = h_l(layer_index)
+                    hu_r(layer_index) = -hu_l(layer_index)
                     b_r = b_l
-                    phi_r(1) = phi_l(1)
-                    u_r(1) = -u_l(1)
-                    v_r(1) = v_l(1)
-                elseif (h_l(1) + b_l < b_r) then
-                    b_r = h_l(1) + b_l
+                    phi_r(layer_index) = phi_l(layer_index)
+                    u_r(layer_index) = -u_l(layer_index)
+                    v_r(layer_index) = v_l(layer_index)
+                else if (h_l(layer_index) + b_l < b_r) then
+                    b_r = h_l(layer_index) + b_l
                 endif
             ! Check for drystate to left, i.e right surface is lower than left topo
-            else if (h_l(1) <= dry_tolerance(1)) then 
-                call riemanntype(h_r(1),h_r(1),-u_r(1),u_r(1),h_star, &
-                                 sm(1),sm(2),rare(1),rare(2),1,dry_tolerance,g)
-                h_star_test = max(h_r(1),h_star)
+            else if (h_l(layer_index) <= dry_tolerance(layer_index)) then 
+                call riemanntype(h_r(layer_index), h_r(layer_index),   &
+                                -u_r(layer_index), u_r(layer_index),   &
+                                 h_star, sm(1), sm(2), rare(1), rare(2), 1,    &
+                                 dry_tolerance(layer_index), g)
+                h_star_test = max(h_r(layer_index), h_star)
                 ! Left state should become ghost values that mirror right
                 if (h_star_test + b_r < b_l) then  
                    wall(1:2) = 0.d0
-                   h_l(1) = h_r(1)
-                   hu_l(1) = -hu_r(1)
+                   h_l(layer_index) = h_r(layer_index)
+                   hu_l(layer_index) = -hu_r(layer_index)
                    b_l = b_r
-                   phi_l(1) = phi_r(1)
-                   u_l(1) = -u_r(1)
-                   v_l(1) = v_r(1)
-                elseif (h_r(1) + b_r < b_l) then
-                   b_l = h_r(1) + b_r
+                   phi_l(layer_index) = phi_r(layer_index)
+                   u_l(layer_index) = -u_r(layer_index)
+                   v_l(layer_index) = v_r(layer_index)
+                else if (h_r(layer_index) + b_r < b_l) then
+                   b_l = h_r(layer_index) + b_r
                 endif
-             endif
+            endif
 
-             ! Determine wave speeds
-             s_l = u_l(1) - sqrt(g*h_l(1)) ! 1 wave speed of left state
-             s_r = u_r(1) + sqrt(g*h_r(1)) ! 2 wave speed of right state
-             
-             u_hat = (sqrt(g*h_l(1))*u_l(1) + sqrt(g*h_r(1))*u_r(1)) &
-                        / (sqrt(g*h_r(1))+sqrt(g*h_l(1))) ! Roe average
-             c_hat = sqrt(g*0.5d0*(h_r(1)+h_l(1))) ! Roe average
-             s_roe(1) = u_hat - c_hat ! Roe wave speed 1 wave
-             s_roe(2) = u_hat + c_hat ! Roe wave speed 2 wave
-
-             s_E(1) = min(s_l,s_roe(1)) ! Eindfeldt speed 1 wave
-             s_E(2) = max(s_r,s_roe(2)) ! Eindfeldt speed 2 wave
-
-             ! Solve Riemann problem
-             call riemann_aug_JCP(max_iterations,3,3,h_l(1),h_r(1),hu_l(1), &
-                                    hu_r(1),hv_l(1),hv_r(1),b_l,b_r,u_l(1), &
-                                    u_r(1),v_l(1),v_r(1),phi_l(1),phi_r(1), &
-                                    s_E(1),s_E(2),dry_tolerance(1),g,sw,fw)
+            ! Determine wave speeds
+            ! 1 wave speed of left state
+            s_l = u_l(layer_index) - sqrt(g * h_l(layer_index))
+            ! 2 wave speed of right state
+            s_r = u_r(layer_index) + sqrt(g * h_r(layer_index))
+            
+            ! Roe average
+            u_hat = (sqrt(g * h_l(layer_index)) * u_l(layer_index)     &
+                   + sqrt(g * h_r(layer_index)) * u_r(layer_index))    &
+                   / (sqrt(g * h_r(layer_index)) + sqrt(g * h_l(layer_index))) 
+            c_hat = sqrt(g * 0.5d0 * (h_r(layer_index) + h_l(layer_index))) 
+            s_roe(1) = u_hat - c_hat ! Roe wave speed 1 wave
+            s_roe(2) = u_hat + c_hat ! Roe wave speed 2 wave
+            s_E(1) = min(s_l, s_roe(1)) ! Eindfeldt speed 1 wave
+            s_E(2) = max(s_r, s_roe(2)) ! Eindfeldt speed 2 wave
+            
+            ! Solve Riemann problem
+            call riemann_aug_JCP(max_iterations, 3, 3,                         &
+                                 h_l(layer_index), h_r(layer_index),   &
+                                 hu_l(layer_index), hu_r(layer_index), &
+                                 hv_l(layer_index), hv_r(layer_index), &
+                                 b_l, b_r,                                     &
+                                 u_l(layer_index), u_r(layer_index),   &
+                                 v_l(layer_index), v_r(layer_index),   &
+                                 phi_l(1), phi_r(1), s_E(1), s_E(2),           &
+                                 dry_tolerance(layer_index), g, sw, fw)
             
             ! Eliminate ghost fluxes for wall
             do mw=1,3
-                sw(mw)=sw(mw)*wall(mw)
+                sw(mw) = sw(mw) * wall(mw)
                 do m=1,3
-                   fw(m,mw)=fw(m,mw)*wall(mw)
+                   fw(m, mw) = fw(m, mw) * wall(mw)
                 enddo
             enddo
 
@@ -228,13 +258,20 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
             ! Note that we represent all the waves in the first three arrays
             ! so it does not directly correspond to the two-layer case's wave
             ! structure
-            s(:,i) = 0.d0
-            fwave(:,:,i) = 0.d0
+            s(:, i) = 0.d0
+            fwave(:, :, i) = 0.d0
             
-            s(1:3,i) = sw(:)
-            fwave(1,1:3,i) = fw(1,:) * rho(1)
-            fwave(n_index,1:3,i) = fw(2,:) * rho(1)
-            fwave(t_index,1:3,i) = fw(3,:) * rho(1)
+            if (layer_index == 1) then
+                s(1:3, i) = sw(:)
+                fwave(1, 1:3, i) = fw(1, :) * rho(layer_index)
+                fwave(n_index, 1:3, i) = fw(2, :) * rho(layer_index)
+                fwave(t_index, 1:3, i) = fw(3, :) * rho(layer_index)
+            else
+                s(4:6, i) = sw(:)
+                fwave(1, 4:6, i) = fw(1, :) * rho(layer_index)
+                fwave(n_index, 4:6, i) = fw(2, :) * rho(layer_index)
+                fwave(t_index, 4:6, i) = fw(3, :) * rho(layer_index)
+            end if
             
             ! Go on to next cell, lat-long and fluctuation calculations are 
             ! outside of this loop
@@ -249,6 +286,29 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
         !   set to true if inundation occurs into the right state and rare(2)
         !   if inundation occurs in the left state.
         rare = .false.
+
+        print *,dry_state_r, dry_state_l
+        if (dry_state_l(2)) then
+            print *,"left dry"
+        endif
+        if (dry_state_r(2)) then
+            print *,"right dry"
+        endif
+        print *,"        left            |             right"
+        print *,"====================================================="
+        print *,h_l(1),h_r(1)
+        print *,hu_l(1),hu_r(1)
+        print *,hv_l(1),hv_r(1)
+        print *,h_l(2),h_r(2)
+        print *,hu_l(2),hu_r(2)
+        print *,hv_l(2),hv_r(2)
+        print *,b_l,b_r
+
+        ! Right state completely dry
+!         if (dry_state_r(2).and.dry_state_r(1)) then
+
+!         else if ((dry_state_r(2).and.dry_state_r(1)) 
+
         
         ! Dry state only to right
         if (dry_state_r(2).and.(.not.dry_state_l(2))) then
@@ -461,7 +521,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
         !  Note that the solution (betas) are in delta after the call
         A = eig_vec ! We need to do this as the return matrix is modified and
                     ! we have to use eig_vec again to compute fwaves
-        info = 0            
+        info = 0       
         call dgesv(6,1,A,6,pivot,delta,6,info)
         if (.not.(info == 0)) then
             if (dry_state_l(2)) then
@@ -500,7 +560,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
             
     enddo
     ! == End of Riemann Solver Loop per grid cell ============================
-    
+
     ! ========================================================================
     ! Capacity for mapping from latitude longitude to physical space
     if (mcapa > 0) then
@@ -508,7 +568,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
             if (ixy == 1) then
                 dxdc=(earth_radius*pi/180.d0)
             else
-                dxdc=auxl(i,3)
+                dxdc=auxl(3, i)
             endif
 
             do mw=1,mwaves
