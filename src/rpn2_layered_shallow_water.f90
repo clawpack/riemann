@@ -310,22 +310,22 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
         !   if inundation occurs in the left state.
         rare = .false.
 
-!         print *,dry_state_r, dry_state_l
-!         if (dry_state_l(2)) then
-!             print *,"left dry"
-!         endif
-!         if (dry_state_r(2)) then
-!             print *,"right dry"
-!         endif
-!         print *,"        left            |             right"
-!         print *,"====================================================="
-!         print *,h_l(1),h_r(1)
-!         print *,hu_l(1),hu_r(1)
-!         print *,hv_l(1),hv_r(1)
-!         print *,h_l(2),h_r(2)
-!         print *,hu_l(2),hu_r(2)
-!         print *,hv_l(2),hv_r(2)
-!         print *,b_l,b_r
+        ! print *,dry_state_r, dry_state_l
+        ! if (dry_state_l(2)) then
+        !     print *,"left dry"
+        ! endif
+        ! if (dry_state_r(2)) then
+        !     print *,"right dry"
+        ! endif
+        ! print *,"        left            |             right"
+        ! print *,"====================================================="
+        ! print *,h_l(1),h_r(1)
+        ! print *,hu_l(1),hu_r(1)
+        ! print *,hv_l(1),hv_r(1)
+        ! print *,h_l(2),h_r(2)
+        ! print *,hu_l(2),hu_r(2)
+        ! print *,hv_l(2),hv_r(2)
+        ! print *,b_l,b_r
 
         ! Right state completely dry - F F T T
         if (     (dry_state_r(1) .and. dry_state_r(2)) .and.             &
@@ -351,10 +351,10 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
                 s(:,i) = lambda
             endif
         ! Left state completely dry - T T F F
-        else if (     (dry_state_r(1) .and. dry_state_r(2)) .and.            &
-                 .not.(dry_state_l(1) .and. dry_state_l(2))) then
+        else if (.not.(dry_state_r(1) .and. dry_state_r(2)) .and.            &
+                      (dry_state_l(1) .and. dry_state_l(2))) then
             ! Inundation occurs
-            if (sum(h_l) + b_l > b_r) then
+            if (sum(h_r) + b_r > b_l) then
                 rare = .true.
                 stop "Not sure what to do here."
 
@@ -367,7 +367,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
                 if (eigen_method == 1) then
                     call linearized_eigen(h_hat_l,h_hat_r,temp_u,u_r,temp_v,v_r,n_index,t_index,lambda,eig_vec)
                 else if (eigen_method == 2 .or. eigen_method == 4) then
-                    call linearized_eigen(h_l,temp_depth,temp_u,u_r,temp_v,v_r,n_index,t_index,lambda,eig_vec)
+                    call linearized_eigen(temp_depth,h_r,temp_u,u_r,temp_v,v_r,n_index,t_index,lambda,eig_vec)
                 else if (eigen_method == 3) then
                     call vel_diff_eigen(h_l,temp_depth,temp_u,u_r,temp_v,v_r,n_index,t_index,lambda,eig_vec)
                 endif
@@ -492,9 +492,9 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
                 if (eigen_method == 1) then
                     call linearized_eigen(h_hat_l,h_hat_r,temp_u,u_r,temp_v,v_r,n_index,t_index,lambda,eig_vec)
                 else if (eigen_method == 2 .or. eigen_method == 4) then
-                    call linearized_eigen(h_l,temp_depth,temp_u,u_r,temp_v,v_r,n_index,t_index,lambda,eig_vec)
+                    call linearized_eigen(temp_depth,h_r,temp_u,u_r,temp_v,v_r,n_index,t_index,lambda,eig_vec)
                 else if (eigen_method == 3) then
-                    call vel_diff_eigen(h_l,temp_depth,temp_u,u_r,temp_v,v_r,n_index,t_index,lambda,eig_vec)
+                    call vel_diff_eigen(temp_depth,h_r,temp_u,u_r,temp_v,v_r,n_index,t_index,lambda,eig_vec)
                 endif
                 s(:,i) = lambda
             endif
@@ -622,12 +622,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
         info = 0       
         call dgesv(6,1,A,6,pivot,delta,6,info)
         if (.not.(info == 0)) then
-            if (dry_state_l(2)) then
-                print *,"left dry"
-            endif
-            if (dry_state_r(2)) then
-                print *,"right dry"
-            endif
+            print *,dry_state_l, dry_state_r
             print *,"        left            |             right"
             print *,"====================================================="
             print *,h_l(1),h_r(1)
@@ -685,29 +680,29 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
             else
                 amdq(:,i) = amdq(:,i) + fwave(:,mw,i)
             endif
-            h_r(1) = ql(1,i) / rho(1)
-            h_l(1) = qr(1,i-1) / rho(1)
-            h_r(2) = ql(4,i) / rho(2)
-            h_l(2) = qr(4,i-1) / rho(2)
-            dry_state_r(2) = h_r(2) < dry_tolerance(2)
-            dry_state_l(2) = h_l(2) < dry_tolerance(2)
-            rare(1) = h_l(2) + b_l > b_r
-            rare(2) = h_r(2) + b_r > b_l
-            if (dry_state_r(2).and.(.not.dry_state_l(2)).and.(.not.rare(1)) &
-             .or.(dry_state_l(2).and.(.not.dry_state_r(2)).and.(.not.rare(2)))) then
-                do m=4,6
-                    if (abs(apdq(i,m)) <= 1.d-8) then
-                        print *,"========================"
-                        print *,"Wave ",mw," equation ",m
-                        print *,"s = ",s(mw,i)
-                        print *,"f = ",fwave(m,mw,i)
-                        print *,"amdq = ",(amdq(m,i))
-                        print *,"apdq = ",(apdq(m,i))
-                        stop "Flux non-zero going into a wall, aborting calculation."
-                    endif
-                enddo
-                apdq(4:6,i) = 0.d0
-            endif
+            !h_r(1) = ql(1,i) / rho(1)
+            !h_l(1) = qr(1,i-1) / rho(1)
+            !h_r(2) = ql(4,i) / rho(2)
+            !h_l(2) = qr(4,i-1) / rho(2)
+            !dry_state_r(2) = h_r(2) < dry_tolerance(2)
+            !dry_state_l(2) = h_l(2) < dry_tolerance(2)
+            !rare(1) = h_l(2) + b_l > b_r
+            !rare(2) = h_r(2) + b_r > b_l
+            !if (dry_state_r(2).and.(.not.dry_state_l(2)).and.(.not.rare(1)) &
+            ! .or.(dry_state_l(2).and.(.not.dry_state_r(2)).and.(.not.rare(2)))) then
+            !    do m=4,6
+            !        if (abs(apdq(m,i)) <= 1.d-8) then
+            !            print *,"========================"
+            !            print *,"Wave ",mw," equation ",m
+            !            print *,"s = ",s(mw,i)
+            !            print *,"f = ",fwave(m,mw,i)
+            !            print *,"amdq = ",(amdq(m,i))
+            !            print *,"apdq = ",(apdq(m,i))
+            !            stop "Fluctuation apdq non-zero going into a wall, aborting calculation."
+            !        endif
+            !    enddo
+            !    apdq(4:6,i) = 0.d0
+            !endif
         enddo
     enddo
 
