@@ -20,8 +20,31 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
 !  The i-1/2 Riemann problem has left state qr(i-1) and right state ql(i)
 !
 !  If ixy == 1 then the sweep direction is x, ixy == 2 implies the y direction
+! 
+!  Wet-Dry Interface Cases handled
+!    Dry State Table     Handled?    Line #     Comment
+!  L(1) L(2) R(1) R(2)
+!   F    F    F    F      [X]        477        Full two-layer case
 !
-!  Kyle T. Mandli (10-11-2010)
+!   T    F    T    F      [X]        173        Single layer all-wet bottom
+!   F    T    F    T      [X]        173        Single layer all-wet top
+!
+!   T    F    F    F      [ ]                   Dry state top layer
+!   F    T    F    F      [X]        443        Lower left dry state
+!   F    F    T    F      [ ]                   Dry state top layer
+!   F    F    F    T      [X]        375        Lower right dry state
+!
+!   T    T    F    F      [X]        353        Left state completely dry
+!   F    T    T    F      [ ]
+!   F    F    T    T      [X]        331        Right state completely dry
+!   T    F    F    T      [ ]
+!
+!   T    T    T    F      [X]        206        Single layer dry-state
+!   F    T    T    T      [X]        225        Single layer dry-state
+!   T    F    T    T      [X]        225        Single layer dry-state
+!   T    T    F    T      [X]        206        Single layer dry-state
+!
+!   T    T    T    T      [X]        177        All dry
 ! ============================================================================
 
     use amr_module, only: mcapa
@@ -180,7 +203,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
                                 + h_r(layer_index) * u_r(layer_index)**2
              
             ! Check for dry state to right
-            if (h_r(layer_index) <= dry_tolerance(layer_index)) then
+            if (dry_state_r(layer_index)) then
                 call riemanntype(h_l(layer_index), h_l(layer_index),   &
                                  u_l(layer_index),-u_l(layer_index),   &
                                  h_star, sm(1), sm(2), rare(1), rare(2), 1,    &
@@ -199,7 +222,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
                     b_r = h_l(layer_index) + b_l
                 endif
             ! Check for drystate to left, i.e right surface is lower than left topo
-            else if (h_l(layer_index) <= dry_tolerance(layer_index)) then 
+            else if (dry_state_l(layer_index)) then 
                 call riemanntype(h_r(layer_index), h_r(layer_index),   &
                                 -u_r(layer_index), u_r(layer_index),   &
                                  h_star, sm(1), sm(2), rare(1), rare(2), 1,    &
@@ -287,31 +310,71 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
         !   if inundation occurs in the left state.
         rare = .false.
 
-        print *,dry_state_r, dry_state_l
-        if (dry_state_l(2)) then
-            print *,"left dry"
-        endif
-        if (dry_state_r(2)) then
-            print *,"right dry"
-        endif
-        print *,"        left            |             right"
-        print *,"====================================================="
-        print *,h_l(1),h_r(1)
-        print *,hu_l(1),hu_r(1)
-        print *,hv_l(1),hv_r(1)
-        print *,h_l(2),h_r(2)
-        print *,hu_l(2),hu_r(2)
-        print *,hv_l(2),hv_r(2)
-        print *,b_l,b_r
+!         print *,dry_state_r, dry_state_l
+!         if (dry_state_l(2)) then
+!             print *,"left dry"
+!         endif
+!         if (dry_state_r(2)) then
+!             print *,"right dry"
+!         endif
+!         print *,"        left            |             right"
+!         print *,"====================================================="
+!         print *,h_l(1),h_r(1)
+!         print *,hu_l(1),hu_r(1)
+!         print *,hv_l(1),hv_r(1)
+!         print *,h_l(2),h_r(2)
+!         print *,hu_l(2),hu_r(2)
+!         print *,hv_l(2),hv_r(2)
+!         print *,b_l,b_r
 
-        ! Right state completely dry
-!         if (dry_state_r(2).and.dry_state_r(1)) then
+        ! Right state completely dry - F F T T
+        if (     (dry_state_r(1) .and. dry_state_r(2)) .and.             &
+            .not.(dry_state_l(1) .and. dry_state_l(2))) then
+            ! Inundation occurs
+            if (sum(h_l) + b_l > b_r) then
+                rare = .true.
+                stop "Not sure what to do here."
 
-!         else if ((dry_state_r(2).and.dry_state_r(1)) 
+            ! Wall boundary
+            else
+                ! Wall state - Mirror left state onto right
+                temp_depth = h_l
+                temp_u = -u_l
+                temp_v = v_l
+                if (eigen_method == 1) then
+                    call linearized_eigen(h_hat_l,h_hat_r,u_l,temp_u,v_l,temp_v,n_index,t_index,lambda,eig_vec)
+                else if (eigen_method == 2 .or. eigen_method == 4) then
+                    call linearized_eigen(h_l,temp_depth,u_l,temp_u,v_l,temp_v,n_index,t_index,lambda,eig_vec)
+                else if (eigen_method == 3) then
+                    call vel_diff_eigen(h_l,temp_depth,u_l,temp_u,v_l,temp_v,n_index,t_index,lambda,eig_vec)
+                endif
+                s(:,i) = lambda
+            endif
+        ! Left state completely dry - T T F F
+        else if (     (dry_state_r(1) .and. dry_state_r(2)) .and.            &
+                 .not.(dry_state_l(1) .and. dry_state_l(2))) then
+            ! Inundation occurs
+            if (sum(h_l) + b_l > b_r) then
+                rare = .true.
+                stop "Not sure what to do here."
 
-        
-        ! Dry state only to right
-        if (dry_state_r(2).and.(.not.dry_state_l(2))) then
+            ! Wall boundary
+            else
+                ! Wall state - mirror right state onto left
+                temp_depth = h_r
+                temp_u = -u_r
+                temp_v = v_r
+                if (eigen_method == 1) then
+                    call linearized_eigen(h_hat_l,h_hat_r,temp_u,u_r,temp_v,v_r,n_index,t_index,lambda,eig_vec)
+                else if (eigen_method == 2 .or. eigen_method == 4) then
+                    call linearized_eigen(h_l,temp_depth,temp_u,u_r,temp_v,v_r,n_index,t_index,lambda,eig_vec)
+                else if (eigen_method == 3) then
+                    call vel_diff_eigen(h_l,temp_depth,temp_u,u_r,temp_v,v_r,n_index,t_index,lambda,eig_vec)
+                endif
+                s(:,i) = lambda
+            endif
+        ! Right bottom state dry - F F F T
+        else if (dry_state_r(2).and.(.not.dry_state_l(2))) then
             ! Inundation occurs
             if (h_l(2) + b_l > b_r) then
                 rare(1) = .true.
@@ -378,6 +441,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
                 endif
                 s(:,i) = lambda
             endif
+        ! Left bottom state dry - F T F F
         else if (dry_state_l(2).and.(.not.dry_state_r(2))) then
             ! Inundation
             if (h_r(2) + b_r > b_l) then
@@ -434,7 +498,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
                 endif
                 s(:,i) = lambda
             endif
-        ! Completely wet state
+        ! Completely wet state F F F F
         else            
             if (eigen_method == 1) then
                 call linearized_eigen(h_hat_l,h_hat_r,u_l,u_r,v_l,v_r, &
@@ -454,8 +518,41 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
         
         ! ====================================================================
         ! Compute jump in fluxes
+        ! Dry state, both layers to right
+        if (      (dry_state_r(1) .and. dry_state_r(2)) .and.             &
+            .not. (dry_state_l(1) .and. dry_state_l(2)) .and.             &
+            .not. (rare(1) .or. rare(2)) ) then
+
+            h_r = h_l
+            hu_r = -hu_l
+            u_r = -u_l
+            hv_r = hv_l
+            v_r = v_l
+
+            flux_transfer_r = 0.d0
+            flux_transfer_l = 0.d0
+            momentum_transfer(1) = 0.d0
+            momentum_transfer(2) = 0.d0
+
+        ! Dry state, both layers to left
+        else if (      (dry_state_l(1) .and. dry_state_l(2)) .and.             &
+                 .not. (dry_state_r(1) .and. dry_state_r(2)) .and.             &
+            .not. (rare(1) .or. rare(2)) ) then
+
+            h_l = h_r
+            hu_l = -hu_r
+            u_l = -u_r
+            hv_l = hv_r
+            v_l = v_r
+
+            flux_transfer_r = 0.d0
+            flux_transfer_l = 0.d0
+            momentum_transfer(1) = 0.d0
+            momentum_transfer(2) = 0.d0
+
         ! Dry state, bottom layer to right
-        if(dry_state_r(2).and.(.not.dry_state_l(2)).and.(.not.rare(1))) then
+        else if( dry_state_r(2) .and.                                          &
+                (.not.dry_state_l(2)) .and. (.not.rare(1))) then
             h_r(2) = h_l(2)
             hu_r(2) = -hu_l(2)
             u_r(2) = -u_l(2)
@@ -468,7 +565,8 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
             momentum_transfer(2) = 0.d0
         ! ====================================================================
         ! Dry state, bottom layer to left
-        else if(dry_state_l(2).and.(.not.dry_state_r(2)).and.(.not.rare(2))) then    
+        else if( dry_state_l(2) .and.                                          &
+                (.not.dry_state_r(2)).and.(.not.rare(2))) then    
             h_l(2) = h_r(2)
             hu_l(2) = -hu_r(2)
             u_l(2) = -u_r(2)
