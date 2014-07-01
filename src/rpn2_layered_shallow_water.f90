@@ -22,39 +22,39 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
 !  If ixy == 1 then the sweep direction is x, ixy == 2 implies the y direction
 ! 
 !  Wet-Dry Interface Cases handled
-!    Dry State Table     Handled?    Line #     Comment
+!    Dry State Table    #  Handled?    Line #     Comment
 !  L(1) L(2) R(1) R(2)
-!   F    F    F    F      [X]        477        Full two-layer case
+!   F    F    F    F    4  [X]        XXX        Full two-layer case
 !
-!   T    F    T    F      [X]        173        Single layer all-wet bottom
-!   F    T    F    T      [X]        173        Single layer all-wet top
+!   T    F    F    F    1  [ ]                   Dry state top layer
+!   F    T    F    F    1  [X]        XXX        Lower left dry state
+!   F    F    T    F    1  [ ]                   Dry state top layer
+!   F    F    F    T    1  [X]        XXX        Lower right dry state
 !
-!   T    F    F    F      [ ]                   Dry state top layer
-!   F    T    F    F      [X]        443        Lower left dry state
-!   F    F    T    F      [ ]                   Dry state top layer
-!   F    F    F    T      [X]        375        Lower right dry state
+!   T    T    F    F    2  [X]        XXX        Left state completely dry
+!   F    T    T    F    2  [ ]
+!   F    F    T    T    2  [X]        240        Right state completely dry
+!   T    F    F    T    2  [ ]
 !
-!   T    T    F    F      [X]        353        Left state completely dry
-!   F    T    T    F      [ ]
-!   F    F    T    T      [X]        331        Right state completely dry
-!   T    F    F    T      [ ]
+!   T    F    T    F    2  [X]        182        Single layer all-wet bottom
+!   F    T    F    T    2  [X]        182        Single layer all-wet top
 !
-!   T    T    T    F      [X]        206        Single layer dry-state
-!   F    T    T    T      [X]        225        Single layer dry-state
-!   T    F    T    T      [X]        225        Single layer dry-state
-!   T    T    F    T      [X]        206        Single layer dry-state
+!   T    T    T    F    3  [X]        195        Single layer dry-state
+!   F    T    T    T    3  [X]        195        Single layer dry-state
+!   T    F    T    T    3  [X]        195        Single layer dry-state
+!   T    T    F    T    3  [X]        195        Single layer dry-state
 !
-!   T    T    T    T      [X]        177        All dry
+!   T    T    T    T    4  [X]        173        All dry
 ! ============================================================================
 
     use amr_module, only: mcapa
 
     use geoclaw_module, only: g => grav, pi, earth_radius
 
-    use multilayer_module, only: num_layers, eigen_method, inundation_method
+    use multilayer_module, only: num_layers, eigen_func
     use multilayer_module, only: dry_tolerance, aux_layer_index, rho, r
-
-    use multilayer_eigen_module
+    use multilayer_module, only: eigen_method, inundation_method
+    use multilayer_module, only: eigen_func, inundation_eigen_func
 
     implicit none
 
@@ -69,7 +69,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
     real(kind=8), dimension(meqn, 1-mbc:maxm+mbc), intent(out) :: apdq, amdq
 
     ! Counters
-    integer :: i, j, m, mw, info
+    integer :: i, j, mw, info
     integer :: n_index, t_index, layer_index
     
     ! Physics
@@ -80,25 +80,25 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
     real(kind=8), dimension(num_layers) :: u_l, u_r, v_l, v_r
     real(kind=8), dimension(num_layers) :: h_ave, momentum_transfer
     real(kind=8), dimension(num_layers) :: h_hat_l, h_hat_r
-    real(kind=8), dimension(num_layers) :: temp_depth, temp_u, temp_v
     real(kind=8) :: b_l, b_r, flux_transfer_l, flux_transfer_r, lambda(6)
 
     ! real(kind=8) :: advected_speed, eta_l, eta_r, gamma_l, gamma_r, kappa_l, kappa_r, w_normal, w_transverse
 
     ! Solver variables
+    integer :: num_dry_states
+    real(kind=8), dimension(num_layers) :: eigen_h_l, eigen_h_r
+    real(kind=8), dimension(num_layers) :: eigen_u_l, eigen_u_r
+    real(kind=8), dimension(num_layers) :: eigen_v_l, eigen_v_r
+    real(kind=8), dimension(num_layers) :: flux_h_l, flux_h_r
+    real(kind=8), dimension(num_layers) :: flux_hu_l, flux_hu_r
+    real(kind=8), dimension(num_layers) :: flux_hv_l, flux_hv_r
+    real(kind=8), dimension(num_layers) :: flux_u_l, flux_u_r
+    real(kind=8), dimension(num_layers) :: flux_v_l, flux_v_r
     real(kind=8), dimension(6) :: delta, flux_r, flux_l, pivot
     real(kind=8), dimension(6,6) :: eig_vec, A
-    real(kind=8) :: beta(6), alpha(4)
+    real(kind=8) :: beta(6), alpha(4), fw(3, 3), sw(3)
     logical, dimension(num_layers) :: dry_state_l, dry_state_r
-    
-    ! Single layer locals
-    integer, parameter :: max_iterations = 1
-    real(kind=8) :: wall(3), fw(3,3), sw(3), phi_r(2), phi_l(2)
-    real(kind=8) :: s_l, s_r, s_roe(2), s_E(2), u_hat, c_hat, sm(2)
-    real(kind=8) :: h_star, h_star_test
-    logical, dimension(num_layers) :: rare
-
-    ! real(kind=8) :: h_star_HLL, s_l_test, s_r_test
+    logical :: inundation
 
     external dgesv
     
@@ -121,6 +121,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
     do i=2-mbc,mx+mbc
         dry_state_l = .false.
         dry_state_r = .false.
+        inundation = .false.
         
         ! Parse states and set appropriate zeros
         ! Note that the "u-direction" is the direction of sweeping which 
@@ -167,115 +168,65 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
         b_l = auxr(1,i-1)
         b_r = auxl(1,i)
 
-        ! ====================================================================
-        !  Top layer or bottom layer only
-        ! ====================================================================
-        if ((dry_state_l(1).and.dry_state_r(1)) .or.            &
-            (dry_state_l(2).and.dry_state_r(2))) then
-            
-            ! Completely dry cell
-            if (dry_state_l(1).and.dry_state_r(1) .and.         &
-                dry_state_l(2).and.dry_state_r(2)) then
-                s(:,i) = 0.d0
-                fwave(:,:,i) = 0.d0
-                cycle
-            endif
+        ! For ease of checking below, count up number of dry states
+        num_dry_states = 0
+        do mw=1,2
+            if (dry_state_l(mw)) then
+                num_dry_states = num_dry_states + 1
+            end if
+            if (dry_state_r(mw)) then
+                num_dry_states = num_dry_states + 1
+            end if
+        end do
+
+        ! ===============================
+        !  Completely dry cell - (T T T T)
+        ! ===============================
+        if (num_dry_states == 4) then
+            s(:,i) = 0.d0
+            fwave(:,:,i) = 0.d0
+
+        ! ===============================================
+        !  Single-layer problem - 
+        !   (T F T F) or (F T F T) or (F T T T) or
+        !   (T F T T) or (T T F T) or (T T T F)
+        ! ===============================================
+        !  Here check explicitly for the completely wet single-layer cases and 
+        !  rely on the count to determine the other cases
+        else if ((      dry_state_l(1) .and. .not. dry_state_l(2) .and.        &  ! T F T F
+                        dry_state_r(1) .and. .not. dry_state_r(2))       .or.  &
+                 (.not. dry_state_l(1) .and.       dry_state_l(2) .and.        &  ! F T F T
+                  .not. dry_state_r(1) .and.       dry_state_r(2))       .or.  &
+                 num_dry_states == 3) then
 
             ! Set wet layer index so that we can handle both the bottom and top
             ! layers being dry while the other is wet
-            if (dry_state_l(1) .and. dry_state_r(1)) then
-                layer_index = 2
-            else if (dry_state_l(2) .and. dry_state_r(2)) then
+            if (.not.dry_state_l(1) .or. .not.dry_state_r(1)) then
                 layer_index = 1
+            else if (.not.dry_state_l(2) .or. .not. dry_state_r(2)) then
+                layer_index = 2
             else
                 print *, "Invalid dry layer state reached."
-                print *, " dry_state_r = ", dry_state_r
-                print *, " dry_state_l = ", dry_state_l
+                print *, "dry states: ", dry_state_l, dry_state_r
+                print *, "        left            |             right"
+                print *, "====================================================="
+                print "(2d16.8)", h_l(1), h_r(1)
+                print "(2d16.8)", hu_l(1), hu_r(1)
+                print "(2d16.8)", hv_l(1), hv_r(1)
+                print "(2d16.8)", h_l(2), h_r(2)
+                print "(2d16.8)", hu_l(2), hu_r(2)
+                print "(2d16.8)", hv_l(2), hv_r(2)
+                print "(2d16.8)", b_l, b_r
                 stop
             end if
 
-            wall = 1.d0
-            
-            ! Calculate momentum fluxes
-            phi_l(1) = 0.5d0 * g * h_l(layer_index)**2      &
-                                + h_l(layer_index) * u_l(layer_index)**2
-            phi_r(1) = 0.5d0 * g * h_r(layer_index)**2      &
-                                + h_r(layer_index) * u_r(layer_index)**2
-             
-            ! Check for dry state to right
-            if (dry_state_r(layer_index)) then
-                call riemanntype(h_l(layer_index), h_l(layer_index),   &
-                                 u_l(layer_index),-u_l(layer_index),   &
-                                 h_star, sm(1), sm(2), rare(1), rare(2), 1,    &
-                                 dry_tolerance(layer_index), g)
-                h_star_test = max(h_l(layer_index), h_star)
-                ! Right state should become ghost values that mirror left for wall problem
-                if (h_star_test + b_l < b_r) then 
-                    wall(2:3)=0.d0
-                    h_r(layer_index) = h_l(layer_index)
-                    hu_r(layer_index) = -hu_l(layer_index)
-                    b_r = b_l
-                    phi_r(layer_index) = phi_l(layer_index)
-                    u_r(layer_index) = -u_l(layer_index)
-                    v_r(layer_index) = v_l(layer_index)
-                else if (h_l(layer_index) + b_l < b_r) then
-                    b_r = h_l(layer_index) + b_l
-                endif
-            ! Check for drystate to left, i.e right surface is lower than left topo
-            else if (dry_state_l(layer_index)) then 
-                call riemanntype(h_r(layer_index), h_r(layer_index),   &
-                                -u_r(layer_index), u_r(layer_index),   &
-                                 h_star, sm(1), sm(2), rare(1), rare(2), 1,    &
-                                 dry_tolerance(layer_index), g)
-                h_star_test = max(h_r(layer_index), h_star)
-                ! Left state should become ghost values that mirror right
-                if (h_star_test + b_r < b_l) then  
-                   wall(1:2) = 0.d0
-                   h_l(layer_index) = h_r(layer_index)
-                   hu_l(layer_index) = -hu_r(layer_index)
-                   b_l = b_r
-                   phi_l(layer_index) = phi_r(layer_index)
-                   u_l(layer_index) = -u_r(layer_index)
-                   v_l(layer_index) = v_r(layer_index)
-                else if (h_r(layer_index) + b_r < b_l) then
-                   b_l = h_r(layer_index) + b_r
-                endif
-            endif
-
-            ! Determine wave speeds
-            ! 1 wave speed of left state
-            s_l = u_l(layer_index) - sqrt(g * h_l(layer_index))
-            ! 2 wave speed of right state
-            s_r = u_r(layer_index) + sqrt(g * h_r(layer_index))
-            
-            ! Roe average
-            u_hat = (sqrt(g * h_l(layer_index)) * u_l(layer_index)     &
-                   + sqrt(g * h_r(layer_index)) * u_r(layer_index))    &
-                   / (sqrt(g * h_r(layer_index)) + sqrt(g * h_l(layer_index))) 
-            c_hat = sqrt(g * 0.5d0 * (h_r(layer_index) + h_l(layer_index))) 
-            s_roe(1) = u_hat - c_hat ! Roe wave speed 1 wave
-            s_roe(2) = u_hat + c_hat ! Roe wave speed 2 wave
-            s_E(1) = min(s_l, s_roe(1)) ! Eindfeldt speed 1 wave
-            s_E(2) = max(s_r, s_roe(2)) ! Eindfeldt speed 2 wave
-            
-            ! Solve Riemann problem
-            call riemann_aug_JCP(max_iterations, 3, 3,                         &
-                                 h_l(layer_index), h_r(layer_index),   &
-                                 hu_l(layer_index), hu_r(layer_index), &
-                                 hv_l(layer_index), hv_r(layer_index), &
-                                 b_l, b_r,                                     &
-                                 u_l(layer_index), u_r(layer_index),   &
-                                 v_l(layer_index), v_r(layer_index),   &
-                                 phi_l(1), phi_r(1), s_E(1), s_E(2),           &
-                                 dry_tolerance(layer_index), g, sw, fw)
-            
-            ! Eliminate ghost fluxes for wall
-            do mw=1,3
-                sw(mw) = sw(mw) * wall(mw)
-                do m=1,3
-                   fw(m, mw) = fw(m, mw) * wall(mw)
-                enddo
-            enddo
+            call solve_sinlge_layer_rp(layer_index, h_l, h_r,                  &
+                                                    hu_l, hu_r,                &
+                                                    hv_l, hv_r,                &
+                                                    u_l, u_r,                  &
+                                                    v_l, v_r,                  &
+                                                    b_l, b_r,                  &
+                                                    fw, sw)
 
             ! Update speeds and waves
             ! Note that we represent all the waves in the first three arrays
@@ -295,366 +246,377 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
                 fwave(n_index, 4:6, i) = fw(2, :) * rho(layer_index)
                 fwave(t_index, 4:6, i) = fw(3, :) * rho(layer_index)
             end if
-            
+
             ! Go on to next cell, lat-long and fluctuation calculations are 
             ! outside of this loop
-            cycle
-        endif
-        
-        ! ====================================================================
-        !  Calculate Eigenstructure
-        !   The parameter eigen_method if either a completely wet problem or a
-        !   wall dry state problem exists.  Otherwise the inundation_method
-        !   controls the method for the eigenspace calculation.  rare(1) is
-        !   set to true if inundation occurs into the right state and rare(2)
-        !   if inundation occurs in the left state.
-        rare = .false.
 
-        ! print *,dry_state_r, dry_state_l
-        ! if (dry_state_l(2)) then
-        !     print *,"left dry"
-        ! endif
-        ! if (dry_state_r(2)) then
-        !     print *,"right dry"
-        ! endif
-        ! print *,"        left            |             right"
-        ! print *,"====================================================="
-        ! print *,h_l(1),h_r(1)
-        ! print *,hu_l(1),hu_r(1)
-        ! print *,hv_l(1),hv_r(1)
-        ! print *,h_l(2),h_r(2)
-        ! print *,hu_l(2),hu_r(2)
-        ! print *,hv_l(2),hv_r(2)
-        ! print *,b_l,b_r
-
-        ! Right state completely dry - F F T T
-        if (     (dry_state_r(1) .and. dry_state_r(2)) .and.             &
-            .not.(dry_state_l(1) .and. dry_state_l(2))) then
-            ! Inundation occurs
-            if (sum(h_l) + b_l > b_r) then
-                rare = .true.
-                stop "Not sure what to do here."
-
-            ! Wall boundary
-            else
-                ! Wall state - Mirror left state onto right
-                temp_depth = h_l
-                temp_u = -u_l
-                temp_v = v_l
-                if (eigen_method == 1) then
-                    call linearized_eigen(h_hat_l,h_hat_r,u_l,temp_u,v_l,temp_v,n_index,t_index,lambda,eig_vec)
-                else if (eigen_method == 2 .or. eigen_method == 4) then
-                    call linearized_eigen(h_l,temp_depth,u_l,temp_u,v_l,temp_v,n_index,t_index,lambda,eig_vec)
-                else if (eigen_method == 3) then
-                    call vel_diff_eigen(h_l,temp_depth,u_l,temp_u,v_l,temp_v,n_index,t_index,lambda,eig_vec)
-                endif
-                s(:,i) = lambda
-            endif
-        ! Left state completely dry - T T F F
-        else if (.not.(dry_state_r(1) .and. dry_state_r(2)) .and.            &
-                      (dry_state_l(1) .and. dry_state_l(2))) then
-            ! Inundation occurs
-            if (sum(h_r) + b_r > b_l) then
-                rare = .true.
-                stop "Not sure what to do here."
-
-            ! Wall boundary
-            else
-                ! Wall state - mirror right state onto left
-                temp_depth = h_r
-                temp_u = -u_r
-                temp_v = v_r
-                if (eigen_method == 1) then
-                    call linearized_eigen(h_hat_l,h_hat_r,temp_u,u_r,temp_v,v_r,n_index,t_index,lambda,eig_vec)
-                else if (eigen_method == 2 .or. eigen_method == 4) then
-                    call linearized_eigen(temp_depth,h_r,temp_u,u_r,temp_v,v_r,n_index,t_index,lambda,eig_vec)
-                else if (eigen_method == 3) then
-                    call vel_diff_eigen(h_l,temp_depth,temp_u,u_r,temp_v,v_r,n_index,t_index,lambda,eig_vec)
-                endif
-                s(:,i) = lambda
-            endif
-        ! Right bottom state dry - F F F T
-        else if (dry_state_r(2).and.(.not.dry_state_l(2))) then
-            ! Inundation occurs
-            if (h_l(2) + b_l > b_r) then
-                rare(1) = .true.
-                if (inundation_method == 1) then
-                    ! Linearized static eigenspace with zero depth
-                    temp_depth = [h_r(1),0.d0]
-                    call linearized_eigen(h_l,temp_depth,u_l,u_r,v_l,v_r, &
-                        n_index,t_index,lambda,eig_vec)
-                else if (inundation_method == 2) then
-                    ! Linearized with eigenspace with small depth
-                    temp_depth = [h_r(1),dry_tolerance(1)]
-                    call linearized_eigen(h_l,temp_depth,u_l,u_r,v_l,v_r, &
-                        n_index,t_index,lambda,eig_vec)
-                else if (inundation_method == 3) then
-                    ! Velocity difference with eigenspace with small depth
-                    temp_depth = [h_r(1),dry_tolerance(1)]
-                    call vel_diff_eigen(h_l,temp_depth,u_l,u_r,v_l,v_r, &
-                        n_index,t_index,lambda,eig_vec)
-                else if (inundation_method == 4) then
-                    ! LAPACK with zero depth
-                    temp_depth = [h_r(1),0.d0]
-                    call lapack_eigen(h_l,temp_depth,u_l,u_r,v_l,v_r, &
-                        n_index,t_index,lambda,eig_vec)
-                else if (inundation_method == 5) then
-                    ! LAPACK with small depth
-                    temp_depth = [h_r(1),dry_tolerance(1)]
-                    call lapack_eigen(h_l,temp_depth,u_l,u_r,v_l,v_r, &
-                        n_index,t_index,lambda,eig_vec)
-                endif
-                s(:,i) = lambda
-                
-                ! Internal wave correction
-                if (inundation_method == 1) then
-                    s(5,i) = u_l(2) + 2.d0 * sqrt(g*(1.d0-r)*h_l(2))
-                    alpha(3) = r * g * h_l(2) / ((s(5,i) - u_l(2))**2 - g * h_l(2))
-                    
-                    eig_vec(1,5) = 1.d0
-                    eig_vec(n_index,5) = s(i,5)
-                    eig_vec(t_index,5) = v_r(1)
-                    eig_vec(4,5) = alpha(3)
-                    eig_vec(n_index,5) = s(i,5) * alpha(3)
-                    eig_vec(t_index,6) = v_r(2) * alpha(3)
-                endif
-                ! Fast wave correction
-                if (inundation_method /= 5) then
-                    s(6,i) = u_r(1) + sqrt(g*h_r(1))
-                    eig_vec(1,6) = 1.d0
-                    eig_vec(n_index,6) = s(6,i)
-                    eig_vec(t_index,6) = v_r(1)
-                    eig_vec(4:6,6) = 0.d0
-                endif
-            ! Wall boundary RP
-            else                
-                ! Wall state
-                temp_depth = [h_r(1),0.d0]
-                temp_u = [u_r(1),-u_l(2)]
-                temp_v = [v_r(1),v_l(2)]
-                if (eigen_method == 1) then
-                    call linearized_eigen(h_hat_l,h_hat_r,u_l,temp_u,v_l,temp_v,n_index,t_index,lambda,eig_vec)
-                else if (eigen_method == 2 .or. eigen_method == 4) then
-                    call linearized_eigen(h_l,temp_depth,u_l,temp_u,v_l,temp_v,n_index,t_index,lambda,eig_vec)
-                else if (eigen_method == 3) then
-                    call vel_diff_eigen(h_l,temp_depth,u_l,temp_u,v_l,temp_v,n_index,t_index,lambda,eig_vec)
-                endif
-                s(:,i) = lambda
-            endif
-        ! Left bottom state dry - F T F F
-        else if (dry_state_l(2).and.(.not.dry_state_r(2))) then
-            ! Inundation
-            if (h_r(2) + b_r > b_l) then
-                rare(2) = .true.
-                if (inundation_method == 1) then
-                    temp_depth = [h_l(1),0.d0]
-                    call linearized_eigen(temp_depth,h_r,u_l,u_r,v_l,v_r,n_index,t_index,lambda,eig_vec)
-                else if (inundation_method == 2) then
-                    temp_depth = [h_l(1),dry_tolerance(1)]
-                    call linearized_eigen(temp_depth,h_r,u_l,u_r,v_l,v_r,n_index,t_index,lambda,eig_vec)
-                else if (inundation_method == 3) then
-                    temp_depth = [h_l(1),dry_tolerance(1)]
-                    call vel_diff_eigen(temp_depth,h_r,u_l,u_r,v_l,v_r,n_index,t_index,lambda,eig_vec)
-                else if (inundation_method == 4) then
-                    temp_depth = [h_l(1),dry_tolerance(1)]
-                    call lapack_eigen(temp_depth,h_r,u_l,u_r,v_l,v_r,n_index,t_index,lambda,eig_vec)
-                else if (inundation_method == 5) then
-                    temp_depth = [h_l(1),0.d0]
-                    call lapack_eigen(temp_depth,h_r,u_l,u_r,v_l,v_r,n_index,t_index,lambda,eig_vec)
-                endif
-                s(:,i) = lambda    
-                            
-                ! Internal wave correction
-                if (inundation_method == 1) then
-                    s(2,i) = u_r(2) - 2.d0 * sqrt(g*(1.d0-r)*h_r(2))
-                    alpha(2) = r * g * h_r(2) / ((s(2,i) - u_r(2))**2 - g*h_r(2))
-                    eig_vec(1,2) = 1.d0
-                    eig_vec(n_index,2) = s(2,i) 
-                    eig_vec(t_index,2) = v_l(1)
-                    eig_vec(4,2) = alpha(2)
-                    eig_vec(n_index,2) = alpha(2)*s(2,i)
-                    eig_vec(t_index,2) = alpha(2)*v_l(2)
-                endif
-                ! Fast wave correction
-                if (inundation_method /= 5) then
-                    s(1,i) = u_l(1) - sqrt(g*h_l(1))
-                    eig_vec(1,1) = 1.d0
-                    eig_vec(n_index,1) = s(1,i)
-                    eig_vec(t_index,1) = v_l(1)
-                    eig_vec(4:6,1) = 0.d0
-                endif
-            ! Wall boundary
-            else
-                ! Wall state
-                temp_depth = [h_l(1),0.d0]
-                temp_u = [u_l(1),-u_r(2)]
-                temp_v = [v_l(1),v_r(2)]
-                if (eigen_method == 1) then
-                    call linearized_eigen(h_hat_l,h_hat_r,temp_u,u_r,temp_v,v_r,n_index,t_index,lambda,eig_vec)
-                else if (eigen_method == 2 .or. eigen_method == 4) then
-                    call linearized_eigen(temp_depth,h_r,temp_u,u_r,temp_v,v_r,n_index,t_index,lambda,eig_vec)
-                else if (eigen_method == 3) then
-                    call vel_diff_eigen(temp_depth,h_r,temp_u,u_r,temp_v,v_r,n_index,t_index,lambda,eig_vec)
-                endif
-                s(:,i) = lambda
-            endif
-        ! Completely wet state F F F F
-        else            
-            if (eigen_method == 1) then
-                call linearized_eigen(h_hat_l,h_hat_r,u_l,u_r,v_l,v_r, &
-                    n_index,t_index,lambda,eig_vec)
-            else if (eigen_method == 2) then
-                call linearized_eigen(h_l,h_r,u_l,u_r,v_l,v_r,n_index,t_index, &
-                    lambda,eig_vec)
-            else if (eigen_method == 3) then
-                call vel_diff_eigen(h_l,h_r,u_l,u_r,v_l,v_r,n_index,t_index, &
-                    lambda,eig_vec)
-            else if (eigen_method == 4) then
-                call lapack_eigen(h_l,h_r,u_l,u_r,v_l,v_r,n_index,t_index, &
-                    lambda,eig_vec)
-            endif
-            s(:,i) = lambda
-        endif
-        
-        ! ====================================================================
-        ! Compute jump in fluxes
-        ! Dry state, both layers to right
-        if (      (dry_state_r(1) .and. dry_state_r(2)) .and.             &
-            .not. (dry_state_l(1) .and. dry_state_l(2)) .and.             &
-            .not. (rare(1) .or. rare(2)) ) then
-
-            h_r = h_l
-            hu_r = -hu_l
-            u_r = -u_l
-            hv_r = hv_l
-            v_r = v_l
-
-            flux_transfer_r = 0.d0
-            flux_transfer_l = 0.d0
-            momentum_transfer(1) = 0.d0
-            momentum_transfer(2) = 0.d0
-
-        ! Dry state, both layers to left
-        else if (      (dry_state_l(1) .and. dry_state_l(2)) .and.             &
-                 .not. (dry_state_r(1) .and. dry_state_r(2)) .and.             &
-            .not. (rare(1) .or. rare(2)) ) then
-
-            h_l = h_r
-            hu_l = -hu_r
-            u_l = -u_r
-            hv_l = hv_r
-            v_l = v_r
-
-            flux_transfer_r = 0.d0
-            flux_transfer_l = 0.d0
-            momentum_transfer(1) = 0.d0
-            momentum_transfer(2) = 0.d0
-
-        ! Dry state, bottom layer to right
-        else if( dry_state_r(2) .and.                                          &
-                (.not.dry_state_l(2)) .and. (.not.rare(1))) then
-            h_r(2) = h_l(2)
-            hu_r(2) = -hu_l(2)
-            u_r(2) = -u_l(2)
-            hv_r(2) = hv_l(2)
-            v_r(2) = v_l(2)
-        
-            flux_transfer_r = 0.d0
-            flux_transfer_l = 0.d0
-            momentum_transfer(1) = g * rho(1) * h_ave(1) * (b_r - h_l(2) - b_l)
-            momentum_transfer(2) = 0.d0
-        ! ====================================================================
-        ! Dry state, bottom layer to left
-        else if( dry_state_l(2) .and.                                          &
-                (.not.dry_state_r(2)).and.(.not.rare(2))) then    
-            h_l(2) = h_r(2)
-            hu_l(2) = -hu_r(2)
-            u_l(2) = -u_r(2)
-            hv_l(2) = hv_r(2)
-            v_l(2) = v_r(2)
-        
-            flux_transfer_r = 0.d0
-            flux_transfer_l = 0.d0
-            momentum_transfer(1) = g * rho(1) * h_ave(1) * (b_r + h_r(2) - b_l)
-            momentum_transfer(2) = 0.d0
-        ! ====================================================================
-        ! Full two layer case
+        ! ======================================================================
+        !  Multi-layer system must be solved
+        !   In each case a special eigen system is solved and then the flux
+        !     difference is evaluated.
+        !   Note that the parameter *eigen_method* controls the method being 
+        !     used if the cells are completely wet or there exists a wall 
+        !     boundary problem in the bottom layer.  Otherwise the parameter 
+        !     *inundation_method* is used.
+        ! ======================================================================
         else
-            momentum_transfer(1) =  g * rho(1) * h_ave(1) * (h_r(2) - h_l(2) + b_r - b_l)
-            momentum_transfer(2) = -g * rho(1) * h_ave(1) * (h_r(2) - h_l(2)) + g * rho(2) * h_ave(2) * (b_r - b_l)
-            flux_transfer_r = g * rho(1) * h_r(1) * h_r(2)
-            flux_transfer_l = g * rho(1) * h_l(1) * h_l(2)
-        endif
-        
-        do j=1,2
-            layer_index = 3*(j-1)
-            flux_r(layer_index+1) = rho(j) * hu_r(j)
-            flux_r(layer_index+n_index) = rho(j) * (h_r(j) * u_r(j)**2 + 0.5d0 * g * h_r(j)**2)
-            flux_r(layer_index+t_index) = rho(j) * h_r(j) * u_r(j) * v_r(j)
-            
-            flux_l(layer_index+1) = rho(j) * hu_l(j)
-            flux_l(layer_index+n_index) = rho(j) * (h_l(j) * u_l(j)**2 + 0.5d0 * g * h_l(j)**2)
-            flux_l(layer_index+t_index) = rho(j) * h_l(j) * u_l(j) * v_l(j)
-        enddo
-        ! Add extra flux terms
-        flux_r(3 + n_index) = flux_r(3 + n_index) + flux_transfer_r
-        flux_l(3 + n_index) = flux_l(3 + n_index) + flux_transfer_l
-        
-        delta = flux_r - flux_l
-            
-        ! Momentum transfer and bathy terms
-        delta(n_index) = delta(n_index) + momentum_transfer(1)
-        delta(n_index+3) = delta(n_index+3) + momentum_transfer(2)
-        
-        ! ====================================================================
-        ! Project jump in fluxes - Use LAPACK's dgesv routine
-        !    N - (int) - Number of linear equations (6)
-        !    NRHS - (int) - Number of right hand sides (1)
-        !    A - (dp(6,6)) - Coefficient matrix, in this case eig_vec
-        !    LDA - (int) - Leading dimension of A (6)
-        !    IPIV - (int(N)) - Pivot indices
-        !    B - (dp(LDB,NRHS)) - RHS of equations (delta)
-        !    LDB - (int) - Leading dimension of B (6)
-        !    INFO - (int) - Status of result
-        !  Note that the solution (betas) are in delta after the call
-        A = eig_vec ! We need to do this as the return matrix is modified and
-                    ! we have to use eig_vec again to compute fwaves
-        info = 0       
-        call dgesv(6,1,A,6,pivot,delta,6,info)
-        if (.not.(info == 0)) then
-            print *,dry_state_l, dry_state_r
-            print *,"        left            |             right"
-            print *,"====================================================="
-            print *,h_l(1),h_r(1)
-            print *,hu_l(1),hu_r(1)
-            print *,hv_l(1),hv_r(1)
-            print *,h_l(2),h_r(2)
-            print *,hu_l(2),hu_r(2)
-            print *,hv_l(2),hv_r(2)
-            print *,b_l,b_r
-            print *,""
-            print "(a,i2)","In normal solver: ixy=",ixy
-            print "(a,i3)","  Error solving R beta = delta,",info
-!             print "(a,i3,a,i3)","  Location: ",icom," ",jcom
-            print "(a,6d16.8)","  Eigenspeeds: ",s(:,i)
-            print "(a)","  Eigenvectors:"
-            do j=1,6
-                print "(a,6d16.8)","  ",(eig_vec(j,mw),mw=1,6)
+            ! By default fill in the eigen and flux evaluation states with their
+            ! side values
+            if (eigen_method == 1) then
+                eigen_h_l = h_hat_l
+                eigen_h_r = h_hat_r
+            else
+                eigen_h_l = h_l
+                eigen_h_r = h_r
+            end if
+            eigen_u_l = u_l
+            eigen_u_r = u_r
+            eigen_v_l = v_l
+            eigen_v_r = v_r
+
+            flux_h_l = h_l
+            flux_h_r = h_r
+            flux_hu_l = hu_l
+            flux_hu_r = hu_r
+            flux_hv_l = hv_l
+            flux_hv_r = hv_r
+            flux_u_l = u_l
+            flux_u_r = u_r
+            flux_v_l = v_l
+            flux_v_r = v_r
+
+            ! Also intialize other flux evaluation stuff
+            flux_transfer_r = 0.d0
+            flux_transfer_l = 0.d0
+            momentum_transfer = 0.d0
+
+            ! ==================================================================
+            !  Right state is completely dry - (F F T T)
+            if (.not. dry_state_l(1) .and. .not. dry_state_l(2) .and.          &
+                      dry_state_r(1) .and.       dry_state_r(2)) then
+    
+                ! Inundation occurs
+                inundation = sum(h_l) + b_l > b_r
+                if (inundation) then
+                    print *, "Inundation in this case not yet handled."
+                    print *, "  dry_state = ", dry_state_l, dry_state_r
+                    stop 
+
+                ! Wall boundary
+                else
+                    ! Wall state - Mirror left state onto right
+                    if (eigen_method /= 1) eigen_h_r = h_l
+                    eigen_u_r = -u_l
+                    eigen_v_r =  v_r
+
+                    ! Flux evaluation
+                    flux_h_r = h_l
+                    flux_hu_r = -hu_l
+                    flux_u_r = -u_l
+                    flux_hv_r = hv_l
+                    flux_v_r = v_l
+
+                    flux_transfer_r = 0.d0
+                    flux_transfer_l = 0.d0
+                    momentum_transfer(1) = 0.d0
+                    momentum_transfer(2) = 0.d0
+                endif
+
+            ! ==================================================================
+            !  Left state is completely dry - (T T F F)
+            else if (      dry_state_l(1) .and.       dry_state_l(2) .and.     &
+                     .not. dry_state_r(1) .and. .not. dry_state_r(2)) then
+
+                ! Inundation
+                inundation = sum(h_r) + b_r > b_l
+                if (inundation) then
+                    print *, "Inundation in this case not yet handled."
+                    print *, "  dry_state = ", dry_state_l, dry_state_r
+                    stop 
+
+                ! Wall
+                else
+                    if (eigen_method /= 1) eigen_h_l = h_r
+                    eigen_u_l = -u_r
+                    eigen_v_l = v_l
+                
+                    ! Flux evaluation
+                    flux_h_l = h_r
+                    flux_hu_l = -hu_r
+                    flux_u_l = -u_r
+                    flux_hv_l = hv_r
+                    flux_v_l = v_r
+
+                    flux_transfer_r = 0.d0
+                    flux_transfer_l = 0.d0
+                    momentum_transfer(1) = 0.d0
+                    momentum_transfer(2) = 0.d0
+
+                end if
+
+            ! ==================================================================
+            !  Right bottom state is dry - (F F F T)
+            else if (.not. dry_state_l(1) .and. .not. dry_state_l(2) .and.     &
+                     .not. dry_state_r(1) .and.       dry_state_r(2)) then
+
+                ! Inundation
+                inundation = h_l(2) + b_l > b_r
+                if (inundation) then
+                    if (inundation_method == 1 .or.                            &
+                        inundation_method == 4) then
+                        eigen_h_r = [h_r(1), 0.d0]
+                    else if (inundation_method == 2 .or.                       &
+                             inundation_method == 3 .or.                       &
+                             inundation_method == 5) then
+                        eigen_h_r = [h_r(1), 0.d0]
+                    end if
+    
+                    ! Flux evaluation
+                    momentum_transfer(1) =  g * rho(1) * h_ave(1) * (h_r(2) - h_l(2) + b_r - b_l)
+                    momentum_transfer(2) = -g * rho(1) * h_ave(1) * (h_r(2) - h_l(2)) + g * rho(2) * h_ave(2) * (b_r - b_l)
+                    flux_transfer_r = g * rho(1) * h_r(1) * h_r(2)
+                    flux_transfer_l = g * rho(1) * h_l(1) * h_l(2)
+
+                ! Wall
+                else
+                    if (eigen_method /= 1) eigen_h_r = [h_r(1), 0.d0]
+                    eigen_u_r = [u_r(1), -u_l(2)]
+                    eigen_v_r = [v_r(1),  v_l(2)]
+
+                    ! Flux evaluation
+                    flux_h_r(2) = h_l(2)
+                    flux_hu_r(2) = -hu_l(2)
+                    flux_u_r(2) = -u_l(2)
+                    flux_hv_r(2) = hv_l(2)
+                    flux_v_r(2) = v_l(2)
+                
+                    flux_transfer_r = 0.d0
+                    flux_transfer_l = 0.d0
+                    momentum_transfer(1) = g * rho(1) * h_ave(1) * (b_r - flux_h_l(2) - b_l)
+                    momentum_transfer(2) = 0.d0
+
+                end if
+
+            ! ==================================================================
+            !  Left bottom state is dry - (F T F F)
+            else if (.not. dry_state_l(1) .and.       dry_state_l(2) .and.     &
+                     .not. dry_state_r(1) .and. .not. dry_state_r(2)) then
+
+                ! Inundation
+                inundation = (h_r(2) + b_r > b_l)
+                if (inundation) then
+                    if (inundation_method == 1 .or. inundation_method == 5) then
+                        eigen_h_l = [h_l(1), 0.d0]
+                    else if (inundation_method == 2 .or.                       &
+                             inundation_method == 3 .or.                       &
+                             inundation_method == 4) then
+                        eigen_h_l = [h_l(1), dry_tolerance(1)]
+                    end if
+    
+                    ! Flux evaluation
+                    momentum_transfer(1) =  g * rho(1) * h_ave(1) * (h_r(2) - h_l(2) + b_r - b_l)
+                    momentum_transfer(2) = -g * rho(1) * h_ave(1) * (h_r(2) - h_l(2)) + g * rho(2) * h_ave(2) * (b_r - b_l)
+                    flux_transfer_r = g * rho(1) * h_r(1) * h_r(2)
+                    flux_transfer_l = g * rho(1) * h_l(1) * h_l(2)
+
+                ! Wall
+                else
+                    if (eigen_method /= 1) eigen_h_l = [h_l(1), 0.d0]
+                    eigen_u_l = [u_l(1), -u_r(2)]
+                    eigen_v_l = [v_l(1),  v_r(2)]
+    
+                    ! Flux evaluation
+                    flux_h_l(2) = h_r(2)
+                    flux_hu_l(2) = -hu_r(2)
+                    flux_u_l(2) = -u_r(2)
+                    flux_hv_l(2) = hv_r(2)
+                    flux_v_l(2) = v_r(2)
+                
+                    flux_transfer_r = 0.d0
+                    flux_transfer_l = 0.d0
+                    momentum_transfer(1) = g * rho(1) * h_ave(1) * (b_r + flux_h_r(2) - b_l)
+                    momentum_transfer(2) = 0.d0
+
+                end if
+
+            ! ==================================================================
+            !  All-states are wet - (F F F F)
+!             else if (.not. dry_state_l(1) .and. .not. dry_state_l(2) .and.     &
+!                      .not. dry_state_r(1) .and. .not. dry_state_r(2)) then
+            else if (num_dry_states == 0) then
+
+                ! Nothing to do for eigenspace evaluation
+
+                ! Flux evaulation
+                momentum_transfer(1) =  g * rho(1) * h_ave(1) * (h_r(2) - h_l(2) + b_r - b_l)
+                momentum_transfer(2) = -g * rho(1) * h_ave(1) * (h_r(2) - h_l(2)) + g * rho(2) * h_ave(2) * (b_r - b_l)
+                flux_transfer_r = g * rho(1) * h_r(1) * h_r(2)
+                flux_transfer_l = g * rho(1) * h_l(1) * h_l(2)
+
+            ! ==================================================================
+            !  We do not yet handle this case - F F F F and F F F F 
+            else
+                print *, "Unhandled dry-state condition reached."
+                print *, "dry states: ", dry_state_l, dry_state_r
+                print *, "        left            |             right"
+                print *, "====================================================="
+                print "(2d16.8)", h_l(1), h_r(1)
+                print "(2d16.8)", hu_l(1), hu_r(1)
+                print "(2d16.8)", hv_l(1), hv_r(1)
+                print "(2d16.8)", h_l(2), h_r(2)
+                print "(2d16.8)", hu_l(2), hu_r(2)
+                print "(2d16.8)", hv_l(2), hv_r(2)
+                print "(2d16.8)", b_l, b_r
+                stop
+            end if
+
+            ! ==================================================================
+            !  Compute eigen space
+            ! ==================================================================
+            if (inundation) then
+                call inundation_eigen_func(eigen_h_l, eigen_h_r,               &
+                                           eigen_u_l, eigen_u_r,               &
+                                           eigen_v_l, eigen_v_r,               &
+                                           n_index, t_index,                   &
+                                           lambda, eig_vec)
+                                
+                ! Internal wave corrections
+                if (inundation_method == 1) then
+                    ! Left bottom state dry
+                    if (.not. dry_state_l(1) .and.       dry_state_l(2) .and.  &
+                        .not. dry_state_r(1) .and. .not. dry_state_r(2)) then
+
+                        s(2,i) = u_r(2) - 2.d0 * sqrt(g*(1.d0-r)*h_r(2))
+                        alpha(2) = r * g * h_r(2) / ((s(2,i) - u_r(2))**2 - g*h_r(2))
+                        eig_vec(1,2) = 1.d0
+                        eig_vec(n_index,2) = s(2,i) 
+                        eig_vec(t_index,2) = v_l(1)
+                        eig_vec(4,2) = alpha(2)
+                        eig_vec(n_index,2) = alpha(2)*s(2,i)
+                        eig_vec(t_index,2) = alpha(2)*v_l(2)
+                    ! Right bottom state dry
+                    else if (.not. dry_state_l(1) .and. .not. dry_state_l(2) .and. &
+                             .not. dry_state_r(1) .and.       dry_state_r(2)) then
+
+                        s(5,i) = u_l(2) + 2.d0 * sqrt(g*(1.d0-r)*h_l(2))
+                        alpha(3) = r * g * h_l(2) / ((s(5,i) - u_l(2))**2 - g * h_l(2))
+                        
+                        eig_vec(1,5) = 1.d0
+                        eig_vec(n_index,5) = s(i,5)
+                        eig_vec(t_index,5) = v_r(1)
+                        eig_vec(4,5) = alpha(3)
+                        eig_vec(n_index,5) = s(i,5) * alpha(3)
+                        eig_vec(t_index,6) = v_r(2) * alpha(3)
+                    end if
+                end if
+                if (inundation_method /= 5) then
+                    ! Left bottom state dry
+                    if (.not. dry_state_l(1) .and.       dry_state_l(2) .and.  &
+                        .not. dry_state_r(1) .and. .not. dry_state_r(2)) then
+
+                        s(1,i) = u_l(1) - sqrt(g*h_l(1))
+                        eig_vec(1,1) = 1.d0
+                        eig_vec(n_index,1) = s(1,i)
+                        eig_vec(t_index,1) = v_l(1)
+                        eig_vec(4:6,1) = 0.d0
+
+                    ! Right bottom state dry
+                    else if (.not. dry_state_l(1) .and. .not. dry_state_l(2) .and. &
+                             .not. dry_state_r(1) .and.       dry_state_r(2)) then
+
+                        s(6,i) = u_r(1) + sqrt(g*h_r(1))
+                        eig_vec(1,6) = 1.d0
+                        eig_vec(n_index,6) = s(6,i)
+                        eig_vec(t_index,6) = v_r(1)
+                        eig_vec(4:6,6) = 0.d0
+
+                    end if
+
+                end if
+            else
+                call eigen_func(eigen_h_l, eigen_h_r,                    &
+                                eigen_u_l, eigen_u_r,                    &
+                                eigen_v_l, eigen_v_r,                    &
+                                n_index, t_index,                        &
+                                lambda, eig_vec)
+
+            end if
+
+            s(:,i) = lambda
+
+            ! ======================================================================
+            !  Compute flux differences
+            ! ======================================================================
+            do j=1,2
+                layer_index = 3*(j-1)
+                flux_r(layer_index+1) = rho(j) * flux_hu_r(j)
+                flux_r(layer_index+n_index) = rho(j) * (flux_h_r(j) * flux_u_r(j)**2 + 0.5d0 * g * flux_h_r(j)**2)
+                flux_r(layer_index+t_index) = rho(j) * flux_h_r(j) * flux_u_r(j) * flux_v_r(j)
+                
+                flux_l(layer_index+1) = rho(j) * flux_hu_l(j)
+                flux_l(layer_index+n_index) = rho(j) * (flux_h_l(j) * flux_u_l(j)**2 + 0.5d0 * g * flux_h_l(j)**2)
+                flux_l(layer_index+t_index) = rho(j) * flux_h_l(j) * flux_u_l(j) * flux_v_l(j)
             enddo
-            stop
-        endif
-        beta = delta
-
-        ! ====================================================================
-        ! Compute fwaves
-        forall(mw=1:mwaves)
-            fwave(:,mw,i) = eig_vec(:,mw) * beta(mw)
-        end forall
+            ! Add extra flux terms
+            flux_r(3 + n_index) = flux_r(3 + n_index) + flux_transfer_r
+            flux_l(3 + n_index) = flux_l(3 + n_index) + flux_transfer_l
             
-    enddo
-    ! == End of Riemann Solver Loop per grid cell ============================
+            delta = flux_r - flux_l
+                
+            ! Momentum transfer and bathy terms
+            delta(n_index) = delta(n_index) + momentum_transfer(1)
+            delta(n_index+3) = delta(n_index+3) + momentum_transfer(2)
 
-    ! ========================================================================
+            ! ======================================================================
+            ! Project jump in fluxes - Use LAPACK's dgesv routine
+            !    N - (int) - Number of linear equations (6)
+            !    NRHS - (int) - Number of right hand sides (1)
+            !    A - (dp(6,6)) - Coefficient matrix, in this case eig_vec
+            !    LDA - (int) - Leading dimension of A (6)
+            !    IPIV - (int(N)) - Pivot indices
+            !    B - (dp(LDB,NRHS)) - RHS of equations (delta)
+            !    LDB - (int) - Leading dimension of B (6)
+            !    INFO - (int) - Status of result
+            !  Note that the solution (betas) are in delta after the call
+            ! ======================================================================
+            A = eig_vec ! We need to do this as the return matrix is modified and
+                        ! we have to use eig_vec again to compute fwaves
+            info = 0       
+            call dgesv(6,1,A,6,pivot,delta,6,info)
+            if (.not.(info == 0)) then
+                print *, "dry states: ", dry_state_l, dry_state_r
+                print *, "        left            |             right"
+                print *, "====================================================="
+                print "(2d16.8)", h_l(1), h_r(1)
+                print "(2d16.8)", hu_l(1), hu_r(1)
+                print "(2d16.8)", hv_l(1), hv_r(1)
+                print "(2d16.8)", h_l(2), h_r(2)
+                print "(2d16.8)", hu_l(2), hu_r(2)
+                print "(2d16.8)", hv_l(2), hv_r(2)
+                print "(2d16.8)", b_l, b_r
+                print *,""
+                print "(a,i2)","In normal solver: ixy=",ixy
+                print "(a,i3)","  Error solving R beta = delta,",info
+                print "(a,6d16.8)","  Eigenspeeds: ",s(:,i)
+                print "(a)","  Eigenvectors:"
+                do j=1,6
+                    print "(a,6d16.8)","  ",(eig_vec(j,mw),mw=1,6)
+                enddo
+                stop
+            endif
+            beta = delta
+
+            ! ======================================================================
+            ! Compute fwaves
+            forall(mw=1:mwaves)
+                fwave(:,mw,i) = eig_vec(:,mw) * beta(mw)
+            end forall
+        end if
+
+    end do
+    ! == End of Riemann Solver Loop per grid cell ==============================
+
+    ! ==========================================================================
     ! Capacity for mapping from latitude longitude to physical space
     if (mcapa > 0) then
         do i=2-mbc,mx+mbc
@@ -671,7 +633,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
         enddo
     endif
 
-    ! ========================================================================
+    ! ==========================================================================
     !  Compute fluctuations 
     do i=2-mbc,mx+mbc
         do mw=1,mwaves
@@ -707,3 +669,126 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
     enddo
 
 end subroutine rpn2
+
+
+! ==================================
+!  Solve the single-layer equations
+! ==================================
+subroutine solve_sinlge_layer_rp(layer_index, h_l, h_r,                        &
+                                              hu_l, hu_r,                      &
+                                              hv_l, hv_r,                      &
+                                              u_l, u_r,                        &
+                                              v_l, v_r,                        &
+                                              b_l, b_r,                        &
+                                              fw, sw)
+
+    use geoclaw_module, only: g => grav
+    use multilayer_module, only: dry_tolerance
+
+    implicit none
+
+    ! Input
+    integer, intent(in) :: layer_index
+    real(kind=8), intent(in out), dimension(2) :: h_l, h_r
+    real(kind=8), intent(in out), dimension(2) :: hu_l, hu_r
+    real(kind=8), intent(in out), dimension(2) :: hv_l, hv_r
+    real(kind=8), intent(in out), dimension(2) :: u_r, u_l
+    real(kind=8), intent(in out), dimension(2) :: v_r, v_l
+    real(kind=8), intent(in out) :: b_l, b_r
+
+    ! Output
+    real(kind=8), intent(out) :: fw(3, 3), sw(3)
+
+    ! Local storage
+    integer :: m, mw
+    logical :: rare(2)
+    real(kind=8) :: wall(3), h_star, h_star_test, sm(2)
+    real(kind=8) :: phi_l, phi_r, s_l, s_r, u_hat, c_hat, s_roe(2), s_E(2)
+
+    ! Algorithm parameters
+    integer, parameter :: MAX_ITERATIONS = 1
+
+    wall = 1.d0
+    
+    ! Calculate momentum fluxes
+    phi_l = 0.5d0 * g * h_l(layer_index)**2      &
+                        + h_l(layer_index) * u_l(layer_index)**2
+    phi_r = 0.5d0 * g * h_r(layer_index)**2      &
+                        + h_r(layer_index) * u_r(layer_index)**2
+     
+    ! Check for dry state to right
+    if (h_r(layer_index) < dry_tolerance(layer_index)) then
+        call riemanntype(h_l(layer_index), h_l(layer_index),   &
+                         u_l(layer_index),-u_l(layer_index),   &
+                         h_star, sm(1), sm(2), rare(1), rare(2), 1,    &
+                         dry_tolerance(layer_index), g)
+        h_star_test = max(h_l(layer_index), h_star)
+        ! Right state should become ghost values that mirror left for wall problem
+        if (h_star_test + b_l < b_r) then 
+            wall(2:3) = 0.d0
+            h_r(layer_index) = h_l(layer_index)
+            hu_r(layer_index) = -hu_l(layer_index)
+            b_r = b_l
+            phi_r = phi_l
+            u_r(layer_index) = -u_l(layer_index)
+            v_r(layer_index) = v_l(layer_index)
+        else if (h_l(layer_index) + b_l < b_r) then
+            b_r = h_l(layer_index) + b_l
+        endif
+    ! Check for drystate to left, i.e right surface is lower than left topo
+    else if (h_l(layer_index) < dry_tolerance(layer_index)) then 
+        call riemanntype(h_r(layer_index), h_r(layer_index),   &
+                        -u_r(layer_index), u_r(layer_index),   &
+                         h_star, sm(1), sm(2), rare(1), rare(2), 1,    &
+                         dry_tolerance(layer_index), g)
+        h_star_test = max(h_r(layer_index), h_star)
+        ! Left state should become ghost values that mirror right
+        if (h_star_test + b_r < b_l) then  
+           wall(1:2) = 0.d0
+           h_l(layer_index) = h_r(layer_index)
+           hu_l(layer_index) = -hu_r(layer_index)
+           b_l = b_r
+           phi_l = phi_r
+           u_l(layer_index) = -u_r(layer_index)
+           v_l(layer_index) = v_r(layer_index)
+        else if (h_r(layer_index) + b_r < b_l) then
+           b_l = h_r(layer_index) + b_r
+        endif
+    endif
+
+    ! Determine wave speeds
+    ! 1 wave speed of left state
+    s_l = u_l(layer_index) - sqrt(g * h_l(layer_index))
+    ! 2 wave speed of right state
+    s_r = u_r(layer_index) + sqrt(g * h_r(layer_index))
+    
+    ! Roe average
+    u_hat = (sqrt(g * h_l(layer_index)) * u_l(layer_index)     &
+           + sqrt(g * h_r(layer_index)) * u_r(layer_index))    &
+           / (sqrt(g * h_r(layer_index)) + sqrt(g * h_l(layer_index))) 
+    c_hat = sqrt(g * 0.5d0 * (h_r(layer_index) + h_l(layer_index))) 
+    s_roe(1) = u_hat - c_hat ! Roe wave speed 1 wave
+    s_roe(2) = u_hat + c_hat ! Roe wave speed 2 wave
+    s_E(1) = min(s_l, s_roe(1)) ! Eindfeldt speed 1 wave
+    s_E(2) = max(s_r, s_roe(2)) ! Eindfeldt speed 2 wave
+    
+    ! Solve Riemann problem
+    call riemann_aug_JCP(MAX_ITERATIONS, 3, 3,                         &
+                         h_l(layer_index), h_r(layer_index),   &
+                         hu_l(layer_index), hu_r(layer_index), &
+                         hv_l(layer_index), hv_r(layer_index), &
+                         b_l, b_r,                                     &
+                         u_l(layer_index), u_r(layer_index),   &
+                         v_l(layer_index), v_r(layer_index),   &
+                         phi_l, phi_r, s_E(1), s_E(2),           &
+                         dry_tolerance(layer_index), g, sw, fw)
+    
+    ! Eliminate ghost fluxes for wall
+    do mw=1,3
+        sw(mw) = sw(mw) * wall(mw)
+        do m=1,3
+           fw(m, mw) = fw(m, mw) * wall(mw)
+        enddo
+    enddo
+
+end subroutine solve_sinlge_layer_rp

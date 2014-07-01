@@ -33,9 +33,8 @@ subroutine rpt2(ixy,imp,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,aux1,aux2,aux3,asdq,b
     use geoclaw_module, only: g => grav, earth_radius, pi
 
     use multilayer_module, only: num_layers, eigen_method, inundation_method
+    use multilayer_module, only: eigen_func, inundation_eigen_func
     use multilayer_module, only: dry_tolerance, rho, aux_layer_index
-
-    use multilayer_eigen_module
 
     implicit none
 
@@ -166,17 +165,9 @@ subroutine rpt2(ixy,imp,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,aux1,aux2,aux3,asdq,b
         ! Two-layers with no dry states in the vicinity
         ! Compute eigenvector matrix - Linearized system
         if (eigen_method == 1) then
-            call linearized_eigen(h_hat,h_hat,v,v,u,u,t_index,n_index,s,eig_vec)
-        else if (eigen_method == 2) then
-            call linearized_eigen(h,h,v,v,u,u,t_index,n_index,s,eig_vec)
-        else if (eigen_method == 3) then
-            call vel_diff_eigen(h,h,v,v,u,u,t_index,n_index,s,eig_vec)
-        else if (eigen_method == 4) then
-            call lapack_eigen(h,h,v,v,u,u,t_index,n_index,s,eig_vec)
+            call eigen_func(h_hat,h_hat,v,v,u,u,t_index,n_index,s,eig_vec)
         else
-            print "(a,i2,a)","Eigenstructure method ",eigen_method, &
-                  " requested not available."
-            stop 
+            call eigen_func(h,h,v,v,u,u,t_index,n_index,s,eig_vec)
         endif
 
         ! ====================================================================
