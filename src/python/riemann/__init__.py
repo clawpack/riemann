@@ -18,6 +18,34 @@ from euler_1D_py import euler_roe_1D, euler_hll_1D, euler_exact_1D
 from nonlinear_elasticity_1D_py import nonlinear_elasticity_1D
 import static
 
+import acoustics_1D_constants
+import advection_1D_constants
+import burgers_1D_constants
+import euler_with_efix_1D_constants
+import nonlinear_elasticity_fwave_1D_constants
+import reactive_euler_with_efix_1D_constants
+import shallow_roe_with_efix_1D_constants
+import traffic_1D_constants
+import traffic_vc_1D_constants
+import acoustics_2D_constants
+import advection_2D_constants
+import burgers_2D_constants
+import euler_mapgrid_2D_constants
+import euler_5wave_2D_constants
+import euler_4wave_2D_constants
+import kpp_2D_constants
+import psystem_2D_constants
+import shallow_roe_with_efix_2D_constants
+import shallow_sphere_2D_constants
+import vc_acoustics_2D_constants
+import vc_advection_2D_constants
+import vc_elasticity_2D_constants
+import vc_acoustics_3D_constants
+import euler_3D_constants
+import burgers_3D_constants
+import vc_advection_3D_constants
+
+
 try:
     import acoustics_1D
     import advection_1D

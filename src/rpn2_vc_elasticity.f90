@@ -1,50 +1,52 @@
 subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 
-    ! Riemann solver for the elasticity equations in 2d, with varying
-    ! material properties rho, lambda, and mu 
-    !
-    ! Note that although there are 5 eigenvectors, one eigenvalue
-    ! is always zero and so we only need to compute 4 waves.	
-    ! 
-    ! solve Riemann problems along one slice of data.
-    !
-    ! On input, ql contains the state vector at the left edge of each cell
-    !           qr contains the state vector at the right edge of each cell
-    !
-    ! Note that the i'th Riemann problem has left state qr(:,i-1)
-    !                                    and right state ql(:,i)
-    ! From the basic clawpack routines, this routine is called with ql = qr
-    !
-    ! This data is along a slice in the x-direction if ixy=1 
-    !                            or the y-direction if ixy=2.
-    !
-    ! Contents of ql and qr:
-    ! 
-    ! q(1,:) = sigma^{11} if ixy=1   or   sigma^{22} if ixy=2
-    ! q(2,:) = sigma^{22} if ixy=1   or   sigma^{11} if ixy=2
-    ! q(3,:) = sigma^{12} = sigma^{21}
-    ! q(4,:) = u          if ixy=1   or   v          if ixy=2
-    ! q(5,:) = v          if ixy=1   or   u          if ixy=2
-    ! 
-    ! auxl and auxr hold corresponding slice of the aux array:
-    ! Here it is assumed that auxl=auxr gives the cell values
-    ! for this slice.
-    ! 
-    !  auxl(1,i) = rho, density
-    !  auxl(2,i) = lambda 
-    !  auxl(3,i) = mu
-    !  auxl(4,i) = cp, P-wave speed 
-    !  auxl(5,i) = cs, S-wave speed 
-    !
-    !
-    ! On output, wave contains the waves,
-    !            s the speeds,
-    !            amdq the  left-going flux difference  A^- \Delta q
-    !            apdq the right-going flux difference  A^+ \Delta q
-    !
-    ! Note that the waves are *not* in order of increasing lambda.
-    ! Instead the 1- and 2-waves are the P-waves and the 3- and 4-waves
-    ! are the S-waves.   (The 5th wave has speed zero and is not used.)
+! Riemann solver for the elasticity equations in 2d, with varying
+! material properties rho, lambda, and mu 
+!
+! waves: 4
+! equations: 5
+! aux fields: 5
+
+! Conserved quantities:
+!       1 sigma_11
+!       2 sigma_22
+!       3 sigma_12
+!       4 u
+!       5 v
+
+! Auxiliary variables:
+!       1  density
+!       2  lamda
+!       3  mu
+!       4  cp
+!       5  cs
+
+! Note that although there are 5 eigenvectors, one eigenvalue
+! is always zero and so we only need to compute 4 waves.	
+! 
+! solve Riemann problems along one slice of data.
+!
+! On input, ql contains the state vector at the left edge of each cell
+!           qr contains the state vector at the right edge of each cell
+!
+! Note that the i'th Riemann problem has left state qr(:,i-1)
+!                                    and right state ql(:,i)
+! From the basic clawpack routines, this routine is called with ql = qr
+!
+! This data is along a slice in the x-direction if ixy=1 
+!                            or the y-direction if ixy=2.
+!
+! Here it is assumed that auxl=auxr gives the cell values
+! for this slice.
+!
+! On output, wave contains the waves,
+!            s the speeds,
+!            amdq the  left-going flux difference  A^- \Delta q
+!            apdq the right-going flux difference  A^+ \Delta q
+!
+! Note that the waves are *not* in order of increasing lambda.
+! Instead the 1- and 2-waves are the P-waves and the 3- and 4-waves
+! are the S-waves.   (The 5th wave would have speed zero and is not computed.)
 
     implicit none
 

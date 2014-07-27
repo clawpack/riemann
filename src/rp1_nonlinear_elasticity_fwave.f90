@@ -2,36 +2,46 @@
 subroutine rp1(maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq)
 ! =====================================================
 
-!     # This version uses interleaved arrays.
-!     # This version outputs f-waves.
+! This version uses interleaved arrays.
+! This version outputs f-waves.
 
-!     # Riemann solver for the nonlinear elastic equations in 1d,
-!     #  variable coefficients
-!     #   eps_t - (m/rho(x))_x = 0
-!     #   m_t - sigma(eps,x)_x =0
-!     # where eps=strain, m=rho*u=momentum
+! Riemann solver for the nonlinear elastic equations in 1d,
+!  variable coefficients
+!   eps_t - (m/rho(x))_x = 0
+!   m_t - sigma(eps,x)_x =0
+! where eps=strain, m=rho*u=momentum
 
-!     # aux(1,i) = rho(i)
-!     # function sigma(eps,i) gives stress-strain relation in ith cell
-!     # function sigmap(eps,i) gives d/(d eps) of sigma
-!     #    For linear:   sigma(eps,i) = K_i * eps, and sigmap(eps,i) = K_i
+! waves: 2
+! equations: 2
+! aux fields: 2
 
-!     # On input, ql contains the state vector at the left edge of each cell
-!     #           qr contains the state vector at the right edge of each cell
+! Conserved quantities:
+!       1 strain
+!       2 momentum
 
-!     # On output, fwave contains the waves as jumps in f,
-!     #            s the speeds,
-!     #
-!     #            amdq = A^- Delta q,
-!     #            apdq = A^+ Delta q,
-!     #                   the decomposition of the flux difference
-!     #                       f(qr(i-1)) - f(ql(i))
-!     #                   into leftgoing and rightgoing parts respectively.
-!     #
+! Auxiliary variables:
+!       1 density
+!       2 bulk_modulus
 
-!     # Note that the ith Riemann problem has left state qr(:,i-1)
-!     #                                    and right state ql(:,i)
-!     # From the basic clawpack routines, this routine is called with ql = qr
+! function sigma(eps,i) gives stress-strain relation in ith cell
+! function sigmap(eps,i) gives d/(d eps) of sigma
+!    For linear:   sigma(eps,i) = K_i * eps, and sigmap(eps,i) = K_i
+
+! On input, ql contains the state vector at the left edge of each cell
+!           qr contains the state vector at the right edge of each cell
+
+! On output, fwave contains the waves as jumps in f,
+!            s the speeds,
+!            amdq = A^- Delta q,
+!            apdq = A^+ Delta q,
+!                   the decomposition of the flux difference
+!                       f(qr(i-1)) - f(ql(i))
+!                   into leftgoing and rightgoing parts respectively.
+! 
+
+! Note that the ith Riemann problem has left state qr(:,i-1)
+!                                    and right state ql(:,i)
+! From the basic clawpack routines, this routine is called with ql = qr
 
 
     implicit double precision (a-h,o-z)

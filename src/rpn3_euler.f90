@@ -3,6 +3,16 @@
 !
 ! Description: Roe-solver for the 3D Euler Equations
 !
+! waves: 3
+! equations: 5
+!
+! Conserved quantities:
+!       1 density
+!       2 x_momentum
+!       3 y_momentum
+!       4 z_momentum
+!       5 energy
+!
 ! Inputs: 
 !         ixyz <INTEGER>   : input values are a slice along: x-direction if ixyz=1;
 !                                                            y-direction if ixyz=2;

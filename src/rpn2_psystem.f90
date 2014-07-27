@@ -2,35 +2,45 @@
 subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq)
 ! =====================================================
 
-!     # Aproximate Riemann solver for the nonlinear P-system in 2d
-!     # with variable coefficients.
+! Approximate Riemann solver for the nonlinear p-system in 2d
+! with variable coefficients.
 
-!     # The jacobian matrix of the flux vector (in each direction)
-!     # is approximated by the linear localized problem.
-     
-!     # There are 3 eigenvectors; however, the second eigenvalue
-!     # is always zero and just two waves are computed.
+! waves: 2
+! equations: 3
 
-!     # Solve Riemann problems along one slice of data:
-!     #  in the x-direction if ixy=1
-!     #  in the y-direction if ixy=2.
+! Conserved quantities:
+!       1 strain
+!       2 x_momentum
+!       3 y_momentum
 
-!     # On input, ql contains the state vector at the left edge of each cell
-!     #           qr contains the state vector at the right edge of each cell
+! The variable names are based on an elasticity interpretation
 
-!     # f-wave approach is considered. This consists in decomposing the flux
-!     # difference (assuming it's continuous) using the eigenvectors of the
-!     # jacobian matrices of the flux vectors (in each spatial direction).
-!     # This is convinient for variable coefficient PDEs.
+! The jacobian matrix of the flux vector (in each direction)
+! is approximated by the linear localized problem.
+ 
+! There are 3 eigenvectors; however, the second eigenvalue
+! is always zero and just two waves are computed.
 
-!     # On output, fwave contains the f-waves,
-!     #            s the speeds,
-!     #            amdq the  left-going fluctuation
-!     #            apdq the right-going fluctuation
+! Solve Riemann problems along one slice of data:
+!  in the x-direction if ixy=1
+!  in the y-direction if ixy=2.
 
-!     # Note that the i'th Riemann problem has left state qr(i-1,:)
-!     #                                    and right state ql(i,:)
-!     # From the basic clawpack routines, this routine is called with ql = qr
+! On input, ql contains the state vector at the left edge of each cell
+!           qr contains the state vector at the right edge of each cell
+
+! f-wave approach is considered. This consists in decomposing the flux
+! difference (assuming it's continuous) using the eigenvectors of the
+! jacobian matrices of the flux vectors (in each spatial direction).
+! This is convinient for variable coefficient PDEs.
+
+! On output, fwave contains the f-waves,
+!            s the speeds,
+!            amdq the  left-going fluctuation
+!            apdq the right-going fluctuation
+
+! Note that the i'th Riemann problem has left state qr(i-1,:)
+!                                    and right state ql(i,:)
+! From the basic clawpack routines, this routine is called with ql = qr
 
     implicit double precision (a-h,o-z)
     dimension fwave(meqn,mwaves,1-mbc:maxm+mbc)

@@ -6,6 +6,11 @@ subroutine rp1(maxmx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 ! transonic rarefaction. See "Finite Volume Method for Hyperbolic Problems",
 ! R. J. LeVeque.
 
+! waves: 1
+! equations: 1
+
+! Conserved quantities:
+!       1 q
     
     implicit double precision (a-h,o-z)
 

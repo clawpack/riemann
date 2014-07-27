@@ -5,6 +5,18 @@ subroutine rp1(maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 !     # Riemann solver for the acoustics equations in 1d, with
 !     #  variable coefficients (heterogeneous media)
 
+! waves:     2
+! equations: 2
+! aux fields: 2
+
+! Conserved quantities:
+!       1 pressure
+!       2 velocity
+
+! Auxiliary variables:
+!       1 impedance
+!       2 sound_speed
+
 !     # auxl(1,i) should contain the impedance Z in cell i
 !     # auxl(2,i) should contain the sound speed c in cell i
 

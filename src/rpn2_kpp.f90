@@ -2,25 +2,31 @@
 subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 ! =====================================================
 
-!     # Aproximate Riemann solver for the nonlinear KPP system:
+! Aproximate Riemann solver for the nonlinear KPP system:
 
-!     # q_t + sin(q)_x + cos(q)_y = 0
+! q_t + sin(q)_x + cos(q)_y = 0
 
-!     # Solve Riemann problems along one slice of data:
-!     #  in the x-direction if ixy=1
-!     #  in the y-direction if ixy=2.
+! waves: 1
+! equations: 1
 
-!     # On input, ql contains the state vector at the left edge of each cell
-!     #           qr contains the state vector at the right edge of each cell
+! Conserved quantities:
+!       1 q
 
-!     # On output, wave contains the waves,
-!     #            s the speeds,
-!     #            amdq the  left-going fluctuation
-!     #            apdq the right-going fluctuation
+! Solve Riemann problems along one slice of data:
+!  in the x-direction if ixy=1
+!  in the y-direction if ixy=2.
 
-!     # Note that the i'th Riemann problem has left state qr(i-1,:)
-!     #                                    and right state ql(i,:)
-!     # From the basic clawpack routines, this routine is called with ql = qr
+! On input, ql contains the state vector at the left edge of each cell
+!           qr contains the state vector at the right edge of each cell
+
+! On output, wave contains the waves,
+!            s the speeds,
+!            amdq the  left-going fluctuation
+!            apdq the right-going fluctuation
+
+! Note that the i'th Riemann problem has left state qr(i-1,:)
+!                                    and right state ql(i,:)
+! From the basic clawpack routines, this routine is called with ql = qr
 
 !      implicit none
 
