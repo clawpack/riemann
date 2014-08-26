@@ -2,20 +2,26 @@
 subroutine rp1(maxmx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 ! =========================================================
 
-!     # solve Riemann problems for the 1D advection equation q_t + u*q_x = 0.
-!     # For constant advection velocity u, passed in common block.
+! solve Riemann problems for the 1D advection equation q_t + u*q_x = 0.
+! For constant advection velocity u, passed in common block.
 
-!     # The advection speed u is passed in the common block cparam
-!     # On input, ql contains the state vector at the left edge of each cell
-!     #           qr contains the state vector at the right edge of each cell
-!     # On output, wave contains the waves,
-!     #            s the speeds,
-!     #            amdq the  left-going flux difference  A^- \Delta q
-!     #            apdq the right-going flux difference  A^+ \Delta q
+! waves:     1
+! equations: 1
 
-!     # Note that the i'th Riemann problem has left state qr(i-1,:)
-!     #                                    and right state ql(i,:)
-!     # From the basic clawpack routine step1, rp is called with ql = qr = q.
+! Conserved quantities:
+!       1 q
+
+! The advection speed u is passed in the common block cparam
+! On input, ql contains the state vector at the left edge of each cell
+!           qr contains the state vector at the right edge of each cell
+! On output, wave contains the waves,
+!            s the speeds,
+!            amdq the  left-going flux difference  A^- \Delta q
+!            apdq the right-going flux difference  A^+ \Delta q
+
+! Note that the i'th Riemann problem has left state qr(i-1,:)
+!                                    and right state ql(i,:)
+! From the basic clawpack routine step1, rp is called with ql = qr = q.
 
 
     implicit double precision (a-h,o-z)

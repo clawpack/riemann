@@ -1,9 +1,18 @@
-!
 subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 !
 ! Roe-solver for the Euler equations with a tracer variable and separate shear
 ! and entropy waves.
-!
+
+! waves: 4
+! equations: 5
+
+! Conserved quantities:
+!       1 density
+!       2 x_momentum
+!       3 y_momentum
+!       4 energy
+!       5 tracer
+
 ! On input, ql contains the state vector at the left edge of each cell
 !           qr contains the state vector at the right edge of each cell
 !
@@ -23,7 +32,6 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apd
 !
 ! This routine has been made thread safe by removing the common block storage
 ! of the Roe-averages.
-!
 
     
     implicit none

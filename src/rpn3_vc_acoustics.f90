@@ -2,26 +2,37 @@
 subroutine rpn3(ixyz,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 ! ==================================================================
 
-!     # Riemann solver for the acoustics equations in 3d, with varying
-!     # material properties.
+! Riemann solver for the acoustics equations in 3d, with varying
+! material properties.
+!
+! waves: 2
+! equations: 4
+! aux fields: 2
+!
+! Conserved quantities:
+!       1 pressure
+!       2 x_velocity
+!       3 y_velocity
+!       4 z_velocity
+!
+! Auxiliary variables:
+!       1 impedance
+!       2 sound_speed
 
-!     # auxl(i,1) holds impedance Z,
-!     # auxl(i,2) holds sound speed c,
+! Note that although there are 4 eigenvectors, two eigenvalues are
+! always zero and so we only need to compute 2 waves.
 
-!     # Note that although there are 4 eigenvectors, two eigenvalues are
-!     # always zero and so we only need to compute 2 waves.
+! Solve Riemann problems along one slice of data.
+! This data is along a slice in the x-direction if ixyz=1
+!                               the y-direction if ixyz=2.
+!                               the z-direction if ixyz=3.
 
-!     # Solve Riemann problems along one slice of data.
-!     # This data is along a slice in the x-direction if ixyz=1
-!     #                               the y-direction if ixyz=2.
-!     #                               the z-direction if ixyz=3.
+! On input, ql contains the state vector at the left edge of each cell
+!           qr contains the state vector at the right edge of each cell
 
-!     # On input, ql contains the state vector at the left edge of each cell
-!     #           qr contains the state vector at the right edge of each cell
-
-!     # Note that the i'th Riemann problem has left state qr(i-1,:)
-!     #                                    and right state ql(i,:)
-!     # From the basic clawpack routines, this routine is called with ql = qr
+! Note that the i'th Riemann problem has left state qr(i-1,:)
+!                                    and right state ql(i,:)
+! From the basic clawpack routines, this routine is called with ql = qr
 
 
     implicit none

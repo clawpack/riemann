@@ -2,28 +2,36 @@
 subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 ! =====================================================
 !
-!     # Roe-solver for the Euler equations
-!     # mwaves = 4:  separate shear and entropy waves.
+! Roe-solver for the Euler equations with separate shear and entropy waves.
 !
-!     # solve Riemann problems along one slice of data.
+! waves:     4
+! equations: 4
 !
-!     # On input, ql contains the state vector at the left edge of each cell
-!     #           qr contains the state vector at the right edge of each cell
+! Conserved quantities:
+!       1 density
+!       2 x_momentum
+!       3 y_momentum
+!       4 energy
+!   
+! solve Riemann problems along one slice of data.
 !
-!     # This data is along a slice in the x-direction if ixy=1 
-!     #                            or the y-direction if ixy=2.
-!     # On output, wave contains the waves, s the speeds, 
-!     # and amdq, apdq the decomposition of the flux difference
-!     #   f(qr(i-1)) - f(ql(i))  
-!     # into leftgoing and rightgoing parts respectively.
-!     # With the Roe solver we have   
-!     #    amdq  =  A^- \Delta q    and    apdq  =  A^+ \Delta q
-!     # where A is the Roe matrix.  An entropy fix can also be incorporated
-!     # into the flux differences.
+! On input, ql contains the state vector at the left edge of each cell
+!           qr contains the state vector at the right edge of each cell
 !
-!     # Note that the i'th Riemann problem has left state qr(:,i-1)
-!     #                                    and right state ql(:,i)
-!     # From the basic clawpack routines, this routine is called with ql = qr
+! This data is along a slice in the x-direction if ixy=1 
+!                            or the y-direction if ixy=2.
+! On output, wave contains the waves, s the speeds, 
+! and amdq, apdq the decomposition of the flux difference
+!   f(qr(i-1)) - f(ql(i))  
+! into leftgoing and rightgoing parts respectively.
+! With the Roe solver we have   
+!    amdq  =  A^- \Delta q    and    apdq  =  A^+ \Delta q
+! where A is the Roe matrix.  An entropy fix can also be incorporated
+! into the flux differences.
+!
+! Note that the i'th Riemann problem has left state qr(:,i-1)
+!                                    and right state ql(:,i)
+! From the basic clawpack routines, this routine is called with ql = qr
 !
 !
       implicit double precision (a-h,o-z)

@@ -16,7 +16,7 @@ install:
   # no need for pip installer here if numpy is present
   - python setup.py install
 script:
-  - cd pyclaw
+  - cd pyclaw/examples
   - nosetests
 notifications:
   email: false

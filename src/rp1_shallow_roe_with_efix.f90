@@ -2,31 +2,31 @@
 subroutine rp1(maxmx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 ! =========================================================
 
-!     # Solve Riemann problems for the 1D shallow water equations
-!     #   (h)_t + (u h)_x = 0
-!     #   (uh)_t + ( uuh + .5*gh^2 )_x = 0
-!     # using Roe's approximate Riemann solver with entropy fix for
-!     # transonic rarefractions.
+! Solve Riemann problems for the 1D shallow water equations
+!   (h)_t + (u h)_x = 0
+!   (uh)_t + ( uuh + .5*gh^2 )_x = 0
+! using Roe's approximate Riemann solver with entropy fix for
+! transonic rarefractions.
 
-!     # This function solve the Riemann problem at all interfaces in one
-!     # call
+! waves: 2
+! equations: 2
 
-!     # On input, ql contains the state vector at the left edge of each cell
-!     #           qr contains the state vector at the right edge of each cell
-!     # On output, wave contains the waves,
-!     #            s the speeds,
-!     #            amdq the  left-going flux difference  A^- \Delta q
-!     #            apdq the right-going flux difference  A^+ \Delta q
+! Conserved quantities:
+!       1 depth
+!       2 momentum
 
-!     # Note that the i'th Riemann problem has left state qr(:,i-1)
-!     #                                    and right state ql(:,i)
-!     # From the basic clawpack routine step1, rp is called with ql = qr = q.
+! This function solves the Riemann problem at all interfaces in one call
 
-!     # Here meqn=mwaves=2 should be passed from the calling routine
+! On input, ql contains the state vector at the left edge of each cell
+!           qr contains the state vector at the right edge of each cell
+! On output, wave contains the waves,
+!            s the speeds,
+!            amdq the  left-going flux difference  A^- \Delta q
+!            apdq the right-going flux difference  A^+ \Delta q
 
-!     # This Riemann solver differs from the original clawpack Riemann solver
-!     # for the interleaved indices
-
+! Note that the i'th Riemann problem has left state qr(:,i-1)
+!                                    and right state ql(:,i)
+! From the basic clawpack routine step1, rp is called with ql = qr = q.
 
 
     implicit double precision (a-h,o-z)

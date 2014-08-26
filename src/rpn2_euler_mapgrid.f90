@@ -1,8 +1,19 @@
 subroutine rpn2(ixy,maxm, meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 
-!     # Roe-solver for the Euler equations with mapped grids
+! Roe-solver for the Euler equations with mapped grids
 
-!     # Solve Riemann problems along one slice of data.
+! waves: 3
+! equations: 4
+
+! Conserved quantities:
+!       1 density
+!       2 x_momentum
+!       3 y_momentum
+!       4 energy
+
+! Need to fill in the auxiliary variables
+
+! Solve Riemann problems along one slice of data.
 
     implicit none
 

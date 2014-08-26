@@ -2,22 +2,28 @@
 subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 !   ===============================================================
 
-!     # Riemann solver for Burgers' equation in 2d:
-!     #  u_t + 0.5*(u^2)_x + 0.5*(u^2)_y = 0
+! Riemann solver for Burgers' equation in 2d:
+!  u_t + 0.5*(u^2)_x + 0.5*(u^2)_y = 0
+
+! waves: 1
+! equations: 1
+
+! Conserved quantities:
+!       1 q
+
+! On input, ql contains the state vector at the left edge of each cell
+!           qr contains the state vector at the right edge of each cell
 !
-!     # On input, ql contains the state vector at the left edge of each cell
-!     #           qr contains the state vector at the right edge of each cell
+! This data is along a slice in the x-direction if ixy=1
+!                            or the y-direction if ixy=2.
+! On output, wave contains the waves,
+!            s the speeds,
+!            amdq the  left-going flux difference  A^- \Delta q
+!            apdq the right-going flux difference  A^+ \Delta q
 !
-!     # This data is along a slice in the x-direction if ixy=1
-!     #                            or the y-direction if ixy=2.
-!     # On output, wave contains the waves,
-!     #            s the speeds,
-!     #            amdq the  left-going flux difference  A^- \Delta q
-!     #            apdq the right-going flux difference  A^+ \Delta q
-!
-!     # Note that the i'th Riemann problem has left state qr(i-1,:)
-!     #                                    and right state ql(i,:)
-!     # From the basic clawpack routines, this routine is called with ql = qr
+! Note that the i'th Riemann problem has left state qr(i-1,:)
+!                                    and right state ql(i,:)
+! From the basic clawpack routines, this routine is called with ql = qr
 
     
         implicit double precision (a-h,o-z)

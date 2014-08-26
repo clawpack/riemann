@@ -2,28 +2,34 @@
 subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 ! =====================================================
 
-!     # Riemann solver for the sample scalar equation
-!     #  q_t + u*q_x + v*q_y = 0
+! Riemann solver for the sample scalar equation
+!  q_t + u*q_x + v*q_y = 0
 
-!     # On input, ql contains the state vector at the left edge of each cell
-!     #           qr contains the state vector at the right edge of each cell
+! waves: 1
+! equations: 1
 
-!     # This data is along a slice in the x-direction if ixy=1
-!     #                            or the y-direction if ixy=2.
-!     # On output, wave contains the waves,
-!     #            s the speeds,
-!     #
-!     #            amdq = A^- Delta q,
-!     #            apdq = A^+ Delta q,
-!     #                   the decomposition of the flux difference
-!     #                       f(qr(i-1)) - f(ql(i))
-!     #                   into leftgoing and rightgoing parts respectively.
-!     #
+! Conserved quantities:
+!       1 q
 
-!     # Note that the i'th Riemann problem has left state qr(:,i-1)
-!     #                                    and right state ql(:,i)
-!     # From the basic clawpack routines, this routine is called with ql = qr
-!     # maux=0 and aux arrays are unused in this example.
+! On input, ql contains the state vector at the left edge of each cell
+!           qr contains the state vector at the right edge of each cell
+
+! This data is along a slice in the x-direction if ixy=1
+!                            or the y-direction if ixy=2.
+! On output, wave contains the waves,
+!            s the speeds,
+!
+!            amdq = A^- Delta q,
+!            apdq = A^+ Delta q,
+!                   the decomposition of the flux difference
+!                       f(qr(i-1)) - f(ql(i))
+!                   into leftgoing and rightgoing parts respectively.
+!
+
+! Note that the i'th Riemann problem has left state qr(:,i-1)
+!                                    and right state ql(:,i)
+! From the basic clawpack routines, this routine is called with ql = qr
+! maux=0 and aux arrays are unused in this example.
 
 
     implicit double precision (a-h,o-z)
