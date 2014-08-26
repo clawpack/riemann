@@ -9,8 +9,8 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apd
 !       -----------------------------------------------------------
 !     # In advective form, with interface velocities specified in
 !     # the auxiliary variable
-!     # aux(i,j,1)  =  u-velocity at left edge of cell (i,j)
-!     # aux(i,j,2)  =  v-velocity at bottom edge of cell (i,j)
+!     # aux(1,i,j)  =  u-velocity at left edge of cell (i,j)
+!     # aux(2,i,j)  =  v-velocity at bottom edge of cell (i,j)
 !       -----------------------------------------------------------
 
 !     # solve Riemann problems along one slice of data.
