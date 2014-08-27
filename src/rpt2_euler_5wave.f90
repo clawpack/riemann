@@ -31,7 +31,9 @@ subroutine rpt2(ixy,imp,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,aux1,aux2,aux3,asdq,b
 
     ! Common block - ideal gas constant
     real(kind=8) :: gamma, gamma1
-    common /cparam/  gamma,gamma1
+    common /cparam/  gamma
+
+    gamma1 = gamma - 1.d0
 
     ! Initialize output
     bmasdq = 0.d0

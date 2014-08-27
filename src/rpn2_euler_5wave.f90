@@ -65,7 +65,9 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apd
     ! Common block storage
     ! Ideal gas constant
     real(kind=8) :: gamma, gamma1
-    common /cparam/  gamma,gamma1
+    common /cparam/  gamma
+
+    gamma1 = gamma - 1.d0
 
     ! Set mu to point to  the component of the system that corresponds to 
     ! momentum in the direction of this slice, mv to the orthogonal momentum:
