@@ -41,9 +41,11 @@ subroutine rpn2(ixy,maxm, meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,ap
     integer :: mcapa,locrot, locarea
     double precision :: rot(4), area
 
-    common /param/  gamma,gamma1
+    common /param/  gamma
 
     data efix /.true./
+
+    gamma1 = gamma - 1.d0
 
     call get_aux_locations_n(ixy,mcapa,locrot,locarea)
 
@@ -155,7 +157,9 @@ subroutine rpn2(ixy,maxm, meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,ap
 
     integer :: m
 
-    common /param/ gamma, gamma1
+    common /param/ gamma
+
+    gamma1 = gamma - 1.d0
 
     s1 = speeds(1,1) + speeds(2,1)
     s2 = speeds(1,2) + speeds(2,2)

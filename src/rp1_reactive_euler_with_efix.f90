@@ -41,9 +41,11 @@ subroutine rp1(maxmx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
     dimension u(1-mbc:maxmx+mbc),enth(1-mbc:maxmx+mbc)
     dimension a(1-mbc:maxmx+mbc)
     logical :: efix
-    common /cparam/  gamma,gamma1,qheat
+    common /cparam/  gamma, qheat
 
     data efix /.true./    !# use entropy fix for transonic rarefactions
+
+    gamma1 = gamma - 1.d0
 
 !     # Compute Roe-averaged quantities:
 
