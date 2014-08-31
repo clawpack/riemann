@@ -8,7 +8,7 @@ subroutine rp1(maxmx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 ! waves: 3
 ! equations: 3
 
-! Conserved quantites:
+! Conserved quantities:
 !       1 density
 !       2 momentum
 !       3 energy
