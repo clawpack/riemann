@@ -172,6 +172,63 @@ def shallow_hll_1D(q_l,q_r,aux_l,aux_r,problem_data):
             apdq[m,:] += np.max(s_index,axis=0) * wave[m,mw,:]
             
     return wave, s, amdq, apdq
+
+
+def shallow_fwave_1d(q_l, q_r, aux_l, aux_r, problem_data):
+    r"""Shallow water Riemann solver using fwaves
+
+    Also includes support for bathymetry but be wary if you think you might have
+    dry states as this has not been tested.  
+    
+    *problem_data* should contain:
+     - *grav* - (float) Gravitational constant
+     - *sea_level* - (float) Datum from which the dry-state is calculated.
+            
+    :Version: 1.0 (2014-09-05)
+    """
+
+    g = problem_data['grav']
+
+    num_rp = q_l.shape[1]
+    num_eqn = 2
+    num_waves = 2
+    
+    # Output arrays
+    fwave = np.empty( (num_eqn, num_waves, num_rp) )
+    s = np.empty( (num_waves, num_rp) )
+    amdq = np.zeros( (num_eqn, num_rp) )
+    apdq = np.zeros( (num_eqn, num_rp) )
+
+    # Extract state
+    u_l = np.where(q_l[0,:] - problem_data['sea_level'] > 1e-3, 
+                   q_l[1,:] / q_l[0,:], 0.0)
+    u_r = np.where(q_r[0,:] - problem_data['sea_level'] > 1e-3, 
+                   q_r[1,:] / q_r[0,:], 0.0)
+    phi_l = q_l[0,:] * u_l**2 + 0.5 * g * q_l[0,:]**2
+    phi_r = q_r[0,:] * u_r**2 + 0.5 * g * q_r[0,:]**2
+
+    # Speeds
+    s[0,:] = u_l - np.sqrt(g * q_l[0,:])
+    s[1,:] = u_r + np.sqrt(g * q_r[0,:])
+
+    delta1 = q_r[1,:] - q_l[1,:]
+    delta2 = phi_r - phi_l + g * 0.5 * (q_r[0,:] + q_l[0,:]) * (aux_r[0,:] - aux_l[0,:])
+
+    beta1 = (s[1,:] * delta1 - delta2) / (s[1,:] - s[0,:])
+    beta2 = (delta2 - s[0,:] * delta1) / (s[1,:] - s[0,:])
+
+    fwave[0,0,:] = beta1
+    fwave[1,0,:] = beta1 * s[0,:]
+    fwave[0,1,:] = beta2
+    fwave[1,1,:] = beta2 * s[1,:]
+
+    for m in xrange(num_eqn):
+        for mw in xrange(num_waves):
+            amdq[m,:] += (s[mw,:] < 0.0) * fwave[m,mw,:]
+            apdq[m,:] += (s[mw,:] >= 0.0) * fwave[m,mw,:]
+
+    return fwave, s, amdq, apdq
+
     
 def shallow_exact_1D(q_l,q_r,aux_l,aux_r,problem_data):
     r"""
