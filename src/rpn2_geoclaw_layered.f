@@ -36,6 +36,7 @@ c
       use geoclaw_module, only: g => grav, drytol => dry_tolerance
       use geoclaw_module, only: earth_radius, deg2rad
       use amr_module, only: mcapa
+      use multilayer_module, only: rho
 
       implicit none
 
@@ -66,6 +67,10 @@ c
       logical rare1,rare2
 
       !loop through Riemann problems at each grid cell
+      fwave = 0.d0
+      s = 0.d0
+      apdq = 0.d0
+      amdq = 0.d0
       do i=2-mbc,mx+mbc
 
 !-----------------------Initializing-----------------------------------
@@ -75,7 +80,7 @@ c
          endif
 
          !Initialize Riemann problem for grid interface
-         do mw=1,mwaves
+         do mw=1,3
               s(mw,i)=0.d0
                  fwave(1,mw,i)=0.d0
                  fwave(2,mw,i)=0.d0
@@ -105,20 +110,21 @@ c        !set normal direction
          endif
 
          !skip problem if in a completely dry area
-         if (qr(1,i-1) <= drytol .and. ql(1,i) <= drytol) then
+         if (qr(1,i-1)/rho(1) <= drytol .and. 
+     &       ql(1,i)/rho(1) <= drytol) then
             go to 30
          endif
 
          !Riemann problem variables
-         hL = qr(1,i-1) 
-         hR = ql(1,i) 
-         huL = qr(mu,i-1) 
-         huR = ql(mu,i) 
+         hL = qr(1,i-1) / rho(1)
+         hR = ql(1,i) / rho(1)
+         huL = qr(mu,i-1) / rho(1)
+         huR = ql(mu,i) / rho(1)
          bL = auxr(1,i-1)
          bR = auxl(1,i)
 
-         hvL=qr(nv,i-1) 
-         hvR=ql(nv,i)
+         hvL=qr(nv,i-1)  / rho(1)
+         hvR=ql(nv,i) / rho(1)
 
          !check for wet/dry boundary
          if (hR.gt.drytol) then
@@ -222,11 +228,11 @@ c        !eliminate ghost fluxes for wall
                fw(3,mw)=fw(3,mw)*wall(mw)
          enddo
 
-         do mw=1,mwaves
+         do mw=1,3
             s(mw,i)=sw(mw)
-            fwave(1,mw,i)=fw(1,mw)
-            fwave(mu,mw,i)=fw(2,mw)
-            fwave(nv,mw,i)=fw(3,mw)
+            fwave(1,mw,i)=fw(1,mw) * rho(1)
+            fwave(mu,mw,i)=fw(2,mw) * rho(1)
+            fwave(nv,mw,i)=fw(3,mw) * rho(1)
 !            write(51,515) sw(mw),fw(1,mw),fw(2,mw),fw(3,mw)
 !515         format("++sw",4e25.16)
          enddo
@@ -244,7 +250,7 @@ c==========Capacity for mapping from latitude longitude to physical space====
              dxdc=earth_radius*cos(auxl(3,i))*deg2rad
           endif
 
-          do mw=1,mwaves
+          do mw=1,3
 c             if (s(mw,i) .gt. 316.d0) then
 c               # shouldn't happen unless h > 10 km!
 c                write(6,*) 'speed > 316: i,mw,s(mw,i): ',i,mw,s(mw,i)
@@ -264,7 +270,7 @@ c============= compute fluctuations=============================================
          amdq(1:3,:) = 0.d0
          apdq(1:3,:) = 0.d0
          do i=2-mbc,mx+mbc
-            do  mw=1,mwaves
+            do  mw=1,3
                if (s(mw,i) < 0.d0) then
                      amdq(1:3,i) = amdq(1:3,i) + fwave(1:3,mw,i)
                else if (s(mw,i) > 0.d0) then
