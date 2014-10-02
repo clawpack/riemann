@@ -64,7 +64,7 @@ subroutine rptt3(ixyz,icoor,imp,impt,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,aux1,aux
     dimension     aux3(maux,1-mbc:maxm+mbc,3)
 
     double precision :: coeff
-    common /comrp/ coeff(3)
+    common /cparam/ coeff(3)
 
     integer :: iuvw, i
     double precision :: sc
