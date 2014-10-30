@@ -2,24 +2,31 @@
 subroutine rp1(maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 ! =====================================================
 
-!     # Riemann solver for the acoustics equations in 1d,
+! Riemann solver for the acoustics equations in 1D.
 
-!     # On input, ql contains the state vector at the left edge of each cell
-!     #           qr contains the state vector at the right edge of each cell
+! waves:     2
+! equations: 2
 
-!     # On output, wave contains the waves,
-!     #            s the speeds,
-!     #
-!     #            amdq = A^- Delta q,
-!     #            apdq = A^+ Delta q,
-!     #                   the decomposition of the flux difference
-!     #                       f(qr(i-1)) - f(ql(i))
-!     #                   into leftgoing and rightgoing parts respectively.
-!     #
+! Conserved quantities:
+!       1 pressure
+!       2 velocity
 
-!     # Note that the i'th Riemann problem has left state qr(i-1,:)
-!     #                                    and right state ql(i,:)
-!     # From the basic clawpack routines, this routine is called with ql = qr
+! On input, ql contains the state vector at the left edge of each cell
+!           qr contains the state vector at the right edge of each cell
+
+! On output, wave contains the waves,
+!            s the speeds,
+! 
+!            amdq = A^- Delta q,
+!            apdq = A^+ Delta q,
+!                   the decomposition of the flux difference
+!                       f(qr(i-1)) - f(ql(i))
+!                   into leftgoing and rightgoing parts respectively.
+! 
+
+! Note that the i'th Riemann problem has left state qr(i-1,:)
+!                                    and right state ql(i,:)
+! From the basic clawpack routines, this routine is called with ql = qr
 
 
     implicit double precision (a-h,o-z)

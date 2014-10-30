@@ -1,29 +1,36 @@
 ! =====================================================
 subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 ! =====================================================
-!     # Riemann solver for the acoustics equations in 2d,
+! Riemann solver for the acoustics equations in 2d.
 
-!     # Note that although there are 3 eigenvectors, the second eigenvalue
-!     # is always zero and so we only need to compute 2 waves.
-!     #
-!     # solve Riemann problems along one slice of data.
+! waves: 3
+! equations: 3
 
-!     # On input, ql contains the state vector at the left edge of each cell
-!     #           qr contains the state vector at the right edge of each cell
+! Conserved quantities:
+!       1 pressure
+!       2 x_velocity
+!       3 y_velocity
 
-!     # This data is along a slice in the x-direction if ixy=1
-!     #                            or the y-direction if ixy=2.
-!     # On output, wave contains the waves,
-!     #            s the speeds,
-!     #            amdq the  left-going flux difference  A^- \Delta q
-!     #            apdq the right-going flux difference  A^+ \Delta q
+! Note that although there are 3 eigenvectors, the second eigenvalue
+! is always zero and so we only need to compute 2 waves.
+!
+! solve Riemann problems along one slice of data.
+
+! On input, ql contains the state vector at the left edge of each cell
+!           qr contains the state vector at the right edge of each cell
+
+! This data is along a slice in the x-direction if ixy=1
+!                            or the y-direction if ixy=2.
+! On output, wave contains the waves,
+!            s the speeds,
+!            amdq the  left-going flux difference  A^- \Delta q
+!            apdq the right-going flux difference  A^+ \Delta q
 
 
-!     # Note that the i'th Riemann problem has left state qr(i-1,:)
-!     #                                    and right state ql(i,:)
-!     # From the basic clawpack routines, this routine is called with ql = qr
+! Note that the i'th Riemann problem has left state qr(i-1,:)
+!                                    and right state ql(i,:)
+! From the basic clawpack routines, this routine is called with ql = qr
 
-!     # aux arrays not used in this solver.
 
     implicit double precision (a-h,o-z)
 

@@ -2,19 +2,27 @@
 subroutine rp1(maxmx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 ! =========================================================
 
-!     # solve Riemann problems for the 1D Euler equations using Roe's
-!     # approximate Riemann solver.
+! solve Riemann problems for the 1D Euler equations using Roe's
+! approximate Riemann solver.
 
-!     # On input, ql contains the state vector at the left edge of each cell
-!     #           qr contains the state vector at the right edge of each cell
-!     # On output, wave contains the waves,
-!     #            s the speeds,
-!     #            amdq the  left-going flux difference  A^- \Delta q
-!     #            apdq the right-going flux difference  A^+ \Delta q
+! waves: 3
+! equations: 3
 
-!     # Note that the i'th Riemann problem has left state qr(:,i-1)
-!     #                                    and right state ql(:,i)
-!     # From the basic clawpack routine step1, rp is called with ql = qr = q.
+! Conserved quantities:
+!       1 density
+!       2 momentum
+!       3 energy
+
+! On input, ql contains the state vector at the left edge of each cell
+!           qr contains the state vector at the right edge of each cell
+! On output, wave contains the waves,
+!            s the speeds,
+!            amdq the  left-going flux difference  A^- \Delta q
+!            apdq the right-going flux difference  A^+ \Delta q
+
+! Note that the i'th Riemann problem has left state qr(:,i-1)
+!                                    and right state ql(:,i)
+! From the basic clawpack routine step1, rp is called with ql = qr = q.
 
 
     implicit double precision (a-h,o-z)
@@ -31,9 +39,11 @@ subroutine rp1(maxmx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
     dimension u(1-mbc:maxmx+mbc),enth(1-mbc:maxmx+mbc)
     dimension a(1-mbc:maxmx+mbc)
     logical :: efix
-    common /cparam/  gamma,gamma1
+    common /cparam/  gamma
 
     data efix /.true./    !# use entropy fix for transonic rarefactions
+
+    gamma1 = gamma - 1.d0
 
 !     # Compute Roe-averaged quantities:
 

@@ -1,26 +1,31 @@
 subroutine rpn3(ixyz,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
-    ! Riemann-solver for the 3d Burgers' equation
-    !    q_t  +  u*(.5*q^2)_x + v*(.5*q^2)_y + w*(.5*q^2)_z = 0
-    ! where u,v,w are a given scalars, stored in the vector coeff
-    ! that is set in setprob.f and passed in the common block comrp.
-    !
-    ! -----------------------------------------------------------
-    !
-    ! solve Riemann problems along one slice of data.
-    ! This data is along a slice in the x-direction if ixyz=1
-    !                               the y-direction if ixyz=2.
-    !                               the z-direction if ixyz=3.
-    !
-    ! On input, ql contains the state vector at the left edge of each cell
-    !           qr contains the state vector at the right edge of each cell
-    !
-    ! On output, wave contains the waves, s the speeds,
-    ! and amdq, apdq the left-going and right-going flux differences,
-    ! respectively.  
-    !
-    ! Note that the i'th Riemann problem has left state qr(i-1,:)
-    !                                    and right state ql(i,:)
-    ! From the basic clawpack routines, this routine is called with ql = qr
+! Riemann-solver for the 3d Burgers' equation
+
+!    q_t  +  u*(.5*q^2)_x + v*(.5*q^2)_y + w*(.5*q^2)_z = 0
+
+! where u,v,w are a given scalars, stored in the common block cparam.
+!
+! waves: 1
+! equations: 1
+!
+! Conserved quantities:
+!       1 q
+!
+! Solve Riemann problems along one slice of data.
+! This data is along a slice in the x-direction if ixyz=1
+!                               the y-direction if ixyz=2.
+!                               the z-direction if ixyz=3.
+!
+! On input, ql contains the state vector at the left edge of each cell
+!           qr contains the state vector at the right edge of each cell
+!
+! On output, wave contains the waves, s the speeds,
+! and amdq, apdq the left-going and right-going flux differences,
+! respectively.  
+!
+! Note that the i'th Riemann problem has left state qr(i-1,:)
+!                                    and right state ql(i,:)
+! From the basic clawpack routines, this routine is called with ql = qr
 
     implicit none
 
@@ -34,12 +39,10 @@ subroutine rpn3(ixyz,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,ap
     dimension   qr(meqn,1-mbc:maxm+mbc)
     dimension amdq(meqn,1-mbc:maxm+mbc)
     dimension apdq(meqn,1-mbc:maxm+mbc)
-    dimension auxl(maux,1-mbc:maxm+mbc)
-    dimension auxr(maux,1-mbc:maxm+mbc)
     logical, parameter :: efix = .true.
 
     double precision :: coeff
-    common /comrp/ coeff(3)
+    common /cparam/ coeff(3)
 
     integer :: i
 
