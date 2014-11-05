@@ -47,7 +47,8 @@ def configuration(parent_package='',top_path=None):
     for rp in one_d_ptwise_riemann:
       rp_ext = rp + "_1D_ptwise"
       rp_src = [os.path.join(src_dir, 'rp1_ptwise.f90'), 
-                os.path.join(src_dir, 'rp1_ptwise_' + rp + '.f90')]
+                os.path.join(src_dir, 'rp1_' + rp + '_ptwise.f90')]
+      print rp_src
       config.add_extension(rp_ext, rp_src)
 
     for rp in one_d_riemann:

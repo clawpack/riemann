@@ -1,7 +1,7 @@
 # List of Solvers
 RIEMANN_SOLVERS = \
-	rp1_ptwise_advection \
-	rp1_ptwise_acoustics \
+	rp1_advection_ptwise \
+	rp1_acoustics_ptwise \
 	rp1_acoustics \
 	rp1_advection \
 	rp1_burgers \
@@ -30,7 +30,7 @@ SHARED_OBJECTS = $(addsuffix .so,$(RIEMANN_SOLVERS))
 COMPILER=gnu95
 
 # Generic targets
-rp1_ptwise_%.so: $(CLAW)/riemann/src/rp1_ptwise.f90 $(CLAW)/riemann/src/rp1_ptwise_%.f90
+rp1_ptwise_%.so: $(CLAW)/riemann/src/rp1_ptwise.f90 $(CLAW)/riemann/src/rp1_%_ptwise.f90
 	f2py --fcompiler=$(COMPILER) -m $(basename $(nodir $@)) -c $^
 rp1_%.so: $(CLAW)/riemann/src/rp1_%.f90
 	f2py --fcompiler=$(COMPILER) -m $(basename $(notdir $@)) -c $^
