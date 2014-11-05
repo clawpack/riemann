@@ -59,6 +59,7 @@ try:
     import traffic_1D
     import traffic_vc_1D
     import acoustics_2D
+    import acoustics_2D_ptwise
     import advection_2D
     import burgers_2D
     import euler_mapgrid_2D

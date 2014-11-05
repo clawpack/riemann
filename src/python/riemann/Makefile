@@ -11,6 +11,7 @@ RIEMANN_SOLVERS = \
 	rp1_shallow_roe_with_efix \
 	rp1_layered_shallow_water \
 	rp1_traffic \
+	rp2_acoustics_ptwise \
 	rp2_acoustics \
 	rp2_advection \
 	rp2_euler_5wave \
@@ -30,8 +31,12 @@ SHARED_OBJECTS = $(addsuffix .so,$(RIEMANN_SOLVERS))
 COMPILER=gnu95
 
 # Generic targets
-rp1_ptwise_%.so: $(CLAW)/riemann/src/rp1_ptwise.f90 $(CLAW)/riemann/src/rp1_%_ptwise.f90
+rp1_%_ptwise.so: $(CLAW)/riemann/src/rp1_ptwise.f90 $(CLAW)/riemann/src/rp1_%_ptwise.f90
 	f2py --fcompiler=$(COMPILER) -m $(basename $(nodir $@)) -c $^
+
+rp2_%_ptwise.so: $(CLAW)/riemann/src/rpn2_ptwise.f90 $(CLAW)/riemann/src/rpn2_%_ptwise.f90 $(CLAW)/riemann/src/rpt2_%_ptwise.f90
+	f2py --fcompiler=$(COMPILER) -m $(basename $(nodir $@)) -c $^
+
 rp1_%.so: $(CLAW)/riemann/src/rp1_%.f90
 	f2py --fcompiler=$(COMPILER) -m $(basename $(notdir $@)) -c $^
 
