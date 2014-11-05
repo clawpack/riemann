@@ -48,7 +48,9 @@ import vc_advection_3D_constants
 
 try:
     import acoustics_1D
+    import acoustics_1D_ptwise
     import advection_1D
+    import advection_1D_ptwise
     import burgers_1D
     import euler_with_efix_1D
     import nonlinear_elasticity_fwave_1D

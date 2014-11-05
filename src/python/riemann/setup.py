@@ -3,6 +3,9 @@
 #
 # f2py -c ../../rp1_layered_shallow_water.f90 -m layered_shallow_water_1D
 
+one_d_ptwise_riemann = ['acoustics',
+                        'advection']
+
 one_d_riemann = ['acoustics',
                    'advection',
                    'burgers',
@@ -40,6 +43,12 @@ def configuration(parent_package='',top_path=None):
     config = Configuration('riemann', parent_package, top_path)
 
     src_dir = os.path.join(os.path.dirname(__file__),'src')
+
+    for rp in one_d_ptwise_riemann:
+      rp_ext = rp + "_1D_ptwise"
+      rp_src = [os.path.join(src_dir, 'rp1_ptwise.f90'), 
+                os.path.join(src_dir, 'rp1_ptwise_' + rp + '.f90')]
+      config.add_extension(rp_ext, rp_src)
 
     for rp in one_d_riemann:
         rp_ext = rp+'_1D'
