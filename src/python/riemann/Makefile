@@ -1,5 +1,7 @@
 # List of Solvers
 RIEMANN_SOLVERS = \
+	rp1_advection_ptwise \
+	rp1_acoustics_ptwise \
 	rp1_acoustics \
 	rp1_advection \
 	rp1_burgers \
@@ -9,6 +11,7 @@ RIEMANN_SOLVERS = \
 	rp1_shallow_roe_with_efix \
 	rp1_layered_shallow_water \
 	rp1_traffic \
+	rp2_acoustics_ptwise \
 	rp2_acoustics \
 	rp2_advection \
 	rp2_euler_5wave \
@@ -28,6 +31,12 @@ SHARED_OBJECTS = $(addsuffix .so,$(RIEMANN_SOLVERS))
 COMPILER=gnu95
 
 # Generic targets
+rp1_%_ptwise.so: $(CLAW)/riemann/src/rp1_ptwise.f90 $(CLAW)/riemann/src/rp1_%_ptwise.f90
+	f2py --fcompiler=$(COMPILER) -m $(basename $(nodir $@)) -c $^
+
+rp2_%_ptwise.so: $(CLAW)/riemann/src/rpn2_ptwise.f90 $(CLAW)/riemann/src/rpn2_%_ptwise.f90 $(CLAW)/riemann/src/rpt2_%_ptwise.f90
+	f2py --fcompiler=$(COMPILER) -m $(basename $(nodir $@)) -c $^
+
 rp1_%.so: $(CLAW)/riemann/src/rp1_%.f90
 	f2py --fcompiler=$(COMPILER) -m $(basename $(notdir $@)) -c $^
 
@@ -60,7 +69,7 @@ rp2_euler_mapgrid.so: $(CLAW)/riemann/src/rpn2_euler_mapgrid.f90 $(CLAW)/riemann
 	
 rp2_euler_4wave.so: $(CLAW)/riemann/src/rpn2_euler_4wave.f90 $(CLAW)/riemann/src/rpt2_euler.f90
 	f2py --fcompiler=$(COMPILER) -m $(basename $(notdir $@)) -c $^
-	
+
 # This Riemann solver is not compatible with PyClaw - Fix some day but will
 # leave the rule here for the future
 rp2_layered_shallow_water.so: $(CLAW)/riemann/src/rpn2_layered_shallow_water.f90 $(CLAW)/riemann/src/rpt2_layered_shallow_water.f90 $(CLAW)/riemann/src/geoclaw_riemann_utils.f

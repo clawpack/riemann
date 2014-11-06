@@ -48,7 +48,9 @@ import vc_advection_3D_constants
 
 try:
     import acoustics_1D
+    import acoustics_1D_ptwise
     import advection_1D
+    import advection_1D_ptwise
     import burgers_1D
     import euler_with_efix_1D
     import nonlinear_elasticity_fwave_1D
@@ -57,6 +59,7 @@ try:
     import traffic_1D
     import traffic_vc_1D
     import acoustics_2D
+    import acoustics_2D_ptwise
     import advection_2D
     import burgers_2D
     import euler_mapgrid_2D
