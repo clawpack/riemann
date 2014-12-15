@@ -7,6 +7,7 @@ one_d_ptwise_riemann = ['acoustics',
                         'advection']
 
 one_d_riemann = ['acoustics',
+                 'acoustics_variable',
                    'advection',
                    'burgers',
                    'traffic',

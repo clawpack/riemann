@@ -1,5 +1,6 @@
 num_eqn = {
         'acoustics_1D' : 2,
+        'acoustics_variable_1D' : 2,
         'advection_1D' : 1,
         'advection_1D_py' : 1,
         'burgers_1D' : 1,
@@ -34,6 +35,7 @@ num_eqn = {
 
 num_waves = {
         'acoustics_1D' : 2,
+        'acoustics_variable_1D' : 2,
         'advection_1D' : 1,
         'advection_1D_py' : 1,
         'burgers_1D' : 1,
