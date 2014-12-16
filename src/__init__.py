@@ -19,6 +19,7 @@ from nonlinear_elasticity_1D_py import nonlinear_elasticity_1D
 import static
 
 import acoustics_1D_constants
+import acoustics_variable_1D_constants
 import advection_1D_constants
 import burgers_1D_constants
 import euler_with_efix_1D_constants
@@ -48,6 +49,7 @@ import vc_advection_3D_constants
 
 try:
     import acoustics_1D
+    import acoustics_variable_1D
     import acoustics_1D_ptwise
     import advection_1D
     import advection_1D_ptwise
