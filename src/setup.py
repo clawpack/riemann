@@ -20,6 +20,7 @@ one_d_riemann = ['acoustics',
 two_d_ptwise_riemann = ['acoustics']
 
 two_d_riemann = ['acoustics',
+                 'acoustics_mapped',
                    'advection',
                    'burgers',
                    'euler_5wave',
