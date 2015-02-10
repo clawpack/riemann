@@ -1,5 +1,5 @@
 ! =====================================================
-subroutine rpt2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr,aux1,aux2,aux3,imp,asdq,bmasdq,bpasdq)
+subroutine rpt2(ixy,imp,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,aux1,aux2,aux3,asdq,bmasdq,bpasdq)
 ! =====================================================
 ! Riemann solver in the transverse direction for the acoustics equations
 ! on general quadrilateral grids.
@@ -10,15 +10,15 @@ subroutine rpt2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr,aux1,aux2,aux3,imp,asdq,bmasdq
 
     implicit none
 
-    integer, intent(in) :: maxm, meqn, mwaves, mbc, mx, imp
+    integer, intent(in) :: maxm, meqn, mwaves, mbc, mx, imp, maux
     double precision, intent(in)      :: ql(meqn, 1-mbc:maxm+mbc)
     double precision, intent(in)      :: qr(meqn, 1-mbc:maxm+mbc)
     double precision, intent(out)   :: asdq(meqn, 1-mbc:maxm+mbc)
     double precision, intent(out) :: bmasdq(meqn, 1-mbc:maxm+mbc)
     double precision, intent(out) :: bpasdq(meqn, 1-mbc:maxm+mbc)
-    double precision, intent(in)    :: aux1(9,    1-mbc:maxm+mbc)
-    double precision, intent(in)    :: aux2(9,    1-mbc:maxm+mbc)
-    double precision, intent(in)    :: aux3(9,    1-mbc:maxm+mbc)
+    double precision, intent(in)    :: aux1(maux,    1-mbc:maxm+mbc)
+    double precision, intent(in)    :: aux2(maux,    1-mbc:maxm+mbc)
+    double precision, intent(in)    :: aux3(maux,    1-mbc:maxm+mbc)
 
     integer :: ixy, ixtran, iytran, ilenrat, i1, i, m
     double precision :: cm, cp, zm, zz, zp, xtran, ytran, asdqt, a1, a2
@@ -42,48 +42,48 @@ subroutine rpt2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr,aux1,aux2,aux3,imp,asdq,bmasdq
         endif
 
 !       pressure component of asdq:
-        asdqp = asdq(i,1) 
+        asdqp = asdq(1,i)
 !
 !       sound speed in each row of cells:
-        cm = aux1(i1,9)
-        cp = aux3(i1,9)
+        cm = aux1(9,i1)
+        cp = aux3(9,i1)
 !
 !       impedances:
-        zm = aux1(i1,8)
-        zz = aux2(i1,8)
-        zp = aux3(i1,8)
+        zm = aux1(8,i1)
+        zz = aux2(8,i1)
+        zp = aux3(8,i1)
 
 !       up-going:
-        xtran = aux3(i,ixtran)
-        ytran = aux3(i,iytran)
+        xtran = aux3(ixtran,i)
+        ytran = aux3(iytran,i)
 
-        asdqt = xtran*asdq(i,2) + ytran*asdq(i,3)
+        asdqt = xtran*asdq(2,i) + ytran*asdq(3,i)
         a2 = (asdqp + zz*asdqt) / (zz+zp)
         bpasdqp = a2*zp
         bpasdqt = a2
 
-        bpasdq(i,1) = cp * bpasdqp
-        bpasdq(i,2) = cp * xtran*bpasdqt 
-        bpasdq(i,3) = cp * ytran*bpasdqt 
+        bpasdq(1,i) = cp * bpasdqp
+        bpasdq(2,i) = cp * xtran*bpasdqt
+        bpasdq(3,i) = cp * ytran*bpasdqt
 
 !       down-going:
 
-        xtran = aux2(i,ixtran)
-        ytran = aux2(i,iytran)
+        xtran = aux2(ixtran,i)
+        ytran = aux2(iytran,i)
 
-        asdqt = xtran*asdq(i,2) + ytran*asdq(i,3)
+        asdqt = xtran*asdq(2,i) + ytran*asdq(3,i)
         a1 = (-asdqp + zz*asdqt) / (zm + zz)
         bmasdqp = -a1*zm
         bmasdqt = a1
 
-        bmasdq(i,1) = -cm * bmasdqp
-        bmasdq(i,2) = -cm * xtran*bmasdqt 
-        bmasdq(i,3) = -cm * ytran*bmasdqt 
+        bmasdq(1,i) = -cm * bmasdqp
+        bmasdq(2,i) = -cm * xtran*bmasdqt
+        bmasdq(3,i) = -cm * ytran*bmasdqt
 
 !       scale by ratio of lengths:
         do m=1,3
-            bmasdq(i,m) = bmasdq(i,m)*aux2(i,ilenrat)
-            bpasdq(i,m) = bpasdq(i,m)*aux3(i,ilenrat)
+            bmasdq(m,i) = bmasdq(m,i)*aux2(ilenrat,i)
+            bpasdq(m,i) = bpasdq(m,i)*aux3(ilenrat,i)
         enddo
     enddo
     return

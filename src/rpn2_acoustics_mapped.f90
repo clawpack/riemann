@@ -1,5 +1,5 @@
 ! =====================================================
-subroutine rpn2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
+subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 ! =====================================================
 ! Riemann solver for the acoustics equations in 2d 
 ! on general quadrilateral grid, with variable coefficients
@@ -44,21 +44,21 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 ! where A is the Roe matrix.  An entropy fix can also be incorporated
 ! into the flux differences.
 !
-! Note that the i'th Riemann problem has left state qr(i-1,:)
-!                                   and right state ql(i,:)
+! Note that the i'th Riemann problem has left state qr(:,i-1)
+!                                   and right state ql(:,i)
 ! From the basic clawpack routines, this routine is called with ql = qr.
 
     implicit none
 !
-    integer, intent(in) :: maxm, meqn, mwaves, mbc, mx
+    integer, intent(in) :: maxm, meqn, mwaves, mbc, mx, maux
     double precision, intent(out) :: wave(meqn, mwaves, 1-mbc:maxm+mbc)
     double precision, intent(out) :: s(mwaves,  1-mbc:maxm+mbc)
     double precision, intent(in)  ::   ql(meqn, 1-mbc:maxm+mbc)
     double precision, intent(in)  ::   qr(meqn, 1-mbc:maxm+mbc)
     double precision, intent(out) :: apdq(meqn, 1-mbc:maxm+mbc)
     double precision, intent(out) :: amdq(meqn, 1-mbc:maxm+mbc)
-    double precision, intent(in)  :: auxl(9,    1-mbc:maxm+mbc)
-    double precision, intent(in)  :: auxr(9,    1-mbc:maxm+mbc)
+    double precision, intent(in)  :: auxl(maux, 1-mbc:maxm+mbc)
+    double precision, intent(in)  :: auxr(maux, 1-mbc:maxm+mbc)
 !
 !   ------------
     double precision :: delta(3)
@@ -90,45 +90,42 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 
 ! Determine normal velocity components at this edge:
     do i=2-mbc,mx+mbc
-        alpha = auxl(i,inx)
-        beta  = auxl(i,iny)
-        unorl = alpha*ql(i,2) + beta*ql(i,3)
-        unorr = alpha*qr(i-1,2) + beta*qr(i-1,3)
-    enddo
+        alpha = auxl(inx,i)
+        beta  = auxl(iny,i)
+        unorl = alpha*ql(2,i) + beta*ql(3,i)
+        unorr = alpha*qr(2,i-1) + beta*qr(3,i-1)
 
-
-    do i = 2-mbc, mx+mbc
-        delta(1) = ql(i,1) - qr(i-1,1)
+        delta(1) = ql(1,i) - qr(1,i-1)
         delta(2) = unorl - unorr
 
-        zi  = auxl(i,8)
-        zim = auxl(i-1,8)
-        ci  = auxl(i,9)
-        cim = auxl(i-1,9)
+        zi  = auxl(8,i)
+        zim = auxl(8,i-1)
+        ci  = auxl(9,i)
+        cim = auxl(9,i-1)
 
         a1 = (-delta(1) + zi*delta(2)) / (zim + zi)
         a2 =  (delta(1) + zim*delta(2)) / (zim + zi)
 
 !       Scale the velocities by the length ratios on each side.
 
-        wave(i,1,1) = -a1*zim
-        wave(i,2,1) = a1 * alpha
-        wave(i,3,1) = a1 * beta
-        s(i,1) = -cim * auxl(i,ilenrat)
+        wave(1,1,i) = -a1*zim
+        wave(2,1,i) = a1 * alpha
+        wave(3,1,i) = a1 * beta
+        s(1,i) = -cim * auxl(ilenrat,i)
 
-        wave(i,1,2) = a2*zi
-        wave(i,2,2) = a2 * alpha
-        wave(i,3,2) = a2 * beta
-        s(i,2) = ci * auxl(i,ilenrat)
+        wave(1,2,i) = a2*zi
+        wave(2,2,i) = a2 * alpha
+        wave(3,2,i) = a2 * beta
+        s(2,i) = ci * auxl(ilenrat,i)
     enddo
 
 !   Compute the left-going and right-going fluctuations.
-!   Note that s(i,1) < 0   and   s(i,2) > 0.
+!   Note that s(1,i) < 0   and   s(2,i) > 0.
 
     do m=1,meqn
         do i = 2-mbc, mx+mbc
-            amdq(i,m) = s(i,1)*wave(i,m,1)
-            apdq(i,m) = s(i,2)*wave(i,m,2)
+            amdq(m,i) = s(1,i)*wave(m,1,i)
+            apdq(m,i) = s(2,i)*wave(m,2,i)
         enddo
     enddo
 
