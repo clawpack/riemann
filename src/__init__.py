@@ -29,6 +29,7 @@ import shallow_roe_with_efix_1D_constants
 import traffic_1D_constants
 import traffic_vc_1D_constants
 import acoustics_2D_constants
+import acoustics_mapped_2D_constants
 import advection_2D_constants
 import burgers_2D_constants
 import euler_mapgrid_2D_constants
@@ -61,6 +62,7 @@ try:
     import traffic_1D
     import traffic_vc_1D
     import acoustics_2D
+    import acoustics_mapped_2D
     import acoustics_2D_ptwise
     import advection_2D
     import burgers_2D

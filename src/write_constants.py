@@ -52,7 +52,7 @@ for filename in os.listdir('.'):
             out_name = filename.split('.')[0][5:]+'_2D_constants.py'
         elif filename.startswith('rpn3'):
             out_name = filename.split('.')[0][5:]+'_3D_constants.py'
-        out_name = './python/riemann/'+out_name
+        out_name = './'+out_name
         print 'writing ' + out_name
         f = open(out_name,'w')
         f.write('num_waves = '+str(num_waves)+'\n')
