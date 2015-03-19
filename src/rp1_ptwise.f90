@@ -28,8 +28,8 @@ subroutine rp1(maxm, meqn, mwaves, maux, mbc, mx, ql, qr, auxl, auxr, wave, s, a
 
         call rp1_ptwise(meqn, maux, mwaves, qr(:, i - 1),       &
                                             ql(:, i),           &
-                                            auxr(:, i),         &
-                                            auxl(:, i - 1),     &
+                                            auxr(:, i - 1),         &
+                                            auxl(:, i),     &
                                             wave(:, :, i),      &
                                             s(:, i),            &
                                             amdq(:, i),         &
