@@ -43,8 +43,8 @@ subroutine rpt2_ptwise(ixy, imp, num_eqn, num_aux, num_waves, q_l, q_r,      &
     bmasdq(transverse_index) = -cc * a(1)
 
     ! Up-going flux difference bpasdq is the product of c * wave
-    bmasdq(1) = cc * a(2) * zz
-    bmasdq(normal_index) = 0.d0
-    bmasdq(transverse_index) = cc * a(2)
+    bpasdq(1) = cc * a(2) * zz
+    bpasdq(normal_index) = 0.d0
+    bpasdq(transverse_index) = cc * a(2)
     
 end subroutine rpt2_ptwise
