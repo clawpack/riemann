@@ -100,7 +100,7 @@ def plot_phase_3d(states):
     ax.text(states[0,0]+0.05,states[1,0],states[2,0],'q_left')
     ax.text(states[0,-1]+0.05,states[1,-1],states[2,-1],'q_right')
  
-def plot_riemann(states, s, riemann_eval, t, fig=None, color='b'):
+def plot_riemann(states, s, riemann_eval, t, fig=None, color='b', layout='horizontal',conserved_variables=None):
     """
     Take an array of states and speeds s and plot the solution at time t.
     For rarefaction waves, the corresponding entry in s should be tuple of two values,
@@ -111,8 +111,17 @@ def plot_riemann(states, s, riemann_eval, t, fig=None, color='b'):
     
     num_eqn,num_states = states.shape
     if fig is None:
-        figwidth = 4*(num_eqn+1)
-        fig, ax = plt.subplots(1,num_eqn+1,figsize=(figwidth,4))
+        if layout == 'horizontal':
+            fig_width = 4*(num_eqn+1)
+            fig, ax = plt.subplots(1,num_eqn+1,figsize=(fig_width,4))
+        elif layout == 'vertical':
+            fig_width = 9
+            fig_height = 4*num_eqn
+            fig, ax = plt.subplots(num_eqn+1,1,figsize=(fig_width,fig_height),sharex=True)
+            plt.subplots_adjust(hspace=0)
+            ax[-1].set_xlabel('x')
+            ax[0].set_ylabel('t')
+            ax[0].set_title('t = %6.3f' % t)
     else:
         ax = fig.axes
         xmin, xmax = ax[1].get_xlim()
@@ -135,6 +144,10 @@ def plot_riemann(states, s, riemann_eval, t, fig=None, color='b'):
     ax[0].set_xlim(-xmax,xmax)
     ax[0].plot([-xmax,xmax],[t,t],'k',linewidth=2)
     
+
+    if conserved_variables is None:
+        conserved_variables = ['q[%s]' % i for i in range(num_eqn)]
+
     for i in range(num_eqn):
         ax[i+1].set_xlim((-1,1))
         qmax = states[i,:].max()  #max([state[i] for state in states])
@@ -142,7 +155,10 @@ def plot_riemann(states, s, riemann_eval, t, fig=None, color='b'):
         qdiff = qmax - qmin
         ax[i+1].set_xlim(-xmax,xmax)
         ax[i+1].set_ylim((qmin-0.1*qdiff,qmax+0.1*qdiff))
-        ax[i+1].set_title('q[%s] at t = %6.3f' % (i,t))
+        if layout == 'horizontal':
+            ax[i+1].set_title(conserved_variables[i]+' at t = %6.3f' % t)
+        elif layout == 'vertical':
+            ax[i+1].set_ylabel(conserved_variables[i])
     
     if t == 0:
         q = riemann_eval(x/1e-10)
@@ -155,7 +171,7 @@ def plot_riemann(states, s, riemann_eval, t, fig=None, color='b'):
     return fig
             
 
-def make_plot_function(states_list,speeds_list,riemann_eval_list,names=None):
+def make_plot_function(states_list,speeds_list,riemann_eval_list,names=None,layout='horizontal',conserved_variables=None):
     """
     Utility function to create a plot_function that takes a single argument t.
     This function can then be used in a StaticInteract widget.
@@ -175,9 +191,9 @@ def make_plot_function(states_list,speeds_list,riemann_eval_list,names=None):
             riemann_eval = riemann_eval_list[i]
 
             if fig is None:
-                fig = plot_riemann(states,speeds,riemann_eval,t,color=colors[i])
+                fig = plot_riemann(states,speeds,riemann_eval,t,color=colors[i],layout=layout,conserved_variables=conserved_variables)
             else:
-                fig = plot_riemann(states,speeds,riemann_eval,t,fig,colors[i])
+                fig = plot_riemann(states,speeds,riemann_eval,t,fig,colors[i],layout=layout,conserved_variables=conserved_variables)
 
             if names is not None:
                 # We could use fig.legend here if we had the line plot handles
