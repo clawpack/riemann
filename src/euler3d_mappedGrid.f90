@@ -53,7 +53,7 @@ CONTAINS
          (x(7)-x(1))*((y(2)-y(1))*(z(6)-z(3)) - (y(6)-y(3))*(z(2)-z(1)))+&
          (x(2)-x(1))*((y(6)-y(3))*(z(7)-z(1)) - (y(7)-y(1))*(z(6)-z(3)))+&
          (x(6)-x(3))*((y(7)-y(1))*(z(2)-z(1)) - (y(2)-y(1))*(z(7)-z(1)))
-    volumeOfHex = ABS(volumeOfHex)/6.0
+    volumeOfHex = ABS(volumeOfHex)/6.d0
     RETURN
   END FUNCTION volumeOfHex  
   
@@ -208,7 +208,7 @@ CONTAINS
     REAL(kind=8), DIMENSION(SIZE(yc)) :: yp0
     REAL(kind=8), DIMENSION(SIZE(zc)) :: zp0
     
-    theta=0.0*pi/180.0
+    theta=0.d0*pi/180.d0
 
     ! x,xi coordinate
     xp = xyz0(1) + xc*(xyzN(1)-xyz0(1))
