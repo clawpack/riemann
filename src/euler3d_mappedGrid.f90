@@ -1,4 +1,4 @@
-MODULE mg
+MODULE euler3d_mappedgrid
 
   REAL(kind=8), PARAMETER :: pi=3.1415926535897932385,twopi=2*pi
   REAL(kind=8), PARAMETER :: rEarth=637120000.0
@@ -676,4 +676,4 @@ CONTAINS
     RETURN
   END SUBROUTINE setAuxiliaryVariables
 
-END MODULE mg
+END MODULE euler3d_mappedgrid
