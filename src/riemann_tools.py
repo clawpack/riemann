@@ -5,6 +5,7 @@ import ipywidgets
 import sympy
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib
 
 
 sympy.init_printing(use_latex='mathjax')
@@ -146,6 +147,12 @@ def plot_riemann(states, s, riemann_eval, t, fig=None, color='b', layout='horizo
     else:
         ax = fig.axes
         xmin, xmax = ax[1].get_xlim()
+
+    for axis in ax:
+        for child in axis.get_children():
+            if isinstance(child, matplotlib.spines.Spine):
+                child.set_color('#dddddd')
+
     tmax = 1.0
     xmax = 0.
     for i in range(len(s)):
