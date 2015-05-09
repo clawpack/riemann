@@ -601,8 +601,8 @@ def shallow_water(qL, qR, time, g):
     char2 = x_xtp/lam2
     char3 = x_xtp2/lam1
     char4 = x_xtp2/lam2
-    shock1 = ax[1].plot(x_xtp, char1, '-k', linewidth=4, label="1-characteristic")
-    shock2 = ax[1].plot(x_xtp, char2, '-k', linewidth=2, label="2-characteristic")
+    shock1 = ax[1].plot(x_xtp, char1, '-k', linewidth=4, label="1-wave")
+    shock2 = ax[1].plot(x_xtp, char2, '-k', linewidth=2, label="2-wave")
     rar1 = ax[1].plot(x_xtp2, char3, '-k', linewidth=4)
     rar2 = ax[1].plot(x_xtp2, char4, '-k', linewidth=2)
     timedot = ax[1].plot([100000,1000000,9], [-10,-10,time], 'ok' , markersize=15)
