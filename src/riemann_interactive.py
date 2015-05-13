@@ -18,7 +18,8 @@ class PPlaneNLPlugin(plugins.PluginBase):
     mpld3.register_plugin("drag", PPlaneNLPlugin);
     PPlaneNLPlugin.prototype = Object.create(mpld3.Plugin.prototype);
     PPlaneNLPlugin.prototype.constructor = PPlaneNLPlugin;
-    PPlaneNLPlugin.prototype.requiredProps = ["id", "idmpoint", "idg", "iditer", "iditer_charac", "idtime",
+    PPlaneNLPlugin.prototype.requiredProps = ["id", "idmpoint", 
+                                              "idg", "iditer", "iditer_charac", "idtime", "idhmax", "idoffm",
                                               "idhugol", "idhugor", "idintcl", "idintcr",
                                               "idhugol2", "idhugor2", "idintcl2", "idintcr2", 
                                               "idqlm", "idqmm", "idqrm", 
@@ -42,6 +43,8 @@ class PPlaneNLPlugin(plugins.PluginBase):
         var iter = this.props.iditer;
         var iter_charac = this.props.iditer_charac;
         var time = this.props.idtime;
+        var hmax = this.props.idhmax;
+        var offm = this.props.idoffm;
         var hugol = mpld3.get_element(this.props.idhugol);
         var hugor = mpld3.get_element(this.props.idhugor);
         var intcl = mpld3.get_element(this.props.idintcl);
@@ -66,7 +69,7 @@ class PPlaneNLPlugin(plugins.PluginBase):
         //var qleft = obj.offsets[0];
         //var qright = obj.offsets[1];
         //var qmid = midpoint.offsets[0];
-        var offx = obj.ax.x(0.3);
+        var offx = obj.ax.x(offm);
         var offy = offx;
         // Define initial values of hl, hr, hul and hur
         var hl = obj.offsets[0][0];
@@ -350,7 +353,7 @@ class PPlaneNLPlugin(plugins.PluginBase):
                 var hm = hugol.data[ii][0];
                 hugol.data[ii][1] = hugoloci(hm,hl,hul,-1) ;
                 //Right from hl
-                hugol2.data[ii][0] = d[0] + ii*(10-d[0])/(1.0*iter);
+                hugol2.data[ii][0] = d[0] + ii*(hmax-d[0])/(1.0*iter);
                 var hm2 = hugol2.data[ii][0];
                 hugol2.data[ii][1] = hugoloci(hm2,hl,hul,-1) ;
                 }
@@ -370,7 +373,7 @@ class PPlaneNLPlugin(plugins.PluginBase):
                 var hm = intcl.data[ii][1];
                 intcl.data[ii][2] = integralcurve(hm,hl,hul,-1);
                 //Right from hl
-                intcl2.data[ii][1] = d[0] + ii*(10-d[0])/(1.0*iter);
+                intcl2.data[ii][1] = d[0] + ii*(hmax-d[0])/(1.0*iter);
                 var hm2 = intcl2.data[ii][1];
                 intcl2.data[ii][2] = integralcurve(hm2,hl,hul,-1);
               }
@@ -398,7 +401,7 @@ class PPlaneNLPlugin(plugins.PluginBase):
                 var hm = hugor.data[ii][0];
                 hugor.data[ii][1] = hugoloci(hm,hr,hur,1) ;
                 //Right from hr
-                hugor2.data[ii][0] = d[0] + ii*(10-d[0])/(1.0*iter);
+                hugor2.data[ii][0] = d[0] + ii*(hmax-d[0])/(1.0*iter);
                 var hm2 = hugor2.data[ii][0];
                 hugor2.data[ii][1] = hugoloci(hm2,hr,hur,1) ;
                 }
@@ -417,7 +420,7 @@ class PPlaneNLPlugin(plugins.PluginBase):
                 var hm = intcr.data[ii][1];
                 intcr.data[ii][2] = integralcurve(hm,hr,hur,1);
                 //Right from hr
-                intcr2.data[ii][1] = d[0] + ii*(10-d[0])/(1.0*iter);
+                intcr2.data[ii][1] = d[0] + ii*(hmax-d[0])/(1.0*iter);
                 var hm2 = intcr2.data[ii][1];
                 intcr2.data[ii][2] = integralcurve(hm2,hr,hur,1);
               }
@@ -466,7 +469,8 @@ class PPlaneNLPlugin(plugins.PluginBase):
     mpld3.register_plugin("drag", PPlaneNLPlugin); 
     """
 
-    def __init__(self, points, midpoint, g, iters, iter_charac, time,
+    def __init__(self, points, midpoint, 
+                 g, iters, iter_charac, time, hmax, offm,
                  hugol, hugor, intcl, intcr,
                  hugol2, hugor2, intcl2, intcr2, 
                  qlmarker, qmmarker ,qrmarker, 
@@ -485,6 +489,8 @@ class PPlaneNLPlugin(plugins.PluginBase):
                       "iditer" : iters,
                       "iditer_charac" : iter_charac,
                       "idtime" : time,
+                      "idhmax" : hmax,
+                      "idoffm": offm,
                       "idhugol" : utils.get_id(hugol),
                       "idhugor" : utils.get_id(hugor),
                       "idintcl" : utils.get_id(intcl),
@@ -521,8 +527,10 @@ def intcurve(g,hm,hside,huside,sign):
     intcurve = hm*huside/hside - sign*(term1 - term2);
     return intcurve
 
-# Define interactive plot routine in python (calls mpld3 plugin)        
-def shallow_water(qL, qR, time, g):
+# Define interactive plot routine in python (calls mpld3 plugin)
+# Loaded with default values, can be called without any argument
+def shallow_water(qL=np.array([3.0, 5.0]), qR=np.array([3.0, -5.0]), g=1.0, time=2.0, tmax=5.0, 
+                  hmax=None, humin=None, humax=None):
     # Create figure
     # Create a figure
     fig, axfull = plt.subplots(2,2, figsize=(13, 12))
@@ -539,16 +547,24 @@ def shallow_water(qL, qR, time, g):
     iter_charac = 2
     # eps required for bug in mpld3 (qL[0] cannot be the same than qR[0])
     eps = 0.00000001
+    
+    # Calculate plotting boundaries if not specified
+    if hmax is None:
+        hmax = max(qL[0],qR[0]) + 7.0
+    if humax is None:
+        humax = 3*max(abs(qL[1]),abs(qR[1]))
+    if humin is None:    
+        humin = -3*max(abs(qL[1]),abs(qR[1]))
 
     # PLOT PHASE PLANE
     xxL = np.linspace(0,qL[0],iters)
-    xxL2 = np.linspace(qL[0],10,iters)
+    xxL2 = np.linspace(qL[0],hmax,iters)
     xxR = np.linspace(0,qR[0]+eps,iters)
-    xxR2 = np.linspace(qR[0]+eps,10,iters)
+    xxR2 = np.linspace(qR[0]+eps,hmax,iters)
 
     #Plot midpoint
     qm = -1 +0.0*qL
-    midpoint = ax[0].plot(qm[0],qm[1],'ob', alpha=0.9, markersize=8, markeredgewidth=1)
+    midpoint = ax[0].plot(qm[0],qm[1],'ok', alpha=0.9, markersize=8, markeredgewidth=1)
 
     # Plot hugoloci initial state
     yyL = hugoloci(g,xxL,qL[0],qL[1],-1)
@@ -571,11 +587,11 @@ def shallow_water(qL, qR, time, g):
     intcr2 = ax[0].plot(xxR2,yyR2, '--b', linewidth=1.5)
 
     # Plot ql and qr
-    points = ax[0].plot([qL[0],qR[0]], [qL[1], qR[1]], 'or', alpha=0.7, markersize=15, markeredgewidth=1)
+    points = ax[0].plot([qL[0],qR[0]], [qL[1], qR[1]], 'ok', alpha=0.7, markersize=15, markeredgewidth=1)
     #data = ["q_l", "q_r"] 
 
     # Plot markers
-    offsetx = 0.3
+    offsetx = 0.3*hmax/10
     offsety = -3*offsetx
     qlmarker = ax[0].plot(qL[0]+offsetx, qL[1]+offsety, 'ok', marker=(r"$ q_l $"), markersize=15)
     qmmarker = ax[0].plot(qm[0]+offsetx, qm[1]+offsety, 'ok', marker=(r"$ q_m $"), markersize=15)
@@ -583,7 +599,7 @@ def shallow_water(qL, qR, time, g):
 
     # Set axis 1 properties
     ax[0].set_title("Phase plane", fontsize=18)
-    ax[0].axis([0,10,-15,15])
+    ax[0].axis([0,hmax,humin,humax])
     ax[0].set_xlabel('h', fontsize=17)
     ax[0].set_ylabel('hu', fontsize=17)
     #ax[0].set_aspect('equal')
@@ -605,14 +621,14 @@ def shallow_water(qL, qR, time, g):
     shock2 = ax[1].plot(x_xtp, char2, '-k', linewidth=2, label="2-wave")
     rar1 = ax[1].plot(x_xtp2, char3, '-k', linewidth=4)
     rar2 = ax[1].plot(x_xtp2, char4, '-k', linewidth=2)
-    timedot = ax[1].plot([100000,1000000,9], [-10,-10,time], 'ok' , markersize=15)
+    timedot = ax[1].plot([100000,1000000,9], [-10,-10,time], 'ok' , alpha=0.7, markersize=15)
     timeline = ax[1].plot([-12,0,12], [time, time, time], '--k', linewidth = 3, label="time")
 
     # Set axis 2 properties
     ax[1].set_title("x-t plane", fontsize=18)
     ax[1].set_xlabel('x', fontsize=17)
     ax[1].set_ylabel('t', fontsize=17)
-    ax[1].axis([-10,10,-0,5])
+    ax[1].axis([-10,10,-0,tmax])
     ax[1].grid(alpha=0.1,color='k', linestyle='--')
     legend = ax[1].legend(loc='upper center', shadow=True)
 
@@ -629,17 +645,17 @@ def shallow_water(qL, qR, time, g):
         lam = np.empty(4, dtype=float)
 
     # Set axis 3 properties
-    axsol[0].set_title("Height h at time = %s" %time, fontsize=18)
+    axsol[0].set_title("Height h at time = t", fontsize=18)
     axsol[0].set_xlabel('x', fontsize=17)
     axsol[0].set_ylabel('h', fontsize=17)
-    axsol[0].axis([-10,10,0,10])
+    axsol[0].axis([-10,10,0,hmax])
     axsol[0].grid(alpha=0.1,color='k', linestyle='--')
 
     # Set axis 4 properties
-    axsol[1].set_title("Momentum hu at time = %s" %time, fontsize=18)
+    axsol[1].set_title("Momentum hu at time = t", fontsize=18)
     axsol[1].set_xlabel('x', fontsize=17)
     axsol[1].set_ylabel('hu', fontsize=17)
-    axsol[1].axis([-10,10,-15,15])
+    axsol[1].axis([-10,10,humin,humax])
     axsol[1].grid(alpha=0.1,color='k', linestyle='--')
 
 
@@ -647,7 +663,8 @@ def shallow_water(qL, qR, time, g):
     plugins.clear(fig)
 
     # Call mpld3 custom PPLane plugin to interact with plot
-    plugins.connect(fig, PPlaneNLPlugin(points[0],midpoint[0], g,iters,iter_charac,time,
+    plugins.connect(fig, PPlaneNLPlugin(points[0],midpoint[0], 
+                                        g,iters,iter_charac,time, hmax, offsetx,
                                         hugol[0],hugor[0],intcl[0],intcr[0],
                                         hugol2[0],hugor2[0],intcl2[0],intcr2[0],
                                         qlmarker[0],qmmarker[0],qrmarker[0],
