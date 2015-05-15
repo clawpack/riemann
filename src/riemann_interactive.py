@@ -916,10 +916,14 @@ class PPlanePlugin(plugins.PluginBase):
               qone.data[1][1] = qleft[0];
               qone.data[2][1] = qmid[0];
               qone.data[3][1] = qmid[0];
+              qone.data[4][1] = qright[0];
+              qone.data[5][1] = qright[0];
               qtwo.data[0][2] = qleft[1];
               qtwo.data[1][2] = qleft[1];
               qtwo.data[2][2] = qmid[1];
               qtwo.data[3][2] = qmid[1];
+              qtwo.data[4][2] = qright[1];
+              qtwo.data[5][2] = qright[1];
               qone.elements().transition().duration(5)
                 .attr("d", qone.datafunc(qone.data));
               qtwo.elements().transition().duration(5)
