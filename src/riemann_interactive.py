@@ -611,7 +611,7 @@ def intcurve(g,hm,hside,huside,sign):
 
 # Define interactive plot routine in python (calls mpld3 plugin)
 # Loaded with default values, can be called without any argument
-def shallow_water(qL=np.array([3.0, 5.0]), qR=np.array([3.0, -5.0]), g=1.0, time=2.0, tmax=5.0, 
+def shallow_water(ql=np.array([3.0, 5.0]), qr=np.array([3.0, -5.0]), g=1.0, time=2.0, tmax=5.0, 
                   hmax=None, humin=None, humax=None):
     # Create figure
     # Create a figure
@@ -624,60 +624,60 @@ def shallow_water(qL=np.array([3.0, 5.0]), qR=np.array([3.0, -5.0]), g=1.0, time
     axsol = axfull[1] # Second row of plost 
 
     # Calculate dq with ql and qr and other parameters
-    dq = np.array([qR[0]-qL[0], qR[1]-qL[1]])
+    dq = np.array([qr[0]-ql[0], qr[1]-ql[1]])
     iters = 100
     iter_charac = 2
-    # eps required for bug in mpld3 (qL[0] cannot be the same than qR[0])
+    # eps required for bug in mpld3 (ql[0] cannot be the same than qr[0])
     eps = 0.00000001
     
     # Calculate plotting boundaries if not specified
     if hmax is None:
-        hmax = max(qL[0],qR[0]) + 7.0
+        hmax = max(ql[0],qr[0]) + 7.0
     if humax is None:
-        humax = 3*max(abs(qL[1]),abs(qR[1]))
+        humax = 3*max(abs(ql[1]),abs(qr[1]))
     if humin is None:    
-        humin = -3*max(abs(qL[1]),abs(qR[1]))
+        humin = -3*max(abs(ql[1]),abs(qr[1]))
 
     # PLOT PHASE PLANE
-    xxL = np.linspace(0,qL[0],iters)
-    xxL2 = np.linspace(qL[0],hmax,iters)
-    xxR = np.linspace(0,qR[0]+eps,iters)
-    xxR2 = np.linspace(qR[0]+eps,hmax,iters)
+    xxL = np.linspace(0,ql[0],iters)
+    xxL2 = np.linspace(ql[0],hmax,iters)
+    xxR = np.linspace(0,qr[0]+eps,iters)
+    xxR2 = np.linspace(qr[0]+eps,hmax,iters)
 
     #Plot midpoint
-    qm = -1 +0.0*qL
+    qm = -1 +0.0*ql
     midpoint = ax[0].plot(qm[0],qm[1],'ok', alpha=0.9, markersize=8, markeredgewidth=1)
 
     # Plot hugoloci initial state
-    yyL = hugoloci(g,xxL,qL[0],qL[1],-1)
-    yyL2 = hugoloci(g,xxL2,qL[0],qL[1],-1)
-    yyR = hugoloci(g,xxR,qR[0],qR[1],1)
-    yyR2 = hugoloci(g,xxR2,qR[0],qR[1],1)
+    yyL = hugoloci(g,xxL,ql[0],ql[1],-1)
+    yyL2 = hugoloci(g,xxL2,ql[0],ql[1],-1)
+    yyR = hugoloci(g,xxR,qr[0],qr[1],1)
+    yyR2 = hugoloci(g,xxR2,qr[0],qr[1],1)
     hugol = ax[0].plot(xxL,yyL, '--r', linewidth=1.5)
     hugol2 = ax[0].plot(xxL2,yyL2, '-r', linewidth=2, label = 'Hugoniot Loci')
     hugor = ax[0].plot(xxR,yyR, '--r', linewidth=1.5, label = 'Hugoniot Loci (unphysical)')
     hugor2 = ax[0].plot(xxR2,yyR2, '-r', linewidth=2)
 
     # Plot integral curve initial state
-    yyL = intcurve(g,xxL,qL[0],qL[1],-1)
-    yyL2 = intcurve(g,xxL2,qL[0],qL[1],-1)
-    yyR = intcurve(g,xxR,qR[0],qR[1],1)
-    yyR2 = intcurve(g,xxR2,qR[0],qR[1],1)
+    yyL = intcurve(g,xxL,ql[0],ql[1],-1)
+    yyL2 = intcurve(g,xxL2,ql[0],ql[1],-1)
+    yyR = intcurve(g,xxR,qr[0],qr[1],1)
+    yyR2 = intcurve(g,xxR2,qr[0],qr[1],1)
     intcl = ax[0].plot(xxL,yyL, '-b', linewidth=2, label = 'Integral Curves')
     intcl2 = ax[0].plot(xxL2,yyL2, '--b', linewidth=1.5, label = 'Integral Curves (unphysical)')
     intcr = ax[0].plot(xxR,yyR, '-b', linewidth=2)
     intcr2 = ax[0].plot(xxR2,yyR2, '--b', linewidth=1.5)
 
     # Plot ql and qr
-    points = ax[0].plot([qL[0],qR[0]], [qL[1], qR[1]], 'ok', alpha=0.7, markersize=15, markeredgewidth=1)
+    points = ax[0].plot([ql[0],qr[0]], [ql[1], qr[1]], 'ok', alpha=0.7, markersize=15, markeredgewidth=1)
     #data = ["q_l", "q_r"] 
 
     # Plot markers
     offsetx = 0.3*hmax/10
     offsety = -3*offsetx
-    qlmarker = ax[0].plot(qL[0]+offsetx, qL[1]+offsety, 'ok', marker=(r"$ q_l $"), markersize=15)
+    qlmarker = ax[0].plot(ql[0]+offsetx, ql[1]+offsety, 'ok', marker=(r"$ q_l $"), markersize=15)
     qmmarker = ax[0].plot(qm[0]+offsetx, qm[1]+offsety, 'ok', marker=(r"$ q_m $"), markersize=20)
-    qrmarker = ax[0].plot(qR[0]+offsetx, qR[1]+offsety, 'ok', marker=(r"$ q_r $"), markersize=15)
+    qrmarker = ax[0].plot(qr[0]+offsetx, qr[1]+offsety, 'ok', marker=(r"$ q_r $"), markersize=15)
 
     # Set axis 1 properties
     ax[0].set_title("Phase plane", fontsize=18)
@@ -693,8 +693,8 @@ def shallow_water(qL=np.array([3.0, 5.0]), qR=np.array([3.0, -5.0]), g=1.0, time
     x_xtp = np.linspace(-10,10,iter_charac)
     x_xtp2 = np.linspace(-11,11,iter_charac)
     # Shock speeds lam1 and lam2
-    lam2 = qL[1]/qL[0] - np.sqrt(g*qL[0])
-    lam1 = qR[1]/qR[0] + np.sqrt(g*qR[0])
+    lam2 = ql[1]/ql[0] - np.sqrt(g*ql[0])
+    lam1 = qr[1]/qr[0] + np.sqrt(g*qr[0])
     char1 = x_xtp/lam1
     char2 = x_xtp/lam2
     char3 = x_xtp2/lam1
@@ -704,7 +704,7 @@ def shallow_water(qL=np.array([3.0, 5.0]), qR=np.array([3.0, -5.0]), g=1.0, time
     rar1 = ax[1].plot(x_xtp2, char3, '-k', linewidth=1, label="1 or 2 rarefaction")
     rar2 = ax[1].plot(x_xtp2, char4, '-k', linewidth=1)
     
-    # For 6 rarefaction lines
+    # For other 4 rarefaction lines on each side
     x_xtp3 = np.linspace(-11.1,11.1,iter_charac)
     x_xtp4 = np.linspace(-11.2,11.2,iter_charac)
     x_xtp5 = np.linspace(-11.3,11.3,iter_charac)
@@ -735,14 +735,14 @@ def shallow_water(qL=np.array([3.0, 5.0]), qR=np.array([3.0, -5.0]), g=1.0, time
 
     # PLOT SOLUTIONS
     xsol = np.linspace(-10,10,2*iters)
-    hsol = 0*xsol + qL[0]
-    husol = 0*xsol + qL[1]
+    hsol = 0*xsol + ql[0]
+    husol = 0*xsol + ql[1]
     q1 = axsol[0].plot(xsol,hsol, '-k', linewidth = 4, alpha = 1.0)
     q2 = axsol[1].plot(xsol,husol, '-k', linewidth = 4, alpha = 1.0)
 
-    def solplot(xsol,qL,qR,qM,g):
-        hl = qL[0];    hm = qM[0];    hr = qR[0]
-        ul = qL[1]/hl; um = qM[1]/hm; ur = qR[1]/hr     
+    def solplot(xsol,ql,qr,qm,g):
+        hl = ql[0];    hm = qm[0];    hr = qr[0]
+        ul = ql[1]/hl; um = qm[1]/hm; ur = qr[1]/hr     
         lam = np.empty(4, dtype=float)
 
     # Set axis 3 properties
@@ -786,8 +786,10 @@ class PPlanePlugin(plugins.PluginBase):
     mpld3.register_plugin("drag", PPlanePlugin);
     PPlanePlugin.prototype = Object.create(mpld3.Plugin.prototype);
     PPlanePlugin.prototype.constructor = PPlanePlugin;
-    PPlanePlugin.prototype.requiredProps = ["id", "idmpoint", "idlinesl", "idlinesr", 
-                                            "idqlm", "idqmm", "idqrm", "idqone", "idqtwo", "idzz"];
+    PPlanePlugin.prototype.requiredProps = ["id", "idmpoint", 
+                                            "idlinesla", "idlineslb", "idlinesra", "idlinesrb",  
+                                            "idqlm", "idqmm", "idqrm", "idqone", "idqtwo", 
+                                            "idrl0", "idrl1", "idrr0", "idrr1"];
     PPlanePlugin.prototype.defaultProps = {}
     function PPlanePlugin(fig, props){
         mpld3.Plugin.call(this, fig, props);
@@ -801,20 +803,28 @@ class PPlanePlugin(plugins.PluginBase):
         // Get elements into script variables
         var obj = mpld3.get_element(this.props.id);
         var midpoint = mpld3.get_element(this.props.idmpoint);
-        var linesl = mpld3.get_element(this.props.idlinesl);
-        var linesr = mpld3.get_element(this.props.idlinesr);
+        var linesla = mpld3.get_element(this.props.idlinesla);
+        var lineslb = mpld3.get_element(this.props.idlineslb);
+        var linesra = mpld3.get_element(this.props.idlinesra);
+        var linesrb = mpld3.get_element(this.props.idlinesrb);
         var qlm = mpld3.get_element(this.props.idqlm);
         var qmm = mpld3.get_element(this.props.idqmm);
         var qrm = mpld3.get_element(this.props.idqrm);
         var qone = mpld3.get_element(this.props.idqone);
         var qtwo = mpld3.get_element(this.props.idqtwo);
-        var zz = this.props.idzz;
-
+        var rl0 = this.props.idrl0;
+        var rl1 = this.props.idrl1;
+        var rr0 = this.props.idrr0;
+        var rr1 = this.props.idrr1;
+        
         // Set initial conditions for javascript calculations
         var qleft = obj.offsets[0];
         var qright = obj.offsets[1];
         var qmid = midpoint.offsets[0];
         var off = 13;
+        // Calculate slopes for eigenlines
+        var ml = rl1/rl0;
+        var mr = rr1/rr0;
         
         // Main d3 drag function
         var drag = d3.behavior.drag()
@@ -846,32 +856,42 @@ class PPlanePlugin(plugins.PluginBase):
             .attr("transform", "translate(" + [d3.event.x, d3.event.y] + ")");
           // If obj corresponds to ql, move all the other left elements 
           if (i==0){
-              // Move lines and text marker
-              linesl.elements().transition().duration(5)
-                  .attr("transform", "translate(" + [d3.event.x, d3.event.y] + ")");
+              // Move text marker
               qlm.elements().transition().duration(1)
                   .attr("transform", "translate(" + [d3.event.x + off, d3.event.y + off] + ")");
+                  
+              // Move eigenlines
+              for (var ii=0; ii<2; ii++) {
+                linesla.data[ii][1] = ml*(linesla.data[ii][0] - d[0]) + d[1];
+                lineslb.data[ii][1] = mr*(lineslb.data[ii][0] - d[0]) + d[1]; }
+                
               // In script calculations of middle state
               qleft = [d[0], d[1]];
-              var alphal = (-(qright[0] - qleft[0]) + zz*(qright[1] - qleft[1]))/(2*zz);
-              qmid[0] = qleft[0] - alphal*zz;
-              qmid[1] = qleft[1] + alphal;
+              var det = rl0*rr1 - rr0*rl1;
+              var alphal = (rr1*(qright[0] - qleft[0]) - rr0*(qright[1] - qleft[1]))/det
+              qmid[0] = qleft[0] + alphal*rl0;
+              qmid[1] = qleft[1] + alphal*rl1;
               var xx = obj.ax.x(qmid[0]);
               var yy = obj.ax.y(qmid[1]); 
              
                 }
           // if element corresponds to qr
           else {
-              // Move lines and text marker
-              linesr.elements().transition().duration(5)
-                  .attr("transform", "translate(" + [d3.event.x, d3.event.y] + ")");
+              // Move text marker
               qrm.elements().transition().duration(1)
                   .attr("transform", "translate(" + [d3.event.x + off, d3.event.y + off] + ")");
+                  
+              // Move eigenlines
+              for (var ii=0; ii<2; ii++) {
+                linesra.data[ii][1] = ml*(linesra.data[ii][0] - d[0]) + d[1];
+                linesrb.data[ii][1] = mr*(linesrb.data[ii][0] - d[0]) + d[1]; }
+                
               // In script calculations of middle state    
               qright = [d[0], d[1]];
-              var alphal = (-(qright[0] - qleft[0]) + zz*(qright[1] - qleft[1]))/(2*zz);
-              qmid[0] = qleft[0] - alphal*zz;
-              qmid[1] = qleft[1] + alphal;
+              var det = rl0*rr1 - rr0*rl1;
+              var alphal = (rr1*(qright[0] - qleft[0]) - rr0*(qright[1] - qleft[1]))/det
+              qmid[0] = qleft[0] + alphal*rl0;
+              qmid[1] = qleft[1] + alphal*rl1;
               var xx = obj.ax.x(qmid[0]);
               var yy = obj.ax.y(qmid[1]);
                 }
@@ -880,6 +900,16 @@ class PPlanePlugin(plugins.PluginBase):
                 .attr("transform", "translate(" + [xx, yy] + ")");
               qmm.elements().transition().duration(5)
                 .attr("transform", "translate(" + [xx + 0.7*off, yy + 0.7*off] + ")"); 
+                
+              // Update eigenlines
+              linesla.elements().transition().duration(5)
+                  .attr("d", linesla.datafunc(linesla.data));
+              lineslb.elements().transition().duration(5)
+                  .attr("d", lineslb.datafunc(lineslb.data));
+              linesra.elements().transition().duration(5)
+                  .attr("d", linesra.datafunc(linesra.data));
+              linesrb.elements().transition().duration(5)
+                  .attr("d", linesrb.datafunc(linesrb.data));
                 
               // Update subplots of q1 and q2
               qone.data[0][1] = qleft[0];
@@ -893,7 +923,7 @@ class PPlanePlugin(plugins.PluginBase):
               qone.elements().transition()
                 .attr("d", qone.datafunc(qone.data));
               qtwo.elements().transition()
-                .attr("d", qtwo.datafunc(qtwo.data));
+                .attr("d", qtwo.datafunc(qtwo.data));  
         }
         // End dragging
         function dragended(d) {
@@ -903,7 +933,10 @@ class PPlanePlugin(plugins.PluginBase):
     mpld3.register_plugin("drag", PPlanePlugin); 
     """
 
-    def __init__(self, points, midpoint, linesl, linesr, qlmarker, qmmarker, qrmarker, qone, qtwo,zz):
+    def __init__(self, points, midpoint, 
+                 linesla, lineslb, linesra, linesrb, 
+                 qlmarker, qmmarker, qrmarker, 
+                 qone, qtwo, rl0, rl1, rr0, rr1):
         if isinstance(points, mpl.lines.Line2D):
             suffix = "pts"
         else:
@@ -912,127 +945,167 @@ class PPlanePlugin(plugins.PluginBase):
         self.dict_ = {"type": "drag",
                       "id": utils.get_id(points, suffix),
                       "idmpoint": utils.get_id(midpoint,suffix),
-                      "idlinesl": utils.get_id(linesl,suffix),
-                      "idlinesr": utils.get_id(linesr,suffix),
+                      "idlinesla": utils.get_id(linesla),
+                      "idlineslb": utils.get_id(lineslb),
+                      "idlinesra": utils.get_id(linesra),
+                      "idlinesrb": utils.get_id(linesrb),
                       "idqlm": utils.get_id(qlmarker,suffix),
                       "idqmm": utils.get_id(qmmarker,suffix),
                       "idqrm": utils.get_id(qrmarker,suffix),
                       "idqone": utils.get_id(qone),
                       "idqtwo": utils.get_id(qtwo),
-                      "idzz": zz}
+                      "idrl0": rl0,
+                      "idrl1": rl1,
+                      "idrr0": rr0,
+                      "idrr1": rr1}
 
 
-def linear_phase_plane(qL,qR):
+def linear_phase_plane(ql=np.array([-2.0, 2.0]),qr=np.array([0.0, 3.0]), 
+                       r1=None, r2=None, lam1=None, lam2=None, 
+                       q1min=-5, q1max=5, q2min =-5, q2max=5, domain=5, time=1.0, 
+                       title1=None, title2=None):
     # Create figure
     # Create a figure
     fig, ax = plt.subplots(1,3, figsize=(13.5, 4.5))
-    fig.subplots_adjust(left=0.05, right=0.95, bottom=0.05, top=0.95,
+    fig.subplots_adjust(left=0.05, right=0.9, bottom=0.1, top=0.9,
                         hspace=0.3, wspace=0.15)
 
     #Create subfigure ax1 for phaseplane
     #ax[0] = fig.add_subplot(2,2,1)
 
     # Calculate dq from ql and qr
-    dq = np.array([qR[0]-qL[0], qR[1]-qL[1]])
+    dq = np.array([qr[0]-ql[0], qr[1]-ql[1]])
 
-    # Plot eigenlines using paths as markers
+    # If eigenvectors not specified, default to Acoustics
+    rho0 = 1.0
     zz = 2.0
-    rl = np.array([-zz, 1])
-    rr = np.array([zz,  1])
-    # Create path following eigenvalues r1 and r2
-    verts = [
-        (-rl[0], -rl[1]), # left, bottom
-        (rl[0], rl[1]), # left, top
-        (-rr[0], -rr[1]), # left, bottom
-        (rr[0], rr[1]), # left, top
-        ]
-    codes = [mpath.Path.MOVETO,
-            mpath.Path.LINETO,
-            mpath.Path.LINETO,
-            mpath.Path.LINETO
-            ]
-    path = mpath.Path(verts, codes)
-
-    #Plot lines across ql and qr using paths as markers
-    linesl = ax[0].plot(qL[0],qL[1], 'k', marker=path, markersize=2550, fillstyle='none')
-    linesr = ax[0].plot(qR[0],qR[1], 'k', marker=path, markersize=2550, fillstyle='none')
+    if r1 is None:
+        r1 = np.array([-zz, 1])
+    if r2 is None:
+        r2 = np.array([zz,  1])
+    if lam1 is None:
+        lam1 = -zz/rho0
+    if lam2 is None:
+        lam2 = zz/rho0
+    
+    # Choose left and right eigenvectors
+    if (lam1 < lam2):
+        laml = lam1; lamr = lam2
+        rl = r1; rr = r2 
+    else:
+        laml = lam2; lamr = lam1
+        rl = r2; rr = r1      
+        
+    # Assign titles to solution plots
+    if title1 is None:
+        title1 = "q1"
+    if title2 is None:
+        title2 = "q2"
+    
+    #Plot eigenlines across ql and qr
+    eps = 0.00000000001 # To avoid bugs in D3
+    ml = rl[1]/rl[0]
+    mr = rr[1]/rr[0] + eps
+    linesla = ax[0].plot([q1min,q1max],[ml*(q1min - ql[0]) + ql[1],ml*(q1max - ql[0]) + ql[1]], '-k')
+    lineslb = ax[0].plot([q1min-eps,q1max+eps],[mr*(q1min - ql[0]) + ql[1],mr*(q1max - ql[0]) + ql[1]], '-k')
+    linesra = ax[0].plot([q1min-2*eps,q1max+2*eps],[mr*(q1min - qr[0]) + qr[1],mr*(q1max - qr[0]) + qr[1]], '-k')
+    linesrb = ax[0].plot([q1min-3*eps,q1max+3*eps],[ml*(q1min - qr[0]) + qr[1],ml*(q1max - qr[0]) + qr[1]], '-k')
 
     # Plot ql and qr
-    points = ax[0].plot([qL[0],qR[0]], [qL[1], qR[1]], 'or', alpha=0.7, markersize=15, markeredgewidth=1)
+    points = ax[0].plot([ql[0],qr[0]], [ql[1], qr[1]], 'or', alpha=0.7, markersize=15, markeredgewidth=1)
     data = ["q_l", "q_r"]
-    offset = 0.4
-    qlmarker = ax[0].plot(qL[0] + offset, qL[1] - offset, 'ok', marker=(r"$ q_l $"), markersize=15)
-    qrmarker = ax[0].plot(qR[0] + offset, qR[1] - offset, 'ok', marker=(r"$ q_r $"), markersize=15)
+    offset = 0.4*0.5*(q1max-q1min)/5.0
+    qlmarker = ax[0].plot(ql[0] + offset, ql[1] - offset, 'ok', marker=(r"$ q_l $"), markersize=15)
+    qrmarker = ax[0].plot(qr[0] + offset, qr[1] - offset, 'ok', marker=(r"$ q_r $"), markersize=15)
 
     #Plot midpoint
-    alL = (-dq[0] + dq[1]*zz)/(2*zz)
-    qm = qL + alL*rl 
+    det = rl[0]*rr[1] - rr[0]*rl[1]
+    alL = (rr[1]*dq[0] - rr[0]*dq[1])/det
+    qm = ql + alL*rl 
     midpoint = ax[0].plot(qm[0],qm[1],'ob', alpha=0.9, markersize=8, markeredgewidth=1)
-    qmmarker = ax[0].plot(qm[0]+offset,qm[1]-0.7*offset, 'k',marker=(r"$ q_m $"),markersize=12)
+    qmmarker = ax[0].plot(qm[0]+offset,qm[1]-0.7*offset, 'k',marker=(r"$ q_m $"),markersize=20)
 
     # Set axis 1 properties
     ax[0].set_title("Phase Plane", fontsize=18)
-    ax[0].axis([-5,5,-5,5])
-    ax[0].set_aspect('equal')
+    ax[0].axis([q1min,q1max,q2min,q2max])
     ax[0].grid(alpha=0.1,color='k', linestyle='--')
+    ax[0].set_xlabel(title1)
+    ax[0].set_ylabel(title2)
 
     # Remove defult mpld3 plugins
     plugins.clear(fig)
 
-    #Create subfigure ax2 for solution plane
-    #ax[1] = fig.add_subplot(2,2,3)
-    # Create solutionl line with six points
-    xsol = np.array([-5.0,-2.0,-2.0,2.0,2.0,5.0])
+    # Create solutionl line with six points where solution should be
+    ctleft = laml*time
+    ctright = lamr*time
+    domain = max(domain,abs(ctleft)+1,abs(ctright)+1) # Readjust xdomain if necessarry
+    xsol = np.array([-domain,ctleft,ctleft,ctright,ctright,domain])
     qsol1 = 1*xsol
-    qsol1[0:2] = qL[0]
+    qsol1[0:2] = ql[0]
     qsol1[2:4] = qm[0]
-    qsol1[4:6] = qR[0]
+    qsol1[4:6] = qr[0]
 
     # Set axis 2 properties
-    ax[1].set_title("q1 at time = 3", fontsize=18)
-    ax[1].axis([-5,5,-5,5])
+    ax[1].set_title(title1, fontsize=18)
+    ax[1].axis([-domain,domain,q1min,q1max])
     ax[1].grid(alpha=0.1,color='k', linestyle='--')
-    ax[1].set_aspect('equal')
-
+    ax[1].set_xlabel('x')
+    #ax[1].set_ylabel(title1)
+    
     # Plot solution
     qone = ax[1].plot(xsol, qsol1, '-k', linewidth = 4, alpha = 1.0)
 
     #Create subfigure ax2 for solution plane
     #ax[2] = fig.add_subplot(2,2,2)
     # Create solutionl line with six points
-    xsol2 = np.array([-5.0,-2.0,-2.0,2.0,2.0,5.0])
+    xsol2 = np.array([-domain,ctleft,ctleft,ctright,ctright,domain])
     qsol2 = 1*xsol2
-    qsol2[0:2] = qL[1]
+    qsol2[0:2] = ql[1]
     qsol2[2:4] = qm[1]
-    qsol2[4:6] = qR[1]
+    qsol2[4:6] = qr[1]
 
     # Set axis 2 properties
-    ax[2].set_title("q2 at time = 3", fontsize=18)
-    ax[2].axis([-5,5,-5,5])
+    ax[2].set_title(title2, fontsize=18)
+    ax[2].axis([-domain,domain,q2min,q2max])
     ax[2].grid(alpha=0.1,color='k', linestyle='--')
-    ax[2].set_aspect('equal')
+    ax[2].set_xlabel('x')
+    #ax[2].set_ylabel(title2)
 
     # Plot solution
     qtwo = ax[2].plot(xsol2, qsol2, '-k', linewidth = 4, alpha = 1.0)
 
     # Call mpld3 custom PPLane plugin to interact with plot
-    plugins.connect(fig, PPlanePlugin(points[0],midpoint[0],linesl[0],linesr[0],qlmarker[0],
-                                    qmmarker[0],qrmarker[0],qone[0],qtwo[0],zz))
+    plugins.connect(fig, PPlanePlugin(points[0],midpoint[0],
+                                      linesla[0],lineslb[0],linesra[0],linesrb[0],
+                                      qlmarker[0],qmmarker[0],qrmarker[0],qone[0],qtwo[0],
+                                      rl[0],rl[1],rr[0],rr[1]))
     
     return fig
 
 
-## TEST FOR SHALLOW WATER INTERACTIVE
-#qL = np.array([3.0, 5.0])
-#qR = np.array([3.0, -5.0])
-#time0 = 2.0
-#g = 1.0
-#pt = interactivePP_shallow_water(qL,qR,time0,g)
+### TEST FOR SHALLOW WATER INTERACTIVE
+## Define left and right state (h,hu)
+#ql = np.array([3.0, 5.0])
+#qr = np.array([3.0, -5.0])
+## Define optional parameters (otherwise chooses default values)
+#plotopts = {'g':1.0, 'time':2.0, 'tmax':5, 'hmax':10, 'humin':-15, 'humax':15}
+## Call interactive function (can be called without any argument)
+#pt = riemann_interactive.shallow_water(ql,qr,**plotopts)
 ##mpld3.show()
 ##mpld3.save_html(pt, "test.html")
 
-## TEST for linear phase plane interactive
-#qL = np.array([-2.0, 2.0])
-#qR = np.array([0.0, -3.0])
-#linear_phase_plane(qL,qR)
-#mpld3.show()
+### TEST for linear phase plane interactive
+## Define left and right state 
+#ql = np.array([-2.0, 2.0]) 
+#qr = np.array([0.0, -3.0])
+## Define two eigenvectors and eigenvalues (acoustics)
+#zz = 2.0
+#rho0 = 1.0
+#r1 = np.array([zz,1.0])
+#r2 = np.array([-zz,1.0])
+#lam1 = zz/rho0
+#lam2 = -zz/rho0
+#plotopts={'q1min':-5, 'q1max':5, 'q2min':-5, 'q2max':5, 'domain':5, 'time':1, 
+          #'title1':"Pressure", 'title2':"Velocity"}
+#riemann_interactive.linear_phase_plane(ql,qr,r1,r2,lam1,lam2,**plotopts)
+##mpld3.show()
