@@ -1012,7 +1012,7 @@ def linear_phase_plane(ql=np.array([-2.0, 2.0]),qr=np.array([0.0, 3.0]),
     linesrb = ax[0].plot([q1min-3*eps,q1max+3*eps],[ml*(q1min - qr[0]) + qr[1],ml*(q1max - qr[0]) + qr[1]], '-k')
 
     # Plot ql and qr
-    points = ax[0].plot([ql[0],qr[0]], [ql[1], qr[1]], 'or', alpha=0.7, markersize=15, markeredgewidth=1)
+    points = ax[0].plot([ql[0],qr[0]], [ql[1], qr[1]], 'ok', alpha=0.7, markersize=15, markeredgewidth=1)
     data = ["q_l", "q_r"]
     offset = 0.4*0.5*(q1max-q1min)/5.0
     qlmarker = ax[0].plot(ql[0] + offset, ql[1] - offset, 'ok', marker=(r"$ q_l $"), markersize=15)
@@ -1022,7 +1022,7 @@ def linear_phase_plane(ql=np.array([-2.0, 2.0]),qr=np.array([0.0, 3.0]),
     det = rl[0]*rr[1] - rr[0]*rl[1]
     alL = (rr[1]*dq[0] - rr[0]*dq[1])/det
     qm = ql + alL*rl 
-    midpoint = ax[0].plot(qm[0],qm[1],'ob', alpha=0.9, markersize=8, markeredgewidth=1)
+    midpoint = ax[0].plot(qm[0],qm[1],'ok', alpha=0.9, markersize=8, markeredgewidth=1)
     qmmarker = ax[0].plot(qm[0]+offset,qm[1]-0.7*offset, 'k',marker=(r"$ q_m $"),markersize=20)
 
     # Set axis 1 properties
