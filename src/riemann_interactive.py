@@ -23,7 +23,9 @@ class PPlaneNLPlugin(plugins.PluginBase):
                                               "idhugol", "idhugor", "idintcl", "idintcr",
                                               "idhugol2", "idhugor2", "idintcl2", "idintcr2", 
                                               "idqlm", "idqmm", "idqrm", 
-                                              "idshock1", "idshock2", "idrar1", "idrar2", 
+                                              "idshock1", "idshock2", "idrar1", "idrar2",
+                                              "idrar1a", "idrar2a", "idrar1b", "idrar2b",
+                                              "idrar1c", "idrar2c", "idrar1d", "idrar2d",
                                               "idtimedot", "idtimeline",
                                               "idq1", "idq2"];
     PPlaneNLPlugin.prototype.defaultProps = {}
@@ -60,6 +62,14 @@ class PPlaneNLPlugin(plugins.PluginBase):
         var shock2 = mpld3.get_element(this.props.idshock2);
         var rar1 = mpld3.get_element(this.props.idrar1);
         var rar2 = mpld3.get_element(this.props.idrar2);
+        var rar1a = mpld3.get_element(this.props.idrar1a);
+        var rar2a = mpld3.get_element(this.props.idrar2a);
+        var rar1b = mpld3.get_element(this.props.idrar1b);
+        var rar2b = mpld3.get_element(this.props.idrar2b);
+        var rar1c = mpld3.get_element(this.props.idrar1c);
+        var rar2c = mpld3.get_element(this.props.idrar2c);
+        var rar1d = mpld3.get_element(this.props.idrar1d);
+        var rar2d = mpld3.get_element(this.props.idrar2d);
         var timedot = mpld3.get_element(this.props.idtimedot);
         var timeline = mpld3.get_element(this.props.idtimeline);
         var q1 = mpld3.get_element(this.props.idq1);
@@ -267,39 +277,101 @@ class PPlaneNLPlugin(plugins.PluginBase):
          var lam2r = hur/hr + Math.sqrt(g*hr);
          var color1 = "red";
          var color2 = "red";
+         var thick1 = 4;
+         var thick2 = 4;
+         var fan = 0;
          for (var ii=0; ii<iter_charac; ii++) {
              if (hmfinal >= hl) {
                  shock1.data[ii][1] = shock1.data[ii][0]/lam1;
                  rar1.data[ii][1] = rar1.data[ii][0]/lam1;
+                 rar1a.data[ii][1] = rar1a.data[ii][0]/lam1;
+                 rar1b.data[ii][1] = rar1b.data[ii][0]/lam1;
+                 rar1c.data[ii][1] = rar1c.data[ii][0]/lam1;
+                 rar1d.data[ii][1] = rar1d.data[ii][0]/lam1;
+                 console.log(rar2a.data);
                  color1 = "red";
+                 thick1 = 4;
              } else {
                  shock1.data[ii][1] = shock1.data[ii][0]/lam1l;
                  rar1.data[ii][1] = rar1.data[ii][0]/lam1m;
+                 fan = Math.abs(lam1m - lam1l)/5;
+                 rar1a.data[ii][1] = rar1a.data[ii][0]/(lam1l + fan);
+                 rar1b.data[ii][1] = rar1b.data[ii][0]/(lam1l + 2*fan);
+                 rar1c.data[ii][1] = rar1c.data[ii][0]/(lam1l + 3*fan);
+                 rar1d.data[ii][1] = rar1d.data[ii][0]/(lam1l + 4*fan);
                  color1 = "blue";
+                 thick1 = 1;
              }
              if (hmfinal >= hr) {
                  shock2.data[ii][2] = shock2.data[ii][0]/lam2;
                  rar2.data[ii][2] = rar2.data[ii][0]/lam2;
+                 rar2a.data[ii][2] = rar2a.data[ii][0]/lam2;
+                 rar2b.data[ii][2] = rar2b.data[ii][0]/lam2;
+                 rar2c.data[ii][2] = rar2c.data[ii][0]/lam2;
+                 rar2d.data[ii][2] = rar2d.data[ii][0]/lam2;
                  color2 = "red";
+                 thick2 = 4;
             } else {
                  shock2.data[ii][2] = shock2.data[ii][0]/lam2r;
                  rar2.data[ii][2] = rar2.data[ii][0]/lam2m;
+                 fan = Math.abs(lam2r - lam2m)/5;
+                 rar2a.data[ii][2] = rar2a.data[ii][0]/(lam2m + fan);
+                 rar2b.data[ii][2] = rar2b.data[ii][0]/(lam2m + 2*fan);
+                 rar2c.data[ii][2] = rar2c.data[ii][0]/(lam2m + 3*fan);
+                 rar2d.data[ii][2] = rar2d.data[ii][0]/(lam2m + 4*fan);
                  color2 = "blue";
+                 thick2 = 1;
             }                     
          }
          // Do transitions
          shock1.elements().transition().duration(5)
              .attr("d", shock1.datafunc(shock1.data))
-             .style("stroke", color1);
+             .style("stroke", color1)
+             .style("stroke-width", thick1);
          shock2.elements().transition().duration(5)
              .attr("d", shock2.datafunc(shock2.data))
-             .style("stroke", color2);
+             .style("stroke", color2)
+             .style("stroke-width", thick2);
          rar1.elements().transition().duration(5)
              .attr("d", rar1.datafunc(rar1.data))
-             .style("stroke", color1);
+             .style("stroke", color1)
+             .style("stroke-width", thick1);
          rar2.elements().transition().duration(5)
              .attr("d", rar2.datafunc(rar2.data))
-             .style("stroke", color2);
+             .style("stroke", color2)
+             .style("stroke-width", thick2);
+         rar1a.elements().transition().duration(5)
+             .attr("d", rar1a.datafunc(rar1a.data))
+             .style("stroke", color1)
+             .style("stroke-width", thick1);
+         rar2a.elements().transition().duration(5)
+             .attr("d", rar2a.datafunc(rar2a.data))
+             .style("stroke", color2)
+             .style("stroke-width", thick2);
+         rar1b.elements().transition().duration(5)
+             .attr("d", rar1b.datafunc(rar1b.data))
+             .style("stroke", color1)
+             .style("stroke-width", thick1);
+         rar2b.elements().transition().duration(5)
+             .attr("d", rar2b.datafunc(rar2b.data))
+             .style("stroke", color2)
+             .style("stroke-width", thick2);
+         rar1c.elements().transition().duration(5)
+             .attr("d", rar1c.datafunc(rar1c.data))
+             .style("stroke", color1)
+             .style("stroke-width", thick1);
+         rar2c.elements().transition().duration(5)
+             .attr("d", rar2c.datafunc(rar2c.data))
+             .style("stroke", color2)
+             .style("stroke-width", thick2);
+         rar1d.elements().transition().duration(5)
+             .attr("d", rar1d.datafunc(rar1d.data))
+             .style("stroke", color1)
+             .style("stroke-width", thick1);
+         rar2d.elements().transition().duration(5)
+             .attr("d", rar2d.datafunc(rar2d.data))
+             .style("stroke", color2)
+             .style("stroke-width", thick2);
         }
         
         // Function to update solution plots
@@ -474,7 +546,9 @@ class PPlaneNLPlugin(plugins.PluginBase):
                  hugol, hugor, intcl, intcr,
                  hugol2, hugor2, intcl2, intcr2, 
                  qlmarker, qmmarker ,qrmarker, 
-                 shock1, shock2, rar1, rar2, 
+                 shock1, shock2, rar1, rar2,
+                 rar1a,rar2a,rar1b,rar2b,
+                 rar1c,rar2c,rar1d,rar2d,
                  timedot, timeline,
                  q1, q2):
         if isinstance(points, mpl.lines.Line2D):
@@ -506,6 +580,14 @@ class PPlaneNLPlugin(plugins.PluginBase):
                       "idshock2" : utils.get_id(shock2),
                       "idrar1" : utils.get_id(rar1),
                       "idrar2" : utils.get_id(rar2),
+                      "idrar1a" : utils.get_id(rar1a),
+                      "idrar2a" : utils.get_id(rar2a),
+                      "idrar1b" : utils.get_id(rar1b),
+                      "idrar2b" : utils.get_id(rar2b),
+                      "idrar1c" : utils.get_id(rar1c),
+                      "idrar2c" : utils.get_id(rar2c),
+                      "idrar1d" : utils.get_id(rar1d),
+                      "idrar2d" : utils.get_id(rar2d),
                       "idtimedot" : utils.get_id(timedot,suffix),
                       "idtimeline" : utils.get_id(timeline),
                       "idq1" : utils.get_id(q1),
@@ -594,7 +676,7 @@ def shallow_water(qL=np.array([3.0, 5.0]), qR=np.array([3.0, -5.0]), g=1.0, time
     offsetx = 0.3*hmax/10
     offsety = -3*offsetx
     qlmarker = ax[0].plot(qL[0]+offsetx, qL[1]+offsety, 'ok', marker=(r"$ q_l $"), markersize=15)
-    qmmarker = ax[0].plot(qm[0]+offsetx, qm[1]+offsety, 'ok', marker=(r"$ q_m $"), markersize=15)
+    qmmarker = ax[0].plot(qm[0]+offsetx, qm[1]+offsety, 'ok', marker=(r"$ q_m $"), markersize=20)
     qrmarker = ax[0].plot(qR[0]+offsetx, qR[1]+offsety, 'ok', marker=(r"$ q_r $"), markersize=15)
 
     # Set axis 1 properties
@@ -617,10 +699,29 @@ def shallow_water(qL=np.array([3.0, 5.0]), qR=np.array([3.0, -5.0]), g=1.0, time
     char2 = x_xtp/lam2
     char3 = x_xtp2/lam1
     char4 = x_xtp2/lam2
-    shock1 = ax[1].plot(x_xtp, char1, '-k', linewidth=4, label="1-wave")
-    shock2 = ax[1].plot(x_xtp, char2, '-k', linewidth=2, label="2-wave")
-    rar1 = ax[1].plot(x_xtp2, char3, '-k', linewidth=4)
-    rar2 = ax[1].plot(x_xtp2, char4, '-k', linewidth=2)
+    shock1 = ax[1].plot(x_xtp, char1, '-k', linewidth=4, label="1 or 2 shock")
+    shock2 = ax[1].plot(x_xtp, char2, '-k', linewidth=4)
+    rar1 = ax[1].plot(x_xtp2, char3, '-k', linewidth=1, label="1 or 2 rarefaction")
+    rar2 = ax[1].plot(x_xtp2, char4, '-k', linewidth=1)
+    
+    # For 6 rarefaction lines
+    x_xtp3 = np.linspace(-11.1,11.1,iter_charac)
+    x_xtp4 = np.linspace(-11.2,11.2,iter_charac)
+    x_xtp5 = np.linspace(-11.3,11.3,iter_charac)
+    x_xtp6 = np.linspace(-11.4,11.4,iter_charac)
+    char1a = x_xtp3/lam1; char2a = x_xtp3/lam2 
+    char1b = x_xtp4/lam1; char2b = x_xtp4/lam2 
+    char1c = x_xtp5/lam1; char2c = x_xtp5/lam2 
+    char1d = x_xtp6/lam1; char2d = x_xtp6/lam2 
+    rar1a = ax[1].plot(x_xtp3, char1a, '-k', linewidth=1)
+    rar2a = ax[1].plot(x_xtp3, char2a, '-k', linewidth=1)
+    rar1b = ax[1].plot(x_xtp4, char1b, '-k', linewidth=1)
+    rar2b = ax[1].plot(x_xtp4, char2b, '-k', linewidth=1)
+    rar1c = ax[1].plot(x_xtp5, char1c, '-k', linewidth=1)
+    rar2c = ax[1].plot(x_xtp5, char2c, '-k', linewidth=1)
+    rar1d = ax[1].plot(x_xtp6, char1d, '-k', linewidth=1)
+    rar2d = ax[1].plot(x_xtp6, char2d, '-k', linewidth=1)
+    
     timedot = ax[1].plot([100000,1000000,9], [-10,-10,time], 'ok' , alpha=0.7, markersize=15)
     timeline = ax[1].plot([-12,0,12], [time, time, time], '--k', linewidth = 3, label="time")
 
@@ -669,6 +770,8 @@ def shallow_water(qL=np.array([3.0, 5.0]), qR=np.array([3.0, -5.0]), g=1.0, time
                                         hugol2[0],hugor2[0],intcl2[0],intcr2[0],
                                         qlmarker[0],qmmarker[0],qrmarker[0],
                                         shock1[0],shock2[0],rar1[0],rar2[0],
+                                        rar1a[0],rar2a[0],rar1b[0],rar2b[0],
+                                        rar1c[0],rar2c[0],rar1d[0],rar2d[0],
                                         timedot[0],timeline[0],
                                         q1[0],q2[0]))
     return fig
