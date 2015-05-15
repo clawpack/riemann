@@ -920,9 +920,9 @@ class PPlanePlugin(plugins.PluginBase):
               qtwo.data[1][2] = qleft[1];
               qtwo.data[2][2] = qmid[1];
               qtwo.data[3][2] = qmid[1];
-              qone.elements().transition()
+              qone.elements().transition().duration(5)
                 .attr("d", qone.datafunc(qone.data));
-              qtwo.elements().transition()
+              qtwo.elements().transition().duration(5)
                 .attr("d", qtwo.datafunc(qtwo.data));  
         }
         // End dragging
@@ -1083,29 +1083,33 @@ def linear_phase_plane(ql=np.array([-2.0, 2.0]),qr=np.array([0.0, 3.0]),
     return fig
 
 
-### TEST FOR SHALLOW WATER INTERACTIVE
-## Define left and right state (h,hu)
-#ql = np.array([3.0, 5.0])
-#qr = np.array([3.0, -5.0])
-## Define optional parameters (otherwise chooses default values)
-#plotopts = {'g':1.0, 'time':2.0, 'tmax':5, 'hmax':10, 'humin':-15, 'humax':15}
-## Call interactive function (can be called without any argument)
-#pt = riemann_interactive.shallow_water(ql,qr,**plotopts)
-##mpld3.show()
-##mpld3.save_html(pt, "test.html")
+### Tests for interactive apps
+def interactive_shallowPP(save_to_html=False):
+    # Define left and right state (h,hu)
+    ql = np.array([3.0, 5.0])
+    qr = np.array([3.0, -5.0])
+    # Define optional parameters (otherwise chooses default values)
+    plotopts = {'g':1.0, 'time':2.0, 'tmax':5, 'hmax':10, 'humin':-15, 'humax':15}
+    # Call interactive function (can be called without any argument)
+    pt = shallow_water(ql,qr,**plotopts)
+    if save_to_html:
+        mpld3.save_html(pt, "test_shallow.html")
+    mpld3.show()
 
-### TEST for linear phase plane interactive
-## Define left and right state 
-#ql = np.array([-2.0, 2.0]) 
-#qr = np.array([0.0, -3.0])
-## Define two eigenvectors and eigenvalues (acoustics)
-#zz = 2.0
-#rho0 = 1.0
-#r1 = np.array([zz,1.0])
-#r2 = np.array([-zz,1.0])
-#lam1 = zz/rho0
-#lam2 = -zz/rho0
-#plotopts={'q1min':-5, 'q1max':5, 'q2min':-5, 'q2max':5, 'domain':5, 'time':1, 
-          #'title1':"Pressure", 'title2':"Velocity"}
-#riemann_interactive.linear_phase_plane(ql,qr,r1,r2,lam1,lam2,**plotopts)
-##mpld3.show()
+def interactive_linearPP(save_to_html=False):
+    ## Define left and right state 
+    ql = np.array([-2.0, 2.0]) 
+    qr = np.array([0.0, -3.0])
+    # Define two eigenvectors and eigenvalues (acoustics)
+    zz = 2.0
+    rho0 = 1.0
+    r1 = np.array([zz,1.0])
+    r2 = np.array([-zz,1.0])
+    lam1 = zz/rho0
+    lam2 = -zz/rho0
+    plotopts={'q1min':-5, 'q1max':5, 'q2min':-5, 'q2max':5, 'domain':5, 'time':1, 
+            'title1':"Pressure", 'title2':"Velocity"}
+    pt = linear_phase_plane(ql,qr,r1,r2,lam1,lam2,**plotopts)
+    if save_to_html:
+        mpld3.save_html(pt, "test_linearPP.html")
+    mpld3.show()
