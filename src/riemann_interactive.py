@@ -746,7 +746,7 @@ def shallow_water(ql=np.array([3.0, 5.0]), qr=np.array([3.0, -5.0]), g=1.0, time
         lam = np.empty(4, dtype=float)
 
     # Set axis 3 properties
-    axsol[0].set_title("Height h at time = t", fontsize=18)
+    axsol[0].set_title("Depth h at time = t", fontsize=18)
     axsol[0].set_xlabel('x', fontsize=17)
     axsol[0].set_ylabel('h', fontsize=17)
     axsol[0].axis([-10,10,0,hmax])
