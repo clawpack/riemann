@@ -1088,7 +1088,7 @@ def linear_phase_plane(ql=np.array([-2.0, 2.0]),qr=np.array([0.0, 3.0]),
 
 
 ### Tests for interactive apps
-def interactive_shallowPP(save_to_html=False):
+def test_interactive_shallowPP(save_to_html=False):
     # Define left and right state (h,hu)
     ql = np.array([3.0, 5.0])
     qr = np.array([3.0, -5.0])
@@ -1100,7 +1100,7 @@ def interactive_shallowPP(save_to_html=False):
         mpld3.save_html(pt, "test_shallow.html")
     mpld3.show()
 
-def interactive_linearPP(save_to_html=False):
+def test_interactive_linearPP(save_to_html=False):
     ## Define left and right state 
     ql = np.array([-2.0, 2.0]) 
     qr = np.array([0.0, -3.0])
