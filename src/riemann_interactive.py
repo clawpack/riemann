@@ -1117,24 +1117,3 @@ def test_interactive_linearPP(save_to_html=False):
     if save_to_html:
         mpld3.save_html(pt, "test_linearPP.html")
     mpld3.show()
-    
-def doctest_test():
-    """
-    Doctest to show if code runs
-    Example:
-    >>> doctest_test()
-    1
-    """
-    success = 1
-    try:
-        pt = shallow_water()
-        pt2 = linear_phase_plane()
-    except:
-        success = 0
-    return success
-        
-    
-# Import doctest    
-if __name__ == "__main__":
-    import doctest
-    doctest.testmod()
