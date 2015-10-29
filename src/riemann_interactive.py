@@ -615,7 +615,8 @@ def shallow_water(ql=np.array([3.0, 5.0]), qr=np.array([3.0, -5.0]), g=1.0, time
                   hmax=None, humin=None, humax=None):
     # Create figure
     # Create a figure
-    fig, axfull = plt.subplots(2,2, figsize=(13, 12))
+    #fig, axfull = plt.subplots(2,2, figsize=(13, 12))
+    fig, axfull = plt.subplots(2,2, figsize=(10, 8))
     fig.subplots_adjust(left=0.05, right=0.9, bottom=0.1, top=0.9,
                         hspace=0.3, wspace=0.15)
 
@@ -669,14 +670,14 @@ def shallow_water(ql=np.array([3.0, 5.0]), qr=np.array([3.0, -5.0]), g=1.0, time
     intcr2 = ax[0].plot(xxR2,yyR2, '--b', linewidth=1.5)
 
     # Plot ql and qr
-    points = ax[0].plot([ql[0],qr[0]], [ql[1], qr[1]], 'ok', alpha=0.7, markersize=15, markeredgewidth=1)
+    points = ax[0].plot([ql[0],qr[0]], [ql[1], qr[1]], 'ok', alpha=0.7, markersize=10, markeredgewidth=1)
     #data = ["q_l", "q_r"] 
 
     # Plot markers
     offsetx = 0.3*hmax/10
     offsety = -3*offsetx
     qlmarker = ax[0].plot(ql[0]+offsetx, ql[1]+offsety, 'ok', marker=(r"$ q_l $"), markersize=15)
-    qmmarker = ax[0].plot(qm[0]+offsetx, qm[1]+offsety, 'ok', marker=(r"$ q_m $"), markersize=20)
+    qmmarker = ax[0].plot(qm[0]+offsetx, qm[1]+offsety, 'ok', marker=(r"$ q_m $"), markersize=15)
     qrmarker = ax[0].plot(qr[0]+offsetx, qr[1]+offsety, 'ok', marker=(r"$ q_r $"), markersize=15)
 
     # Set axis 1 properties
@@ -686,7 +687,7 @@ def shallow_water(ql=np.array([3.0, 5.0]), qr=np.array([3.0, -5.0]), g=1.0, time
     ax[0].set_ylabel('hu', fontsize=17)
     #ax[0].set_aspect('equal')
     ax[0].grid(alpha=0.1,color='k', linestyle='--')
-    legend = ax[0].legend(loc='upper left', shadow=True)
+    legend = ax[0].legend(loc='upper left', shadow=True, fontsize = 8)
 
 
     # PLOT x-t PLANE
@@ -722,7 +723,7 @@ def shallow_water(ql=np.array([3.0, 5.0]), qr=np.array([3.0, -5.0]), g=1.0, time
     rar1d = ax[1].plot(x_xtp6, char1d, '-k', linewidth=1)
     rar2d = ax[1].plot(x_xtp6, char2d, '-k', linewidth=1)
     
-    timedot = ax[1].plot([100000,1000000,9], [-10,-10,time], 'ok' , alpha=0.7, markersize=15)
+    timedot = ax[1].plot([100000,1000000,9], [-10,-10,time], 'ok' , alpha=0.7, markersize=10)
     timeline = ax[1].plot([-12,0,12], [time, time, time], '--k', linewidth = 3, label="time")
 
     # Set axis 2 properties
@@ -731,7 +732,7 @@ def shallow_water(ql=np.array([3.0, 5.0]), qr=np.array([3.0, -5.0]), g=1.0, time
     ax[1].set_ylabel('t', fontsize=17)
     ax[1].axis([-10,10,-0,tmax])
     ax[1].grid(alpha=0.1,color='k', linestyle='--')
-    legend = ax[1].legend(loc='upper center', shadow=True)
+    legend = ax[1].legend(loc='upper center', shadow=True, fontsize = 8)
 
     # PLOT SOLUTIONS
     xsol = np.linspace(-10,10,2*iters)
@@ -970,8 +971,8 @@ def linear_phase_plane(ql=np.array([-2.0, 2.0]),qr=np.array([0.0, 3.0]),
                        title1=None, title2=None):
     # Create figure
     # Create a figure
-    fig, ax = plt.subplots(1,3, figsize=(13.5, 4.5))
-    fig.subplots_adjust(left=0.05, right=0.9, bottom=0.1, top=0.9,
+    fig, ax = plt.subplots(1,3, figsize=(13.5, 5.0))
+    fig.subplots_adjust(left=0.05, right=0.9, bottom=0.2, top=0.9,
                         hspace=0.3, wspace=0.15)
 
     #Create subfigure ax1 for phaseplane
@@ -1016,7 +1017,7 @@ def linear_phase_plane(ql=np.array([-2.0, 2.0]),qr=np.array([0.0, 3.0]),
     linesrb = ax[0].plot([q1min-3*eps,q1max+3*eps],[ml*(q1min - qr[0]) + qr[1],ml*(q1max - qr[0]) + qr[1]], '-k')
 
     # Plot ql and qr
-    points = ax[0].plot([ql[0],qr[0]], [ql[1], qr[1]], 'ok', alpha=0.7, markersize=15, markeredgewidth=1)
+    points = ax[0].plot([ql[0],qr[0]], [ql[1], qr[1]], 'ok', alpha=0.7, markersize=10, markeredgewidth=1)
     data = ["q_l", "q_r"]
     offset = 0.4*0.5*(q1max-q1min)/5.0
     qlmarker = ax[0].plot(ql[0] + offset, ql[1] - offset, 'ok', marker=(r"$ q_l $"), markersize=15)
