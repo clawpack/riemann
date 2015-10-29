@@ -1,5 +1,16 @@
-# MPLD3: D3-javascript plugin for phase planes interactive apps
-# Questions conatact @maojrs: maojrs@gmail.com
+# Interactive apps to show solutions of Riemann problems.
+
+# Left and right states in the phase plane can be dragged
+# and dropped, as well as the time bar on the x-t plane.
+# MPLD3: D3-javascript plugin for matplotlib http://mpld3.github.io/
+# Questions contact Mauricio Del Razo S. @maojrs: maojrs@gmail.com
+"""
+In order to run the following code in python, try running the tests at 
+the end of the code. If you are using the jupyter notebooks, remember 
+switching mpld3.show() to mpld3.display()
+"""
+
+
 import numpy as np
 import jinja2
 import json
