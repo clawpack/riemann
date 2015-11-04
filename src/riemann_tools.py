@@ -1,5 +1,3 @@
-
-
 from matplotlib import animation
 from clawpack.visclaw.JSAnimation import IPython_display
 from IPython.display import display
@@ -7,21 +5,44 @@ import ipywidgets
 import sympy
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib
 
 
 sympy.init_printing(use_latex='mathjax')
 
 
-def riemann_solution(num_eqn,solver,q_l,q_r,aux_l=None,aux_r=None,t=0.2,problem_data=None):
+def riemann_solution(solver,q_l,q_r,aux_l=None,aux_r=None,t=0.2,problem_data=None,verbose=False):
+    r"""
+    Compute the (approximate) solution of the Riemann problem with states (q_l, q_r)
+    based on the (approximate) Riemann solver `solver`.  The solver should be
+    a pointwise solver provided as a Python function.
+
+    **Example**::
+
+        # Call solver
+        >>> from clawpack import riemann
+        >>> gamma = 1.4
+        >>> problem_data = { 'gamma' : gamma, 'gamma1' : gamma - 1 }
+        >>> solver = riemann.euler_1D_py.euler_hll_1D
+        >>> q_l = (3., -0.5, 2.); q_r = (1., 0., 1.)
+        >>> states, speeds, reval = riemann_solution(solver, q_l, q_r, problem_data=problem_data)
+
+        # Check output
+        >>> q_m = np.array([1.686068, 0.053321, 1.202282])
+        >>> assert np.allclose(q_m, states[:,1])
+
+    """
+    if not isinstance(q_l, np.ndarray):
+        q_l = np.array(q_l)   # in case q_l, q_r specified as scalars
+        q_r = np.array(q_r)
+
+    num_eqn = len(q_l)
+
     if aux_l is None:
         aux_l = np.zeros(num_eqn)
     if aux_r is None:
         aux_r = np.zeros(num_eqn)
 
-    if num_eqn == 1:
-        q_l = np.array(q_l)   # in case q_l, q_r specified as scalars
-        q_r = np.array(q_r)
-    
     wave, s, amdq, apdq = solver(q_l.reshape((num_eqn,1)),q_r.reshape((num_eqn,1)),
                                  aux_l.reshape((num_eqn,1)),aux_r.reshape((num_eqn,1)),problem_data)
     
@@ -33,22 +54,23 @@ def riemann_solution(num_eqn,solver,q_l,q_r,aux_l=None,aux_r=None,t=0.2,problem_
     
     num_states = num_waves + 1
     
-    print 'States in Riemann solution:'
-    states_sym = sympy.Matrix(states)
-    display([states_sym[:,k] for k in range(num_states)])
+    if verbose:
+        print 'States in Riemann solution:'
+        states_sym = sympy.Matrix(states)
+        display([states_sym[:,k] for k in range(num_states)])
     
-    print 'Waves (jumps between states):'
-    wave_sym = sympy.Matrix(wave[:,:,0])
-    display([wave_sym[:,k] for k in range(num_waves)])
+        print 'Waves (jumps between states):'
+        wave_sym = sympy.Matrix(wave[:,:,0])
+        display([wave_sym[:,k] for k in range(num_waves)])
     
-    print "Speeds: "
-    s_sym = sympy.Matrix(s)
-    display(s_sym.T)
+        print "Speeds: "
+        s_sym = sympy.Matrix(s)
+        display(s_sym.T)
     
-    print "amdq, apdq: "
-    amdq_sym = sympy.Matrix(amdq).T
-    apdq_sym = sympy.Matrix(apdq).T
-    display([amdq_sym, apdq_sym])
+        print "amdq, apdq: "
+        amdq_sym = sympy.Matrix(amdq).T
+        apdq_sym = sympy.Matrix(apdq).T
+        display([amdq_sym, apdq_sym])
     
     def riemann_eval(xi):
         "Return Riemann solution as function of xi = x/t."
@@ -125,6 +147,12 @@ def plot_riemann(states, s, riemann_eval, t, fig=None, color='b', layout='horizo
     else:
         ax = fig.axes
         xmin, xmax = ax[1].get_xlim()
+
+    for axis in ax:
+        for child in axis.get_children():
+            if isinstance(child, matplotlib.spines.Spine):
+                child.set_color('#dddddd')
+
     tmax = 1.0
     xmax = 0.
     for i in range(len(s)):
@@ -202,3 +230,8 @@ def make_plot_function(states_list,speeds_list,riemann_eval_list,names=None,layo
         return fig
 
     return plot_function
+
+
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()
