@@ -187,9 +187,24 @@ def euler_hllc_1D(q_l,q_r,aux_l,aux_r,problem_data):
     r"""
     HLLC Euler solver ::
 
-         W_1 = q_hat_l - q_l
-         W_2 = q_hat_r - q_hat_l
-         W_3 = q_r - q_hat_r
+    W_1 = q_hat_l - q_l      s_1 = min(u_l-c_l,u_l+c_l,lambda_roe_1,lambda_roe_2)
+    W_2 = q_hat_r - q_hat_l  s_2 = s_m
+    W_3 = q_r - q_hat_r      s_3 = max(u_r-c_r,u_r+c_r,lambda_roe_1,lambda_roe_2)
+
+    s_m = (p_r - p_l + rho_l*u_l*(s_l - u_l) - rho_r*u_r*(s_r - u_r))\
+          / (rho_l*(s_l-u_l) - rho_r*(s_r - u_r))
+
+    # left middle state
+    q_hat_l[0,:] = rho_l*(s_l - u_l)/(s_l - s_m)
+    q_hat_l[1,:] = rho_l*(s_l - u_l)/(s_l - s_m)*s_m
+    q_hat_l[2,:] = rho_l*(s_l - u_l)/(s_l - s_m)\
+                *(E_l/rho_l + (s_m - u_l)*(s_m + p_l/(rho_l*(s_l - u_l))))
+    
+    # right middle state
+    q_hat_r[0,:] = rho_r*(s_r - u_r)/(s_r - s_m)
+    q_hat_r[1,:] = rho_r*(s_r - u_r)/(s_r - s_m)*s_m
+    q_hat_r[2,:] = rho_r*(s_r - u_r)/(s_r - s_m)\
+                *(E_r/rho_r + (s_m - u_r)*(s_m + p_r/(rho_r*(s_r - u_r))))
 
     *problem_data* should contain:
     - *gamma* - (float) Ratio of specific heat capacities
