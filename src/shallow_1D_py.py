@@ -37,6 +37,7 @@ is the gravitational acceleration.
 # ============================================================================
 
 import numpy as np
+from scipy.optimize import newton
 
 num_eqn = 2
 num_waves = 2
@@ -313,7 +314,7 @@ def shallow_exact_1D(q_l,q_r,aux_l,aux_r,problem_data):
 
     # Newton solve to find intermediate state q_m
     for i in xrange(num_rp):
-        h_m[i] = scipy.optimize.newton(psi, 1.e-3, \
+        h_m[i] = newton(psi, 1.e-3, \
                                        args=(h_l[i],h_r[i],u_l[i],u_r[i]))
         u_m[i] = (u_l[i] - phi(h_m[i], h_l[i]))
         h_min, h_max = min(h_l[i], h_r[i]), max(h_l[i], h_r[i])
