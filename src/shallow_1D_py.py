@@ -117,14 +117,32 @@ def shallow_roe_1D(q_l,q_r,aux_l,aux_r,problem_data):
 
         # Harten-Hyman entropy fix parameter
         beta = np.zeros(num_rp)
-        beta[transonic_1] = (lamb(1,q_m[:,transonic_1]) - s[0,transonic_1]) / (lamb(1,q_m[:,transonic_1]) - lamb(1,q_l[:,transonic_1]))
-        beta[transonic_2] = (lamb(2,q_r[:,transonic_2]) - s[1,transonic_2]) / (lamb(2,q_r[:,transonic_2]) - lamb(2,q_m[:,transonic_2]))
+        beta[transonic_1] = (lamb(1,q_m[:,transonic_1]) - s[0,transonic_1]) \
+            / (lamb(1,q_m[:,transonic_1]) - lamb(1,q_l[:,transonic_1]))
+        beta[transonic_2] = (lamb(2,q_r[:,transonic_2]) - s[1,transonic_2]) \
+            / (lamb(2,q_r[:,transonic_2]) - lamb(2,q_m[:,transonic_2]))
 
         # Update fluctuations
-        amdq[:,transonic_1] += beta[transonic_1] * lamb(1,q_l[:,transonic_1]) * wave[:,0,transonic_1] * (s[0,transonic_1] >= 0.0) + (beta[transonic_1] * lamb(1,q_l[:,transonic_1]) - s[0,transonic_1]) * wave[:,0,transonic_1] * (s[0,transonic_1] < 0.0)
-        amdq[:,transonic_2] += beta[transonic_2] * lamb(2,q_m[:,transonic_2]) * wave[:,1,transonic_2] * (s[1,transonic_2] >= 0.0) + (beta[transonic_2] * lamb(2,q_m[:,transonic_2]) - s[1,transonic_2]) * wave[:,1,transonic_2] * (s[1,transonic_2] < 0.0)
-        apdq[:,transonic_1] += (1. - beta[transonic_1]) * lamb(1,q_m[:,transonic_1]) * wave[:,0,transonic_1] * (s[0,transonic_1] < 0.0) + ((1. - beta[transonic_1]) * lamb(1,q_m[:,transonic_1]) - s[0,transonic_1]) * wave[:,0,transonic_1] * (s[0,transonic_1] >= 0.0)
-        apdq[:,transonic_2] += (1. - beta[transonic_2]) * lamb(2,q_r[:,transonic_2]) * wave[:,1,transonic_2] * (s[1,transonic_2] < 0.0) + ((1. - beta[transonic_2]) * lamb(2,q_r[:,transonic_2]) - s[1,transonic_2]) * wave[:,1,transonic_2] * (s[1,transonic_2] >= 0.0)
+        amdq[:,transonic_1] += beta[transonic_1] * lamb(1,q_l[:,transonic_1]) \
+            * wave[:,0,transonic_1] * (s[0,transonic_1] >= 0.0) \
+            + (beta[transonic_1] * lamb(1,q_l[:,transonic_1]) \
+            - s[0,transonic_1]) * wave[:,0,transonic_1] \
+            * (s[0,transonic_1] < 0.0)
+        amdq[:,transonic_2] += beta[transonic_2] * lamb(2,q_m[:,transonic_2]) \
+            * wave[:,1,transonic_2] * (s[1,transonic_2] >= 0.0) \
+            + (beta[transonic_2] * lamb(2,q_m[:,transonic_2]) \
+            - s[1,transonic_2]) * wave[:,1,transonic_2] \
+            * (s[1,transonic_2] < 0.0)
+        apdq[:,transonic_1] += (1. - beta[transonic_1]) \
+            * lamb(1,q_m[:,transonic_1]) * wave[:,0,transonic_1] \
+            * (s[0,transonic_1] < 0.0) + ((1. - beta[transonic_1]) \
+            * lamb(1,q_m[:,transonic_1]) - s[0,transonic_1]) \
+            * wave[:,0,transonic_1] * (s[0,transonic_1] >= 0.0)
+        apdq[:,transonic_2] += (1. - beta[transonic_2]) \
+            * lamb(2,q_r[:,transonic_2]) * wave[:,1,transonic_2] \
+            * (s[1,transonic_2] < 0.0) + ((1. - beta[transonic_2]) \
+            * lamb(2,q_r[:,transonic_2]) - s[1,transonic_2]) \
+            * wave[:,1,transonic_2] * (s[1,transonic_2] >= 0.0)
             
     return wave, s, amdq, apdq
     
@@ -176,11 +194,11 @@ def shallow_hll_1D(q_l,q_r,aux_l,aux_r,problem_data):
 
     # Compute middle state
     q_hat = np.empty((2,num_rp))
-    q_hat[0,:] = ((q_r[1,:] - q_l[1,:] - s[1,:] * q_r[0,:] 
-                            + s[0,:] * q_l[0,:]) / (s[0,:] - s[1,:]))
-    q_hat[1,:] = ((q_r[1,:]**2/q_r[0,:] + 0.5 * problem_data['grav'] * q_r[0,:]**2
-                - (q_l[1,:]**2/q_l[0,:] + 0.5 * problem_data['grav'] * q_l[0,:]**2)
-                - s[1,:] * q_r[1,:] + s[0,:] * q_l[1,:]) / (s[0,:] - s[1,:]))
+    q_hat[0,:] = ((q_r[1,:] - q_l[1,:] - s[1,:] * q_r[0,:] \
+                   + s[0,:] * q_l[0,:]) / (s[0,:] - s[1,:]))
+    q_hat[1,:] = ((q_r[1,:]**2/q_r[0,:] + 0.5 * problem_data['grav'] * q_r[0,:]**2 \
+                   - (q_l[1,:]**2/q_l[0,:] + 0.5 * problem_data['grav'] * q_l[0,:]**2) \
+        - s[1,:] * q_r[1,:] + s[0,:] * q_l[1,:]) / (s[0,:] - s[1,:]))
 
     # Compute each family of waves
     wave[:,0,:] = q_hat - q_l
@@ -273,7 +291,6 @@ def shallow_exact_1D(q_l,q_r,aux_l,aux_r,problem_data):
     sm = np.zeros( (num_waves, num_rp) )
     amdq = np.zeros( (num_eqn, num_rp) )
     apdq = np.zeros( (num_eqn, num_rp) )
-    h_m, u_m = np.zeros(num_rp), np.zeros(num_rp)
 
     # Set heights and velocities
     h_l, h_r = q_l[0,:], q_r[0,:]
@@ -296,13 +313,16 @@ def shallow_exact_1D(q_l,q_r,aux_l,aux_r,problem_data):
 
     # Newton solve to find intermediate state q_m
     for i in xrange(num_rp):
-        h_m[i] = newton(psi, 1.e-3, args=(h_l[i],h_r[i],u_l[i],u_r[i]))
+        h_m[i] = scipy.optimize.newton(psi, 1.e-3, \
+                                       args=(h_l[i],h_r[i],u_l[i],u_r[i]))
         u_m[i] = (u_l[i] - phi(h_m[i], h_l[i]))
         h_min, h_max = min(h_l[i], h_r[i]), max(h_l[i], h_r[i])
-        psi_min[i], psi_max[i] = psi(h_min, h_l[i], h_r[i], u_l[i], u_r[i]), psi(h_max, h_l[i], h_r[i], u_l[i], u_r[i])
+        psi_min[i] = psi(h_min, h_l[i], h_r[i], u_l[i], u_r[i])
+        psi_max[i] = psi(h_max, h_l[i], h_r[i], u_l[i], u_r[i])
 
     # Compute Roe and right and left speeds
-    ubar = ( (q_l[1,:]/np.sqrt(q_l[0,:]) + q_r[1,:]/np.sqrt(q_r[0,:])) / (np.sqrt(q_l[0,:]) + np.sqrt(q_r[0,:])) )
+    ubar = ( (q_l[1,:]/np.sqrt(q_l[0,:]) + q_r[1,:]/np.sqrt(q_r[0,:]))
+             / (np.sqrt(q_l[0,:]) + np.sqrt(q_r[0,:])) )
     cbar = np.sqrt(0.5*g*(q_l[0,:] + q_r[0,:]))
     u_r = q_r[1,:]/q_r[0,:]
     c_r = np.sqrt(g*q_r[0,:])
@@ -326,7 +346,7 @@ def shallow_exact_1D(q_l,q_r,aux_l,aux_r,problem_data):
     two_rar = (psi_min < 0.0)*(psi_max > 0.0)*(h_l < h_r)
     all_rar = (0.0 <= psi_min)*(psi_min < psi_max)    
 
-    # qt1 and qt2 are solutions that correspond to transonic rarefactions in the 1- and 2-wave, respectively.   
+    # qt1 and qt2 are transonic rarefactions in the 1- and 2-wave, respectively.   
     qt1, qt2 = np.zeros( (num_eqn, num_rp) ), np.zeros( (num_eqn, num_rp) )
     qt1[0,:] =(1./(9.*g))*(u_l + 2.*np.sqrt(g*h_l))**2 
     qt1[1,:] = qt1[0,:]*(u_l + 2.*(np.sqrt(g*h_l) - np.sqrt(g*qt1[0,:])))
@@ -345,10 +365,22 @@ def shallow_exact_1D(q_l,q_r,aux_l,aux_r,problem_data):
 
     # Evaluate q at the interface
     q = 0.5*(q_l + q_r) 
-    q[:,all_shock] = q_r[:, all_shock]*(s[1,all_shock] <= 0.0) + q_l[:,all_shock]*(s[0,all_shock] >= 0.0) + q_m[:,all_shock]*(s[0,all_shock] < 0.0)*(0.0 < s[1,all_shock])
-    q[:,one_rar] = (q_m[:,one_rar]*(sm[0,one_rar] <= 0.0) + qt1[:,one_rar]*(sm[0,one_rar] >= 0.0))*(s[0,one_rar] <= 0.0)*(0.0 <= s[1,one_rar]) + q_r[:,one_rar]*(s[1,one_rar] < 0.0) + q_l[:,one_rar]*(s[0,one_rar] > 0.0)
-    q[:,two_rar] = (q_m[:,two_rar]*(sm[1,two_rar] >= 0.0) + qt2[:,two_rar]*(sm[1,two_rar] < 0.0))*(s[0,two_rar] <= 0.0)*(0.0 <= s[1,two_rar]) + q_r[:,two_rar]*(s[1,two_rar] < 0.0) + q_l[:,two_rar]*(s[0,two_rar] > 0.0)
-    q[:,all_rar] = q_m[:,all_rar]*(sm[0,all_rar] <= 0.0)*(0.0 <= sm[1,all_rar]) + qt1[:,all_rar]*(sm[0,all_rar] > 0.0)*(s[0,all_rar] <= 0.0) + qt2[:,all_rar]*(sm[1,all_rar] < 0.0)*(s[1,all_rar] >= 0.0) + q_r[:,all_rar]*(s[1,all_rar] < 0.0) + q_l[:,all_rar]*(s[0,all_rar] > 0.0)
+    q[:,all_shock] = q_r[:, all_shock] * (s[1,all_shock] <= 0.0) \
+        + q_l[:,all_shock] * (s[0,all_shock] >= 0.0) \
+        + q_m[:,all_shock] * (s[0,all_shock] < 0.0) * (0.0 < s[1,all_shock])
+    q[:,one_rar] = (q_m[:,one_rar] * (sm[0,one_rar] <= 0.0) \
+        + qt1[:,one_rar] * (sm[0,one_rar] >= 0.0)) * (s[0,one_rar] <= 0.0) \
+        * (0.0 <= s[1,one_rar]) + q_r[:,one_rar] * (s[1,one_rar] < 0.0) \
+        + q_l[:,one_rar] * (s[0,one_rar] > 0.0)
+    q[:,two_rar] = (q_m[:,two_rar] * (sm[1,two_rar] >= 0.0) + qt2[:,two_rar] \
+        * (sm[1,two_rar] < 0.0)) * (s[0,two_rar] <= 0.0) \
+        * (0.0 <= s[1,two_rar]) + q_r[:,two_rar] * (s[1,two_rar] < 0.0) \
+        + q_l[:,two_rar] * (s[0,two_rar] > 0.0)
+    q[:,all_rar] = q_m[:,all_rar] * (sm[0,all_rar] <= 0.0) \
+        * (0.0 <= sm[1,all_rar]) + qt1[:,all_rar] * (sm[0,all_rar] > 0.0) \
+        * (s[0,all_rar] <= 0.0) + qt2[:,all_rar] * (sm[1,all_rar] < 0.0) \
+        * (s[1,all_rar] >= 0.0) + q_r[:,all_rar] * (s[1,all_rar] < 0.0) \
+        + q_l[:,all_rar]*(s[0,all_rar] > 0.0)
 
     # Compute fluctuations amdq = f(q) and apdq = -f(q)
     f = np.zeros( (num_eqn, num_rp) )
