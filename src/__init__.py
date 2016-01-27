@@ -91,3 +91,4 @@ except ImportError as e:
 import os
 if os.path.exists('./layered_shallow_water_1D.so'):
     import layered_shallow_water_1D
+    import layered_shallow_water_1D_constants
