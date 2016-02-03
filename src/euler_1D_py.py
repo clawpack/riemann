@@ -183,6 +183,112 @@ def euler_hll_1D(q_l,q_r,aux_l,aux_r,problem_data):
             
     return wave, s, amdq, apdq
 
+def euler_hllc_1D(q_l,q_r,aux_l,aux_r,problem_data):
+    r"""
+    HLLC Euler solver ::
+
+    W_1 = q_hat_l - q_l      s_1 = min(u_l-c_l,u_l+c_l,lambda_roe_1,lambda_roe_2)
+    W_2 = q_hat_r - q_hat_l  s_2 = s_m
+    W_3 = q_r - q_hat_r      s_3 = max(u_r-c_r,u_r+c_r,lambda_roe_1,lambda_roe_2)
+
+    s_m = (p_r - p_l + rho_l*u_l*(s_l - u_l) - rho_r*u_r*(s_r - u_r))\
+          / (rho_l*(s_l-u_l) - rho_r*(s_r - u_r))
+
+    # left middle state
+    q_hat_l[0,:] = rho_l*(s_l - u_l)/(s_l - s_m)
+    q_hat_l[1,:] = rho_l*(s_l - u_l)/(s_l - s_m)*s_m
+    q_hat_l[2,:] = rho_l*(s_l - u_l)/(s_l - s_m)\
+                *(E_l/rho_l + (s_m - u_l)*(s_m + p_l/(rho_l*(s_l - u_l))))
+    
+    # right middle state
+    q_hat_r[0,:] = rho_r*(s_r - u_r)/(s_r - s_m)
+    q_hat_r[1,:] = rho_r*(s_r - u_r)/(s_r - s_m)*s_m
+    q_hat_r[2,:] = rho_r*(s_r - u_r)/(s_r - s_m)\
+                *(E_r/rho_r + (s_m - u_r)*(s_m + p_r/(rho_r*(s_r - u_r))))
+
+    *problem_data* should contain:
+    - *gamma* - (float) Ratio of specific heat capacities
+    - *gamma1* - (float) :math:`\gamma - 1`
+
+    :Version 1.0 (2015-11-18)
+    """
+
+    # Problem dimensions
+    num_rp = q_l.shape[1]
+    num_waves = 3
+
+    # Return values
+    wave = np.empty( (num_eqn, num_waves, num_rp) )
+    s = np.empty( (num_waves, num_rp) )
+    amdq = np.zeros( (num_eqn, num_rp) )
+    apdq = np.zeros( (num_eqn, num_rp) )
+    
+    # Solver parameters
+    gamma1 = problem_data['gamma1']
+    
+    # Calculate Roe averages, right and left speeds
+    u, a, _, p_l, p_r = roe_averages(q_l,q_r,problem_data)
+    rho_r = q_r[0,:]
+    rho_l = q_l[0,:]
+    E_r = q_r[2,:]
+    E_l = q_l[2,:]
+    H_r = (E_r + p_r) / rho_r
+    H_l = (E_l + p_l) / rho_l
+    u_r = q_r[1,:] / rho_r
+    u_l = q_l[1,:] / rho_l
+    a_r = np.sqrt(gamma1 * (H_r - 0.5 * u_r**2))
+    a_l = np.sqrt(gamma1 * (H_l - 0.5 * u_l**2))
+
+    # Compute Einfeldt speeds
+    s_index = np.empty((4,num_rp))
+    s_index[0,:] = u + a
+    s_index[1,:] = u - a
+    s_index[2,:] = u_l + a_l
+    s_index[3,:] = u_l - a_l
+    s[0,:]  = np.min(s_index,axis=0)
+    s_index[2,:] = u_r + a_r
+    s_index[3,:] = u_r - a_r
+    s[2,:] = np.max(s_index,axis=0)
+
+    # left and right speeds
+    s_l = s[0,:]
+    s_r = s[2,:]
+    
+    # middle speed
+    s_m = np.empty((num_rp))
+    s_m[:] = (p_r - p_l + rho_l*u_l*(s_l - u_l) - rho_r*u_r*(s_r - u_r))\
+          / (rho_l*(s_l-u_l) - rho_r*(s_r - u_r))
+    s[1,:] = s_m
+    
+    # left middle states
+    q_hat_l = np.empty((num_eqn,num_rp))
+    q_hat_l[0,:] = rho_l*(s_l - u_l)/(s_l - s_m)
+    q_hat_l[1,:] = rho_l*(s_l - u_l)/(s_l - s_m)*s_m
+    q_hat_l[2,:] = rho_l*(s_l - u_l)/(s_l - s_m)\
+                *(E_l/rho_l + (s_m - u_l)*(s_m + p_l/(rho_l*(s_l - u_l))))
+    
+    # right middle state
+    q_hat_r = np.empty((num_eqn,num_rp))
+    q_hat_r[0,:] = rho_r*(s_r - u_r)/(s_r - s_m)
+    q_hat_r[1,:] = rho_r*(s_r - u_r)/(s_r - s_m)*s_m
+    q_hat_r[2,:] = rho_r*(s_r - u_r)/(s_r - s_m)\
+                *(E_r/rho_r + (s_m - u_r)*(s_m + p_r/(rho_r*(s_r - u_r))))
+
+    # Compute each family of waves
+    wave[:,0,:] = q_hat_l - q_l
+    wave[:,1,:] = q_hat_r - q_hat_l
+    wave[:,2,:] = q_r - q_hat_r
+    
+    # Compute variations
+    s_index = np.zeros((2,num_rp))
+    for m in xrange(num_eqn):
+        for mw in xrange(num_waves):
+            s_index[0,:] = s[mw,:]
+            amdq[m,:] += np.min(s_index,axis=0) * wave[m,mw,:]
+            apdq[m,:] += np.max(s_index,axis=0) * wave[m,mw,:]
+            
+    return wave, s, amdq, apdq
+
 def euler_exact_1D(q_l,q_r,aux_l,aux_r,problem_data):
     r"""
     Exact euler Riemann solver
