@@ -36,6 +36,7 @@ c-----------------------------------------------------------------------
       double precision delh,delhu,delphi,delb,delnorm
       double precision rare1st,rare2st,sdelta,raremin,raremax
       double precision criticaltol,convergencetol,raretol
+      double precision criticaltol_2, hustar_interface
       double precision s1s2bar,s1s2tilde,hbar,hLstar,hRstar,hustar
       double precision huRstar,huLstar,uRstar,uLstar,hstarHLL
       double precision deldelh,deldelphi
@@ -109,7 +110,10 @@ c     !---------------------------------------------------
 
 
 c     !determine the steady state wave -------------------
-      criticaltol = 1.d-6
+      !criticaltol = 1.d-6
+      ! MODIFIED:
+      criticaltol = max(drytol*g, 1d-6)
+      criticaltol_2 = dsqrt(criticaltol)
       deldelh = -delb
       deldelphi = -g*0.5d0*(hR+hL)*delb
 
@@ -145,15 +149,16 @@ c           lambda(2) = max(min(0.5d0*(s1m+s2m),sE2),sE1)
          s1s2tilde= max(0.d0,uLstar*uRstar) - g*hbar
 
 c        !find if sonic problem
-         sonic=.false.
-         if (abs(s1s2bar).le.criticaltol) sonic=.true.
-         if (s1s2bar*s1s2tilde.le.criticaltol) sonic=.true.
-         if (s1s2bar*sE1*sE2.le.criticaltol) sonic = .true.
-         if (min(abs(sE1),abs(sE2)).lt.criticaltol) sonic=.true.
-         if (sE1.lt.0.d0.and.s1m.gt.0.d0) sonic = .true.
-         if (sE2.gt.0.d0.and.s2m.lt.0.d0) sonic = .true.
-         if ((uL+sqrt(g*hL))*(uR+sqrt(g*hR)).lt.0.d0) sonic=.true.
-         if ((uL-sqrt(g*hL))*(uR-sqrt(g*hR)).lt.0.d0) sonic=.true.
+         ! MODIFIED from 5.3.1 version
+         sonic = 
+     &     ((abs(s1s2bar).le.criticaltol) .or.
+     &      (s1s2bar*s1s2tilde.le.criticaltol*criticaltol) .or.
+     &      (s1s2bar*sE1*sE2.le.criticaltol*criticaltol) .or.
+     &      (min(abs(sE1),abs(sE2)).lt.criticaltol_2) .or.
+     &      (sE1.lt.criticaltol_2.and.s1m.gt. -criticaltol_2) .or.
+     &      (sE2.gt.-criticaltol_2.and.s2m.lt. criticaltol_2) .or.
+     &      ((uL+dsqrt(g*hL))*(uR+dsqrt(g*hR)).lt.0.d0) .or.
+     &      ((uL- dsqrt(g*hL))*(uR- dsqrt(g*hR)).lt.0.d0))
 
 c        !find jump in h, deldelh
          if (sonic) then
