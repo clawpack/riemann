@@ -35,6 +35,8 @@ c
 
       use geoclaw_module, only: g => grav, drytol => dry_tolerance
       use geoclaw_module, only: earth_radius, deg2rad
+
+      use storm_module, only: pressure_forcing, pressure_index
       use amr_module, only: mcapa
 
       implicit none
@@ -57,13 +59,17 @@ c
       double precision fw(3,3)
       double precision sw(3)
 
-      double precision hR,hL,huR,huL,uR,uL,hvR,hvL,vR,vL,phiR,phiL
+      double precision hR,hL,huR,huL,uR,uL,hvR,hvL,vR,vL,phiR,phiL,pL,pR
       double precision bR,bL,sL,sR,sRoe1,sRoe2,sE1,sE2,uhat,chat
       double precision s1m,s2m
       double precision hstar,hstartest,hstarHLL,sLtest,sRtest
       double precision tw,dxdc
 
       logical rare1,rare2
+
+      ! Set these here in case no pressure forcing
+      pL = 0.d0
+      pR = 0.d0
 
       !loop through Riemann problems at each grid cell
       do i=2-mbc,mx+mbc
@@ -116,6 +122,10 @@ c        !set normal direction
          huR = ql(mu,i) 
          bL = auxr(1,i-1)
          bR = auxl(1,i)
+         if (pressure_forcing) then
+           pL = auxr(pressure_index, i-1)
+           pR = auxl(pressure_index, i)
+         end if
 
          hvL=qr(nv,i-1) 
          hvR=ql(nv,i)
@@ -152,7 +162,7 @@ c        !set normal direction
          wall(3) = 1.d0
          if (hR.le.drytol) then
             call riemanntype(hL,hL,uL,-uL,hstar,s1m,s2m,
-     &                                  rare1,rare2,1,drytol,g)
+     &                                  rare1,rare2,1)
             hstartest=max(hL,hstar)
             if (hstartest+bL.lt.bR) then !right state should become ghost values that mirror left for wall problem
 c                bR=hstartest+bL
@@ -169,7 +179,7 @@ c                bR=hstartest+bL
             endif
          elseif (hL.le.drytol) then ! right surface is lower than left topo
             call riemanntype(hR,hR,-uR,uR,hstar,s1m,s2m,
-     &                                  rare1,rare2,1,drytol,g)
+     &                                  rare1,rare2,1)
             hstartest=max(hR,hstar)
             if (hstartest+bR.lt.bL) then  !left state should become ghost values that mirror right
 c               bL=hstartest+bR
@@ -204,14 +214,14 @@ c               bL=hstartest+bR
          maxiter = 1
 
          call riemann_aug_JCP(maxiter,3,3,hL,hR,huL,
-     &        huR,hvL,hvR,bL,bR,uL,uR,vL,vR,phiL,phiR,sE1,sE2,
-     &                                    drytol,g,sw,fw)
+     &        huR,hvL,hvR,bL,bR,uL,uR,vL,vR,phiL,phiR,pL,pR,sE1,sE2,
+     &        sw,fw)
 
-c         call riemann_ssqfwave(maxiter,meqn,mwaves,hL,hR,huL,huR,
-c     &     hvL,hvR,bL,bR,uL,uR,vL,vR,phiL,phiR,sE1,sE2,drytol,g,sw,fw)
+C       call riemann_ssqfwave(maxiter,meqn,mwaves,hL,hR,huL,huR,
+C    &     hvL,hvR,bL,bR,uL,uR,vL,vR,phiL,phiR,pL,pR,sE1,sE2,sw,fw)
 
-c          call riemann_fwave(meqn,mwaves,hL,hR,huL,huR,hvL,hvR,
-c     &      bL,bR,uL,uR,vL,vR,phiL,phiR,sE1,sE2,drytol,g,sw,fw)
+C          call riemann_fwave(meqn,mwaves,hL,hR,huL,huR,hvL,hvR,
+C     &      bL,bR,uL,uR,vL,vR,phiL,phiR,pL,pR,sE1,sE2,sw,fw)
 
 c        !eliminate ghost fluxes for wall
          do mw=1,3
