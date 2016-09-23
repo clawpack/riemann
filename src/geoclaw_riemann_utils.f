@@ -113,7 +113,7 @@ c     !determine the steady state wave -------------------
       !criticaltol = 1.d-6
       ! MODIFIED:
       criticaltol = max(drytol*g, 1d-6)
-      criticaltol_2 = dsqrt(criticaltol)
+      criticaltol_2 = sqrt(criticaltol)
       deldelh = -delb
       deldelphi = -g*0.5d0*(hR+hL)*delb
 
@@ -150,15 +150,24 @@ c           lambda(2) = max(min(0.5d0*(s1m+s2m),sE2),sE1)
 
 c        !find if sonic problem
          ! MODIFIED from 5.3.1 version
-         sonic = 
-     &     ((abs(s1s2bar).le.criticaltol) .or.
-     &      (s1s2bar*s1s2tilde.le.criticaltol*criticaltol) .or.
-     &      (s1s2bar*sE1*sE2.le.criticaltol*criticaltol) .or.
-     &      (min(abs(sE1),abs(sE2)).lt.criticaltol_2) .or.
-     &      (sE1.lt.criticaltol_2.and.s1m.gt. -criticaltol_2) .or.
-     &      (sE2.gt.-criticaltol_2.and.s2m.lt. criticaltol_2) .or.
-     &      ((uL+dsqrt(g*hL))*(uR+dsqrt(g*hR)).lt.0.d0) .or.
-     &      ((uL- dsqrt(g*hL))*(uR- dsqrt(g*hR)).lt.0.d0))
+         sonic = .false.
+         if (abs(s1s2bar) <= criticaltol) then
+            sonic = .true.
+         else if (s1s2bar*s1s2tilde <= criticaltol**2) then
+            sonic = .true.
+         else if (s1s2bar*sE1*sE2 <= criticaltol**2) then
+            sonic = .true.
+         else if (min(abs(sE1),abs(sE2)) < criticaltol_2) then
+            sonic = .true.
+         else if (sE1 <  criticaltol_2 .and. s1m > -criticaltol_2) then
+            sonic = .true.
+         else if (sE2 > -criticaltol_2 .and. s2m <  criticaltol_2) then
+            sonic = .true.
+         else if ((uL+dsqrt(g*hL))*(uR+dsqrt(g*hR)) < 0.d0) then
+            sonic = .true.
+         else if ((uL- dsqrt(g*hL))*(uR- dsqrt(g*hR)) < 0.d0) then
+            sonic = .true.
+         end if
 
 c        !find jump in h, deldelh
          if (sonic) then
@@ -637,4 +646,3 @@ c           !root finding using a Newton iteration on sqrt(h)===
       return
 
       end ! subroutine riemanntype----------------------------------------------------------------
-
