@@ -50,7 +50,7 @@ c-----------------------------------------------------------------------
       delhu = huR-huL
       delphi = phiR-phiL
       delb = bR-bL
-#ifdef rp_pressure
+#ifdef RP_PRESSURE
       delp = pR-pL
 #endif
       delnorm = delh**2 + delphi**2
@@ -114,7 +114,7 @@ c     !---------------------------------------------------
 c     !determine the steady state wave -------------------
       criticaltol = 1.d-6
       deldelh = -delb
-#ifdef rp_pressure      
+#ifdef RP_PRESSURE
       deldelphi = -0.5d0*(hR+hL)*(g*delb + delp / rho)
 #else
       deldelphi = -0.5d0*(hR+hL)*g*delb
@@ -190,7 +190,7 @@ c        !find bounds in case of critical state resonance, or negative states
          deldelphi=min(deldelphi,g*max(-hLstar*delb,-hRstar*delb))
          deldelphi=max(deldelphi,g*min(-hLstar*delb,-hRstar*delb))
 
-#ifdef rp_pressure
+#ifdef RP_PRESSURE
          deldelphi=deldelphi - hbar * delp / rho
 #endif
 
