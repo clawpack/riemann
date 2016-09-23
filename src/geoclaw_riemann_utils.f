@@ -50,7 +50,9 @@ c-----------------------------------------------------------------------
       delhu = huR-huL
       delphi = phiR-phiL
       delb = bR-bL
+#ifdef rp_pressure
       delp = pR-pL
+#endif
       delnorm = delh**2 + delphi**2
 
       call riemanntype(hL,hR,uL,uR,hm,s1m,s2m,rare1,rare2,1)
@@ -112,7 +114,11 @@ c     !---------------------------------------------------
 c     !determine the steady state wave -------------------
       criticaltol = 1.d-6
       deldelh = -delb
+#ifdef rp_pressure      
       deldelphi = -0.5d0*(hR+hL)*(g*delb + delp / rho)
+#else
+      deldelphi = -0.5d0*(hR+hL)*g*delb
+#endif
 
 c     !determine a few quanitites needed for steady state wave if iterated
       hLstar=hL
@@ -183,7 +189,10 @@ c        !find jump in phi, deldelphi
 c        !find bounds in case of critical state resonance, or negative states
          deldelphi=min(deldelphi,g*max(-hLstar*delb,-hRstar*delb))
          deldelphi=max(deldelphi,g*min(-hLstar*delb,-hRstar*delb))
+
+#ifdef rp_pressure
          deldelphi=deldelphi - hbar * delp / rho
+#endif
 
          del(1)=delh-deldelh
          del(2)=delhu
