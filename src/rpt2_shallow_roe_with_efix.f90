@@ -17,7 +17,10 @@ subroutine rpt2(ixy,imp,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,aux1,aux2,aux3,asdq,b
 
     dimension waveb(3,3),sb(3)
 
-!     # Roe averages quantities of each interface
+!   # grav must be set elsewhere
+    common /cparam/ grav
+
+!   # Roe averages quantities of each interface
     parameter (maxm2 = 1800)
     double precision u(-6:maxm2+7),v(-6:maxm2+7),a(-6:maxm2+7), &
                      h(-6:maxm2+7)
@@ -61,7 +64,7 @@ subroutine rpt2(ixy,imp,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,aux1,aux2,aux3,asdq,b
         waveb(mv,3) = a3*(v(i)+a(i))
         sb(3) = v(i) + a(i)
     
-    !           # compute the flux differences bmasdq and bpasdq
+!       # compute the flux differences bmasdq and bpasdq
     
         do 30 m=1,meqn
             bmasdq(m,i) = 0.d0
