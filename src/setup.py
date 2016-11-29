@@ -3,6 +3,7 @@
 #
 # f2py -c ../../rp1_layered_shallow_water.f90 -m layered_shallow_water_1D
 
+from __future__ import absolute_import
 one_d_ptwise_riemann = ['acoustics',
                         'advection']
 

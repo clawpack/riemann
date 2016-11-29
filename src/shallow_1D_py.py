@@ -36,7 +36,9 @@ is the gravitational acceleration.
 #                     http://www.opensource.org/licenses/
 # ============================================================================
 
+from __future__ import absolute_import
 import numpy as np
+from six.moves import range
 
 num_eqn = 2
 num_waves = 2
@@ -97,8 +99,8 @@ def shallow_roe_1D(q_l,q_r,aux_l,aux_r,problem_data):
         raise NotImplementedError("Entropy fix has not been implemented.")
     else:
         s_index = np.zeros((2,num_rp))
-        for m in xrange(num_eqn):
-            for mw in xrange(num_waves):
+        for m in range(num_eqn):
+            for mw in range(num_waves):
                 s_index[0,:] = s[mw,:]
                 amdq[m,:] += np.min(s_index,axis=0) * wave[m,mw,:]
                 apdq[m,:] += np.max(s_index,axis=0) * wave[m,mw,:]
@@ -165,8 +167,8 @@ def shallow_hll_1D(q_l,q_r,aux_l,aux_r,problem_data):
     
     # Compute variations
     s_index = np.zeros((2,num_rp))
-    for m in xrange(num_eqn):
-        for mw in xrange(num_waves):
+    for m in range(num_eqn):
+        for mw in range(num_waves):
             s_index[0,:] = s[mw,:]
             amdq[m,:] += np.min(s_index,axis=0) * wave[m,mw,:]
             apdq[m,:] += np.max(s_index,axis=0) * wave[m,mw,:]
@@ -222,8 +224,8 @@ def shallow_fwave_1d(q_l, q_r, aux_l, aux_r, problem_data):
     fwave[0,1,:] = beta2
     fwave[1,1,:] = beta2 * s[1,:]
 
-    for m in xrange(num_eqn):
-        for mw in xrange(num_waves):
+    for m in range(num_eqn):
+        for mw in range(num_waves):
             amdq[m,:] += (s[mw,:] < 0.0) * fwave[m,mw,:]
             apdq[m,:] += (s[mw,:] >= 0.0) * fwave[m,mw,:]
 

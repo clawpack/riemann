@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+from __future__ import print_function
 from matplotlib import animation
 from clawpack.visclaw.JSAnimation import IPython_display
 from IPython.display import display
@@ -6,6 +8,7 @@ import sympy
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
+from six.moves import range
 
 
 sympy.init_printing(use_latex='mathjax')
@@ -55,19 +58,19 @@ def riemann_solution(solver,q_l,q_r,aux_l=None,aux_r=None,t=0.2,problem_data=Non
     num_states = num_waves + 1
     
     if verbose:
-        print 'States in Riemann solution:'
+        print('States in Riemann solution:')
         states_sym = sympy.Matrix(states)
         display([states_sym[:,k] for k in range(num_states)])
     
-        print 'Waves (jumps between states):'
+        print('Waves (jumps between states):')
         wave_sym = sympy.Matrix(wave[:,:,0])
         display([wave_sym[:,k] for k in range(num_waves)])
     
-        print "Speeds: "
+        print("Speeds: ")
         s_sym = sympy.Matrix(s)
         display(s_sym.T)
     
-        print "amdq, apdq: "
+        print("amdq, apdq: ")
         amdq_sym = sympy.Matrix(amdq).T
         apdq_sym = sympy.Matrix(apdq).T
         display([amdq_sym, apdq_sym])
