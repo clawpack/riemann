@@ -11,13 +11,13 @@ rp_solver_list_2d = []
 rp_solver_list_3d = []
 
 # Import 1d Riemann solvers
-from .advection_1D_py import advection_1D
-from .vc_advection_1D_py import vc_advection_1D
-from .acoustics_1D_py import acoustics_1D
-from .burgers_1D_py import burgers_1D
-from .shallow_1D_py import shallow_roe_1D, shallow_hll_1D, shallow_exact_1D
-from .euler_1D_py import euler_roe_1D, euler_hll_1D, euler_hllc_1D, euler_exact_1D
-from .nonlinear_elasticity_1D_py import nonlinear_elasticity_1D
+from . import advection_1D_py
+from . import vc_advection_1D_py
+from . import acoustics_1D_py
+from . import burgers_1D_py
+from . import shallow_1D_py
+from . import euler_1D_py
+from . import nonlinear_elasticity_1D_py
 from . import static
 
 from . import acoustics_1D_constants
