@@ -28,7 +28,9 @@ and the flux vector is
 #                     http://www.opensource.org/licenses/
 # ============================================================================
 
+from __future__ import absolute_import
 import numpy as np
+from six.moves import range
 
 def nonlinear_elasticity_1D(q_l,q_r,aux_l,aux_r,problem_data):
     r"""
@@ -81,7 +83,7 @@ def nonlinear_elasticity_1D(q_l,q_r,aux_l,aux_r,problem_data):
     s[1,:] = cr
     
     # Compute the left going and right going fluctuations
-    for m in xrange(num_eqn):
+    for m in range(num_eqn):
         amdq[m,:] = fwave[m,0,:]
         apdq[m,:] = fwave[m,1,:]
     

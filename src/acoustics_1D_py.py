@@ -33,6 +33,8 @@ to calculate the impedence :math:`= Z` and speed of sound `= c`.
 #                     http://www.opensource.org/licenses/
 # ============================================================================
 
+from __future__ import absolute_import
+from six.moves import range
 num_eqn = 2
 num_waves = 2
 
@@ -78,7 +80,7 @@ def acoustics_1D(q_l,q_r,aux_l,aux_r,problem_data):
     s[1,:] = problem_data['cc']
     
     # Compute the left going and right going fluctuations
-    for m in xrange(num_eqn):
+    for m in range(num_eqn):
         amdq[m,:] = s[0,:] * wave[m,0,:]
         apdq[m,:] = s[1,:] * wave[m,1,:]
     
