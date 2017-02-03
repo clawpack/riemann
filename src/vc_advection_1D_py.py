@@ -9,6 +9,7 @@ Variable coefficient 1D advection Riemann solver
 Note that this is the color equation, not the conservative advection equation.
 """
 
+from __future__ import absolute_import
 import numpy as np
 
 # Riemann solver constants
