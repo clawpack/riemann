@@ -2,18 +2,22 @@
 subroutine rp1(maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 ! =========================================================
 !
-! Solve Riemann problems for the LWR traffic model with variable
-! speed limit:
+! Solve Riemann problems for the variable speed limit LWR traffic model
+! with a tracer:
 
 ! q_t + (v q(1-q))_x = 0
+! p_t + v(1-q) p_x = 0
 
-! Here the speed limit v may vary with x and t.
+! Here q is the traffic density, p is the tracer, and 
+! v is the speed limit (which may vary with x and t).
+! The tracer (p) can be useful for showing vehicle trajectories.
 
-! waves: 1
-! equations: 1
+! waves: 2
+! equations: 2
 
 ! Conserved quantities:
 !       1 q
+!       2 p
 
 ! Auxiliary variables:
 !       1 v
@@ -29,7 +33,6 @@ subroutine rp1(maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 !                                    and right state ql(i,:)
 ! From the basic clawpack routine step1, rp is called with ql = qr = q.
 
-
       implicit double precision (a-h,o-z)
       dimension   ql(meqn, 1-mbc:maxm+mbc)
       dimension   qr(meqn, 1-mbc:maxm+mbc)
@@ -44,17 +47,27 @@ subroutine rp1(maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
       do 30 i=2-mbc,mx+mbc
          q_l = qr(1,i-1)
          q_r = ql(1,i)
+         p_l = qr(2,i-1)
+         p_r = ql(2,i) 
          v_l = auxr(1,i-1)
          v_r = auxl(1,i)
          wave(1,1,i) = q_r - q_l
-
+         wave(2,1,i) = 0
+         wave(1,2,i) = 0
+         wave(2,2,i) = p_r - p_l
+         
          if ((1.d0 - (q_l + q_r)) .gt. 0.d0) then
             s(1,i) = v_r * (1.d0 - (q_l + q_r))
          else
             s(1,i) = v_l * (1.d0 - (q_l + q_r))
          endif
+      
+         s(2,i) = v_r*(1.d0 - q_r)
+
          amdq(1,i) = dmin1(s(1,i), 0.d0) * wave(1,1,i)
          apdq(1,i) = dmax1(s(1,i), 0.d0) * wave(1,1,i)
+         amdq(2,i) = 0
+         apdq(2,i) = s(2,i)*wave(2,2,i)
 
          sim1 = v_l*(1.d0 - 2.d0*q_l)
          si   = v_r*(1.d0 - 2.d0*q_r)
