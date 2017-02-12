@@ -33,7 +33,7 @@ c
 !           David George, Vancouver WA, Feb. 2009                           !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      use geoclaw_module, only: g => grav, drytol => dry_tolerance
+      use geoclaw_module, only: g => grav, drytol => dry_tolerance, rho
       use geoclaw_module, only: earth_radius, deg2rad
       use amr_module, only: mcapa
 
@@ -66,10 +66,6 @@ c
       double precision tw,dxdc
 
       logical rare1,rare2
-
-      ! Density used in pressure gradient calculation 
-      ! TODO - Should add this as a parameter to geoclaw_module
-      real(kind=8), parameter :: rho = 1025.d0
 
       ! In case there is no pressure forcing
       pL = 0.d0
