@@ -49,10 +49,10 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
 
     use amr_module, only: mcapa
 
-    use geoclaw_module, only: g => grav, pi, earth_radius
+    use geoclaw_module, only: g => grav, rho, pi, earth_radius
 
     use multilayer_module, only: num_layers, eigen_func
-    use multilayer_module, only: dry_tolerance, aux_layer_index, rho, r
+    use multilayer_module, only: dry_tolerance, aux_layer_index, r
     use multilayer_module, only: eigen_method, inundation_method
     use multilayer_module, only: eigen_func, inundation_eigen_func
 
