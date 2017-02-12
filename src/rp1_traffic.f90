@@ -2,7 +2,9 @@
 subroutine rp1(maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 ! =========================================================
 !
-! solve Riemann problems for the traffic equation.
+! solve Riemann problems for the LWR traffic model:
+
+! q_t + (u_max q(1-q))_x = 0
 
 ! waves: 1
 ! equations: 1
@@ -50,12 +52,12 @@ subroutine rp1(maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 !
          if (efix) then
 !           # entropy fix for transonic rarefactions:
-            sim1 = umax*(1.d0 - 2.d0*ql(1,i-1))
+            sim1 = umax*(1.d0 - 2.d0*qr(1,i-1))
             si = umax*(1.d0 - 2.d0*ql(1,i))
             if (sim1.lt.0.d0 .and. si.gt.0.d0) then
                flux0 = 0.25d0*umax
                fluxim1 = qr(1,i-1)*umax*(1.d0 - qr(1,i-1))
-               fluxi   = ql(1,i)*umax*(1.d0 - qr(1,i))
+               fluxi   = ql(1,i)*umax*(1.d0 - ql(1,i))
                amdq(1,i) = flux0 - fluxim1
                apdq(1,i) = fluxi - flux0
                endif
