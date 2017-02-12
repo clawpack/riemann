@@ -1,7 +1,5 @@
 *.pyc
 *.o
 *.so
-*.so.dSYM
 # this is for the self-referential link put in by the in-place installer
 src/python/riemann/src
-build

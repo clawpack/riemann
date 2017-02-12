@@ -6,4 +6,4 @@ num_aux   = 1
 q = 0
 
 # Auxiliary variables
-v = 0
+u_max = 0
