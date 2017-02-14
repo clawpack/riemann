@@ -16,17 +16,16 @@ and the flux vector is
 
     f(q,x) = \left [ \begin{array}{c} -u \\ \sigma(\epsilon,x) \end{array} \right ]
 
-:Authors:
-    David I. Ketcheson (2010-11-06): Initial version
-    David I. Ketcheson (2011-05-19): Interleaved
+Two stress-strain relations are included.  The default is
+
+..  math:: \sigma(\epsilon,K) = \exp(K(x) \epsilon) - 1
+
+By setting problem_data['stress relation'] = 'quadratic' one can use instead
+
+..  math:: \sigma(\epsilon,K_1,K_2) = K_1 \epsilon + K_2 \epsilon^2
+
+For the latter relation, K_2 is stored in a third aux entry (aux[2,:]).
 """
-# ============================================================================
-#      Copyright (C) 2010 David I. Ketcheson <david.ketcheson@kaust.edu.sa>
-#
-#  Distributed under the terms of the Berkeley Software Distribution (BSD) 
-#  license
-#                     http://www.opensource.org/licenses/
-# ============================================================================
 
 from __future__ import absolute_import
 import numpy as np
@@ -39,6 +38,7 @@ def nonlinear_elasticity_1D(q_l,q_r,aux_l,aux_r,problem_data):
     *aux* is expected to contain -
      - aux[0,i] - density in cell i
      - aux[1,i] - bulk modulus in cell i
+     - aux[2,i] - K2 (needed for quadratic stress relation only)
     
     See :ref:`pyclaw_rp` for more details.
     
@@ -55,18 +55,35 @@ def nonlinear_elasticity_1D(q_l,q_r,aux_l,aux_r,problem_data):
     s = np.empty( (num_waves, num_rp) )
     amdq = np.empty( (num_eqn, num_rp) )
     apdq = np.empty( (num_eqn, num_rp) )
+
+    strain = 0
+    momentum = 1
+    density = 0
+    K = 1
+    K1 = 1
+    K2 = 2
     
+    stress_relation = problem_data.get('stress relation','exponential')
+    if stress_relation == 'exponential':
+        sigma_l = np.exp(aux_l[K,:]*q_l[strain,:])
+        sigma_r = np.exp(aux_r[K,:]*q_r[strain,:])
+        bulk_l  = aux_l[K,:]*np.exp(aux_l[K,:]*q_l[strain,:])
+        bulk_r  = aux_r[K,:]*np.exp(aux_r[K,:]*q_r[strain,:])
+    elif stress_relation == 'quadratic':
+        sigma_l = aux_l[K1,:]*q_l[strain,:] + aux_l[K2,:]*q_l[strain,:]**2
+        sigma_r = aux_r[K1,:]*q_r[strain,:] + aux_r[K2,:]*q_r[strain,:]**2
+        bulk_l  = aux_l[K1,:] + 2*aux_l[K2,:]*q_l[strain,:]
+        bulk_r  = aux_r[K1,:] + 2*aux_r[K2,:]*q_r[strain,:]
+
     #Linearized bulk modulus, sound speed, and impedance:
-    bulkl = sigmap(q_l[0,:],aux_l[1,:])
-    bulkr = sigmap(q_r[0,:],aux_r[1,:])
-    cl = np.sqrt(bulkl/aux_l[0,:])
-    cr = np.sqrt(bulkr/aux_r[0,:])
+    cl = np.sqrt(bulk_l/aux_l[0,:])
+    cr = np.sqrt(bulk_r/aux_r[0,:])
     zl = cl*aux_l[0,:]
     zr = cr*aux_r[0,:]
 
     #Jumps:
     du   = q_r[1,:]/aux_r[0,:]-q_l[1,:]/aux_l[0,:]
-    dsig = sigma(q_r[0,:],aux_r[1,:]) - sigma(q_l[0,:],aux_l[1,:])
+    dsig = sigma_r - sigma_l
 
     b1 = - (zr*du + dsig) / (zr+zl)
     b2 = - (zl*du - dsig) / (zr+zl)
@@ -88,9 +105,3 @@ def nonlinear_elasticity_1D(q_l,q_r,aux_l,aux_r,problem_data):
         apdq[m,:] = fwave[m,1,:]
     
     return fwave, s, amdq, apdq
-
-def sigma(eps,K):
-    return np.exp(K*eps)-1.0
-
-def sigmap(eps,K):
-    return K*np.exp(K*eps)
