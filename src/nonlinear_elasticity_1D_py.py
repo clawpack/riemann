@@ -20,7 +20,7 @@ Two stress-strain relations are included.  The default is
 
 ..  math:: \sigma(\epsilon,K) = \exp(K(x) \epsilon) - 1
 
-By setting problem_data['stress relation'] = 'quadratic' one can use instead
+By setting problem_data['stress_relation'] = 'quadratic' one can use instead
 
 ..  math:: \sigma(\epsilon,K_1,K_2) = K_1 \epsilon + K_2 \epsilon^2
 
@@ -101,7 +101,7 @@ def nonlinear_elasticity_1D(q_l, q_r, aux_l, aux_r, problem_data):
 
 def sigma(q, aux, problem_data):
     r"""Stress-strain relation."""
-    stress_relation = problem_data.get('stress relation', 'exponential')
+    stress_relation = problem_data.get('stress_relation', 'exponential')
     if stress_relation == 'exponential':
         return np.exp(aux[K,:]*q[strain,:])
     elif stress_relation == 'quadratic':
@@ -110,7 +110,7 @@ def sigma(q, aux, problem_data):
 
 def sigmap(q, aux, problem_data):
     r"""Derivative of stress-strain relation w.r.t. strain."""
-    stress_relation = problem_data.get('stress relation', 'exponential')
+    stress_relation = problem_data.get('stress_relation', 'exponential')
     if stress_relation == 'exponential':
         return aux[K,:]*np.exp(aux[K,:]*q[strain,:])
     elif stress_relation == 'quadratic':
