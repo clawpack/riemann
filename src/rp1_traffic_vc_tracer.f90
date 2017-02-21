@@ -1,8 +1,8 @@
 ! Riemann solver for the variable speed limit LWR traffic model
 ! with a tracer:
 
-! q_t + (u_max q(1-q))_x = 0
-! p_t + u_max(1-q) p_x = 0
+! q_t + (u_max(x,t) q(1-q))_x = 0
+! p_t + u_max(x,t) (1-q) p_x = 0
 
 ! Here the speed limit u_max (stored in aux(1,i) may vary with x and t.
 
@@ -50,21 +50,25 @@ subroutine rp1(maxm,num_eqn,num_waves,num_aux,num_ghost,num_cells, &
         f_l = v_l*q_l*(1.d0 - q_l)
         f_r = v_r*q_r*(1.d0 - q_r)
 
-        wave(1,1,i) = q_r - q_l ! Trying this even though it's not right
+        ! This seems to work well even though there can be
+        ! a stationary jump in q.
+        wave(1,1,i) = q_r - q_l
         wave(2,1,i) = 0.d0
+
+        ! Tracer wave and fluctuations
         wave(1,2,i) = 0.d0
         wave(2,2,i) = s(2,i)*(ql(2,i) - qr(2,i-1))
+        apdq(2,i) = wave(2,2,i)
+        amdq(2,i) = 0.d0 ! Traffic always moves right
 
+        ! Use Rankine-Hugoniot speed for q-wave
         if (q_r .ne. q_l) then
             s(1,i) = (f_r-f_l)/(q_r - q_l)
         else
             s(1,i) = 0.d0
         endif
 
-        apdq(2,i) = wave(2,2,i)
-        amdq(2,i) = 0.d0 ! Traffic always moves right
-
-
+        ! Find Godunov flux in order to determine fluctuations
         if ((f_l .ge. 0.25d0*v_r) .and. (s_r .gt. 0.d0)) then
             ! left-going shock, right-going rarefaction
             f0 = 0.25d0*v_r
@@ -97,4 +101,4 @@ subroutine rp1(maxm,num_eqn,num_waves,num_aux,num_ghost,num_cells, &
 
     enddo
     return
-    end
+end subroutine rp1
