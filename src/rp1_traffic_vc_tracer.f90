@@ -46,6 +46,7 @@ subroutine rp1(maxm,num_eqn,num_waves,num_aux,num_ghost,num_cells, &
         ! compute flux in each cell and flux difference:
         fim1 = auxr(1,i-1)*qr(1,i-1)*(1.d0 - qr(1,i-1))
         fi   = auxl(1,i  )*ql(1,i  )*(1.d0 - ql(1,i  ))
+
         fwave(1,1,i) = fi - fim1
         fwave(2,1,i) = 0.d0
         fwave(1,2,i) = 0.d0
@@ -79,10 +80,10 @@ subroutine rp1(maxm,num_eqn,num_waves,num_aux,num_ghost,num_cells, &
         else
             ! transonic shock
             s(1,i) = 0.5d0*(sim1 + si)
-            if (s(1,i) .lt. 0.d0) then 
+            if (fi-fim1 .lt. 0.d0) then
                 amdq(1,i) = fwave(1,1,i)
                 apdq(1,i) = 0.d0
-            else if (s(1,i) .gt. 0.d0) then 
+            else if (fi-fim1 .gt. 0.d0) then
                 amdq(1,i) = 0.d0
                 apdq(1,i) = fwave(1,1,i)
             else
