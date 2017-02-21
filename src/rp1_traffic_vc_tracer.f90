@@ -21,7 +21,7 @@
 ! of the Riemann solver API.
 
 subroutine rp1(maxm,num_eqn,num_waves,num_aux,num_ghost,num_cells, &
-               ql,qr,auxl,auxr,fwave,s,amdq,apdq)
+               ql,qr,auxl,auxr,wave,s,amdq,apdq)
     implicit none
     ! Inputs
     integer, intent(in) :: maxm, num_eqn, num_waves, num_aux, num_ghost, num_cells
@@ -29,68 +29,71 @@ subroutine rp1(maxm,num_eqn,num_waves,num_aux,num_ghost,num_cells, &
     double precision, intent(in), dimension(num_aux, 1-num_ghost:maxm+num_ghost) :: auxl,auxr
     ! Outputs
     double precision, intent(out) :: s(num_waves,1-num_ghost:num_cells+num_ghost)
-    double precision, intent(out) :: fwave(num_eqn,num_waves,1-num_ghost:num_cells+num_ghost)
+    double precision, intent(out) :: wave(num_eqn,num_waves,1-num_ghost:num_cells+num_ghost)
     double precision, intent(out), dimension(num_eqn, 1-num_ghost:maxm+num_ghost) :: amdq,apdq
     ! Locals
-    double precision :: fim1, fi, sim1, si, f0
+    double precision :: f_l, f_r, s_l, s_r, f0, q_l, q_r, v_l, v_r
     integer :: i
 
     do i = 2-num_ghost, num_cells+num_ghost
-        ! Compute the wave, speeds, and flux difference
+        q_r = ql(1,i)
+        q_l = qr(1,i-1)
+        v_r = auxl(1,i)
+        v_l = auxr(1,i-1)
 
         ! compute characteristic speed in each cell:
-        sim1 = auxr(1,i-1)*(1.d0 - 2.d0*qr(1,i-1))
-        si   = auxl(1,i  )*(1.d0 - 2.d0*ql(1,i  ))
-        s(2,i) = auxl(1,i) * (1.d0 - ql(1,i))
+        s_l = v_l*(1.d0 - 2.d0*q_l)
+        s_r = v_r*(1.d0 - 2.d0*q_r)
+        s(2,i) = v_r * (1.d0 - q_r)
 
         ! compute flux in each cell and flux difference:
-        fim1 = auxr(1,i-1)*qr(1,i-1)*(1.d0 - qr(1,i-1))
-        fi   = auxl(1,i  )*ql(1,i  )*(1.d0 - ql(1,i  ))
+        f_l = v_l*q_l*(1.d0 - q_l)
+        f_r = v_r*q_r*(1.d0 - q_r)
 
-        fwave(1,1,i) = fi - fim1
-        fwave(2,1,i) = 0.d0
-        fwave(1,2,i) = 0.d0
-        fwave(2,2,i) = s(2,i)*(ql(2,i) - qr(2,i-1))
+        wave(1,1,i) = q_r - q_l ! Trying this even though it's not right
+        wave(2,1,i) = 0.d0
+        wave(1,2,i) = 0.d0
+        wave(2,2,i) = s(2,i)*(ql(2,i) - qr(2,i-1))
 
-        apdq(2,i) = fwave(2,2,i)
+        if (q_r .ne. q_l) then
+            s(1,i) = (f_r-f_l)/(q_r - q_l)
+        else
+            s(1,i) = 0.d0
+        endif
+
+        apdq(2,i) = wave(2,2,i)
         amdq(2,i) = 0.d0 ! Traffic always moves right
 
-        if (sim1 .lt. 0.d0 .and. si .le. 0.d0) then
-            ! left-going
-            s(1,i) = sim1
-            amdq(1,i) = fwave(1,1,i)
-            apdq(1,i) = 0.d0
-        else if (sim1 .ge. 0.d0 .and. si .gt. 0.d0) then
-            ! right-going
-            s(1,i) = si
-            amdq(1,i) = 0.d0
-            apdq(1,i) = fwave(1,1,i)
-        else if (sim1 .lt. 0.d0 .and. si .gt. 0.d0) then
-            ! transonic rarefaction
-            s(1,i) = 0.5d0*(sim1 + si)
 
-            ! entropy fix:  (perhaps doesn't work for all cases!!!)
-            ! This assumes the flux in the transonic case should
-            ! correspond to q=0.5 on the side with the smaller umax value.
-            f0 = dmin1(auxr(1,i-1),auxl(1,i))*0.25d0
-            ! split fwave between amdq and apdq:
-            amdq(1,i) = f0 - fim1
-            apdq(1,i) = fi - f0
-
-        else
-            ! transonic shock
-            s(1,i) = 0.5d0*(sim1 + si)
-            if (fi-fim1 .lt. 0.d0) then
-                amdq(1,i) = fwave(1,1,i)
-                apdq(1,i) = 0.d0
-            else if (fi-fim1 .gt. 0.d0) then
-                amdq(1,i) = 0.d0
-                apdq(1,i) = fwave(1,1,i)
+        if ((f_l .ge. 0.25d0*v_r) .and. (s_r .gt. 0.d0)) then
+            ! left-going shock, right-going rarefaction
+            f0 = 0.25d0*v_r
+        elseif ((f_r .ge. 0.25d0*v_l) .and. (s_l .lt. 0.d0)) then
+            ! right-going shock, left-going rarefaction
+            f0 = 0.25d0*v_l
+        elseif ((s_r .le. 0.d0) .and. (f_l .gt. f_r)) then
+            ! left-going shock
+            f0 = f_r
+        elseif ((s_l .ge. 0.d0) .and. (f_r .gt. f_l)) then
+            ! right-going shock
+            f0 = f_l
+        elseif ((s_l .le. 0.d0) .and. (s_r .ge. 0.d0)) then
+            ! Transonic rarefaction
+            if (v_r .le. v_l) then
+                f0 = 0.25d0*v_r
             else
-                amdq(1,i) = 0.5d0 * fwave(1,1,i)
-                apdq(1,i) = 0.5d0 * fwave(1,1,i)
+                f0 = 0.25d0*v_l
             endif
+        elseif (f_l .le. f_r) then
+            ! left-going rarefaction
+            f0 = f_r
+        else
+            ! right-going rarefaction
+            f0 = f_l
         endif
+        amdq(1,i) = f0 - f_l
+        apdq(1,i) = f_r - f0
+
 
     enddo
     return
