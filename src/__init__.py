@@ -64,6 +64,7 @@ try:
     from . import shallow_roe_with_efix_1D
     from . import traffic_1D
     from . import traffic_vc_1D
+    from . import traffic_vc_fwave_1D
     from . import traffic_vc_tracer_1D
     from . import acoustics_2D
     from . import acoustics_mapped_2D
