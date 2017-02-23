@@ -65,7 +65,7 @@ subroutine rp1(maxm,num_eqn,num_waves,num_aux,num_ghost,num_cells, &
         if (q_r .ne. q_l) then
             s(1,i) = (f_r-f_l)/(q_r - q_l)
         else
-            s(1,i) = 0.d0
+            s(1,i) = 0.5d0*(s_l + s_r)
         endif
 
         ! Find Godunov flux in order to determine fluctuations
