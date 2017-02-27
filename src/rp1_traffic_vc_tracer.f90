@@ -61,12 +61,7 @@ subroutine rp1(maxm,num_eqn,num_waves,num_aux,num_ghost,num_cells, &
         apdq(2,i) = wave(2,2,i)
         amdq(2,i) = 0.d0 ! Traffic always moves right
 
-        ! Use Rankine-Hugoniot speed for q-wave
-        if (q_r .ne. q_l) then
-            s(1,i) = (f_r-f_l)/(q_r - q_l)
-        else
-            s(1,i) = 0.5d0*(s_l + s_r)
-        endif
+        s(1,i) = 0.5d0*(s_l + s_r)
 
         ! Find Godunov flux in order to determine fluctuations
         if ((f_l .ge. 0.25d0*v_r) .and. (s_r .gt. 0.d0)) then

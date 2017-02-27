@@ -46,13 +46,10 @@ subroutine rp1(maxm,num_eqn,num_waves,num_aux,num_ghost,num_cells, &
         f_l = v_l*q_l*(1.d0 - q_l)
         f_r = v_r*q_r*(1.d0 - q_r)
 
-        wave(1,1,i) = q_r - q_l ! Trying this even though it's not right
-
-        if (q_r .ne. q_l) then
-            s(1,i) = (f_r-f_l)/(q_r - q_l)
-        else
-            s(1,i) = 0.5d0*(s_l + s_r) ! Avoid artificially small CFL number
-        endif
+        ! This seems to work well even though there can be
+        ! a stationary jump in q.
+        wave(1,1,i) = q_r - q_l
+        s(1,i) = 0.5d0*(s_l + s_r)
 
         if ((f_l .ge. 0.25d0*v_r) .and. (s_r .gt. 0.d0)) then
             ! left-going shock, right-going rarefaction
