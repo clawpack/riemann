@@ -8,7 +8,10 @@ Python scripts.  The constants that are read and written include:
 - names/indices of q fields
 - names/indices of aux fields
 """
+from __future__ import absolute_import
+from __future__ import print_function
 import os
+from six.moves import zip
 
 for filename in os.listdir('.'):
     # Only process normal Riemann solver files
@@ -52,8 +55,8 @@ for filename in os.listdir('.'):
             out_name = filename.split('.')[0][5:]+'_2D_constants.py'
         elif filename.startswith('rpn3'):
             out_name = filename.split('.')[0][5:]+'_3D_constants.py'
-        out_name = './python/riemann/'+out_name
-        print 'writing ' + out_name
+        out_name = './'+out_name
+        print('writing ' + out_name)
         f = open(out_name,'w')
         f.write('num_waves = '+str(num_waves)+'\n')
         f.write('num_eqn   = '+str(num_eqn)+'\n')

@@ -3,14 +3,18 @@
 #
 # f2py -c ../../rp1_layered_shallow_water.f90 -m layered_shallow_water_1D
 
+from __future__ import absolute_import
 one_d_ptwise_riemann = ['acoustics',
                         'advection']
 
 one_d_riemann = ['acoustics',
+                 'acoustics_variable',
                    'advection',
                    'burgers',
                    'traffic',
                    'traffic_vc',
+                   'traffic_vc_fwave',
+                   'traffic_vc_tracer',
                    'euler_with_efix',
                    'nonlinear_elasticity_fwave',
                    'reactive_euler_with_efix',
@@ -21,6 +25,7 @@ one_d_riemann = ['acoustics',
 two_d_ptwise_riemann = ['acoustics']
 
 two_d_riemann = ['acoustics',
+                 'acoustics_mapped',
                    'advection',
                    'burgers',
                    'euler_5wave',

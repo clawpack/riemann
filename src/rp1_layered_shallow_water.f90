@@ -1,6 +1,25 @@
 ! ============================================================================
 !  Reimann Solver for the two-layer shallow water equations
 ! ============================================================================
+!
+! Parameter Specification
+! waves:     4
+! equations: 4
+
+! Conserved quantities:
+!       1 depth_1
+!       2 momentum_1
+!       3 depth_2
+!       4 momentum_2
+
+! Auxiliary variables:
+!       1 bathymetry
+!       2 wind
+!       3 h_hat_1
+!       4 h_hat_2
+!       5 kappa
+
+
 subroutine rp1(maxmx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq)
 
     implicit none

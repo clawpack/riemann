@@ -3,7 +3,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apd
 ! =====================================================
 ! Riemann solver for the acoustics equations in 2d.
 
-! waves: 3
+! waves: 2
 ! equations: 3
 
 ! Conserved quantities:
