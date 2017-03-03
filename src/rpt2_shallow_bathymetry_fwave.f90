@@ -1,5 +1,5 @@
 ! =====================================================
-subroutine rpt2(ixy,imp,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,aux1,aux2,aux3,asdq,bmasdq,bpasdq)
+subroutine rpt2(ixy,imp,maxm,num_eqn,num_waves,num_aux,num_ghost,num_cells,ql,qr,aux1,aux2,aux3,asdq,bmasdq,bpasdq)
 ! =====================================================
     implicit double precision (a-h,o-z)
 

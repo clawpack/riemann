@@ -1,82 +1,76 @@
-!======================================================================
-subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq)
-!======================================================================
-!
-! Solves normal Riemann problems for the 2D SHALLOW WATER equations
+subroutine rpn2(ixy, maxm, num_eqn, num_waves, num_aux, num_ghost, &
+                num_cells, ql, qr, auxl, auxr, fwave, s, amdq, apdq)
+
+! Normal Riemann solver for the 2D SHALLOW WATER equations
 !     with topography:
 !     #        h_t + (hu)_x + (hv)_y = 0                           #
 !     #        (hu)_t + (hu^2 + 0.5gh^2)_x + (huv)_y = -ghb_x      #
 !     #        (hv)_t + (huv)_x + (hv^2 + 0.5gh^2)_y = -ghb_y      #
 
-! On input, ql contains the state vector at the left edge of each cell
-!     qr contains the state vector at the right edge of each cell
-!
-! This data is along a slice in the x-direction if ixy=1
-!     or the y-direction if ixy=2.
+! This solver is based on David George's solver written for GeoClaw.
+! It has been modified to be compatible with f2py (and thus PyClaw).
 
-!  Note that the i'th Riemann problem has left state qr(i-1,:)
-!     and right state ql(i,:)
-!  From the basic clawpack routines, this routine is called with
-!     ql = qr
-!
-!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!                                                                           !
-!      # This Riemann solver is for the shallow water equations.            !
-!                                                                           !
-!       It allows the user to easily select a Riemann solver in             !
-!       riemannsolvers_geo.f. this routine initializes all the variables    !
-!       for the shallow water equations, accounting for wet dry boundary    !
-!       dry cells, wave speeds etc.                                         !
-!                                                                           !
-!           David George, Vancouver WA, Feb. 2009                           !
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! waves:     3
+! equations: 3
+
+! Conserved quantities:
+!       1 depth
+!       2 x_momentum
+!       3 y_momentum
+
+! Auxiliary fields:
+!       1 bathymetry
+
+! The gravitational constant grav should be in the common block cparam.
+
+! See http://www.clawpack.org/riemann.html for a detailed explanation
+! of the Riemann solver API.
 
       implicit none
 
-      double precision :: grav, g
-      double precision, parameter :: drytol = 1.e-14
+      real(kind=8) :: grav, g
+      real(kind=8), parameter :: drytol = 1.e-14
       common /cparam/ grav
 
-      !input
-      integer maxm,meqn,maux,mwaves,mbc,mx,ixy
+      integer, intent(in) :: maxm,num_eqn,num_aux,num_waves,num_ghost,num_cells,ixy
 
-      double precision  fwave(meqn, mwaves, 1-mbc:maxm+mbc)
-      double precision  s(mwaves, 1-mbc:maxm+mbc)
-      double precision  ql(meqn, 1-mbc:maxm+mbc)
-      double precision  qr(meqn, 1-mbc:maxm+mbc)
-      double precision  apdq(meqn,1-mbc:maxm+mbc)
-      double precision  amdq(meqn,1-mbc:maxm+mbc)
-      double precision  auxl(maux,1-mbc:maxm+mbc)
-      double precision  auxr(maux,1-mbc:maxm+mbc)
+      real(kind=8), intent(inout) ::  ql(num_eqn, 1-num_ghost:maxm+num_ghost)
+      real(kind=8), intent(inout) ::  qr(num_eqn, 1-num_ghost:maxm+num_ghost)
+      real(kind=8), intent(in) ::  auxl(num_aux,1-num_ghost:maxm+num_ghost)
+      real(kind=8), intent(in) ::  auxr(num_aux,1-num_ghost:maxm+num_ghost)
+
+      real(kind=8), intent(out) :: fwave(num_eqn, num_waves, 1-num_ghost:maxm+num_ghost)
+      real(kind=8), intent(out) ::  s(num_waves, 1-num_ghost:maxm+num_ghost)
+      real(kind=8), intent(out) ::  apdq(num_eqn,1-num_ghost:maxm+num_ghost)
+      real(kind=8), intent(out) ::  amdq(num_eqn,1-num_ghost:maxm+num_ghost)
 
       !local only
       integer m,i,mw,maxiter,mu,nv
-      double precision wall(3)
-      double precision fw(3,3)
-      double precision sw(3)
+      real(kind=8) wall(3)
+      real(kind=8) fw(3,3)
+      real(kind=8) sw(3)
 
-      double precision hR,hL,huR,huL,uR,uL,hvR,hvL,vR,vL,phiR,phiL
-      double precision bR,bL,sL,sR,sRoe1,sRoe2,sE1,sE2,uhat,chat
-      double precision s1m,s2m
-      double precision hstar,hstartest,hstarHLL,sLtest,sRtest
-      double precision tw,dxdc
+      real(kind=8) hR,hL,huR,huL,uR,uL,hvR,hvL,vR,vL,phiR,phiL
+      real(kind=8) bR,bL,sL,sR,sRoe1,sRoe2,sE1,sE2,uhat,chat
+      real(kind=8) s1m,s2m
+      real(kind=8) hstar,hstartest,hstarHLL,sLtest,sRtest
+      real(kind=8) tw,dxdc
 
       logical rare1,rare2
 
       g = grav
 
       !loop through Riemann problems at each grid cell
-      do i=2-mbc,mx+mbc
+      do i=2-num_ghost,num_cells+num_ghost
 
-!-----------------------Initializing-----------------------------------
+      !-----------------------Initializing------------------------------
          !inform of a bad riemann problem from the start
          if((qr(1,i-1).lt.0.d0).or.(ql(1,i) .lt. 0.d0)) then
             write(*,*) 'Negative input: hl,hr,i=',qr(1,i-1),ql(1,i),i
          endif
 
          !Initialize Riemann problem for grid interface
-         do mw=1,mwaves
+         do mw=1,num_waves
               s(mw,i)=0.d0
                  fwave(1,mw,i)=0.d0
                  fwave(2,mw,i)=0.d0
@@ -215,7 +209,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
                fw(3,mw)=fw(3,mw)*wall(mw)
          enddo
 
-         do mw=1,mwaves
+         do mw=1,num_waves
             s(mw,i)=sw(mw)
             fwave(1,mw,i)=fw(1,mw)
             fwave(mu,mw,i)=fw(2,mw)
@@ -230,8 +224,8 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
 !============= compute fluctuations=============================================
          amdq(1:3,:) = 0.d0
          apdq(1:3,:) = 0.d0
-         do i=2-mbc,mx+mbc
-            do  mw=1,mwaves
+         do i=2-num_ghost,num_cells+num_ghost
+            do  mw=1,num_waves
                if (s(mw,i) < 0.d0) then
                      amdq(1:3,i) = amdq(1:3,i) + fwave(1:3,mw,i)
                else if (s(mw,i) > 0.d0) then
@@ -248,7 +242,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
 
 
 !-----------------------------------------------------------------------
-      subroutine riemann_aug_JCP(maxiter,meqn,mwaves,hL,hR,huL,huR, &
+      subroutine riemann_aug_JCP(maxiter,num_eqn,num_waves,hL,hR,huL,huR, &
         hvL,hvR,bL,bR,uL,uR,vL,vR,phiL,phiR,sE1,sE2,drytol,g,sw,fw)
 
       ! solve shallow water equations given single left and right states
@@ -266,30 +260,30 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
       implicit none
 
       !input
-      integer meqn,mwaves,maxiter
-      double precision fw(meqn,mwaves)
-      double precision sw(mwaves)
-      double precision hL,hR,huL,huR,bL,bR,uL,uR,phiL,phiR,sE1,sE2
-      double precision hvL,hvR,vL,vR
-      double precision drytol,g
+      integer num_eqn,num_waves,maxiter
+      real(kind=8) fw(num_eqn,num_waves)
+      real(kind=8) sw(num_waves)
+      real(kind=8) hL,hR,huL,huR,bL,bR,uL,uR,phiL,phiR,sE1,sE2
+      real(kind=8) hvL,hvR,vL,vR
+      real(kind=8) drytol,g
 
 
       !local
       integer m,mw,k,iter
-      double precision A(3,3)
-      double precision r(3,3)
-      double precision lambda(3)
-      double precision del(3)
-      double precision beta(3)
+      real(kind=8) A(3,3)
+      real(kind=8) r(3,3)
+      real(kind=8) lambda(3)
+      real(kind=8) del(3)
+      real(kind=8) beta(3)
 
-      double precision delh,delhu,delphi,delb,delnorm
-      double precision rare1st,rare2st,sdelta,raremin,raremax
-      double precision criticaltol,convergencetol,raretol
-      double precision s1s2bar,s1s2tilde,hbar,hLstar,hRstar,hustar
-      double precision huRstar,huLstar,uRstar,uLstar,hstarHLL
-      double precision deldelh,deldelphi
-      double precision s1m,s2m,hm
-      double precision det1,det2,det3,determinant
+      real(kind=8) delh,delhu,delphi,delb,delnorm
+      real(kind=8) rare1st,rare2st,sdelta,raremin,raremax
+      real(kind=8) criticaltol,convergencetol,raretol
+      real(kind=8) s1s2bar,s1s2tilde,hbar,hLstar,hRstar,hustar
+      real(kind=8) huRstar,huLstar,uRstar,uLstar,hstarHLL
+      real(kind=8) deldelh,deldelphi
+      real(kind=8) s1m,s2m,hm
+      real(kind=8) det1,det2,det3,determinant
 
       logical rare1,rare2,rarecorrector,rarecorrectortest,sonic
 
@@ -341,7 +335,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
       endif
 
 !     ## Is this correct 2-wave when rarecorrector == .true. ??
-      do mw=1,mwaves
+      do mw=1,num_waves
          r(1,mw)=1.d0
          r(2,mw)=lambda(mw)
          r(3,mw)=(lambda(mw))**2
@@ -467,13 +461,13 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
          uRstar=uR
          huLstar=uLstar*hLstar
          huRstar=uRstar*hRstar
-         do mw=1,mwaves
+         do mw=1,num_waves
             if (lambda(mw).lt.0.d0) then
                hLstar= hLstar + beta(mw)*r(1,mw)
                huLstar= huLstar + beta(mw)*r(2,mw)
             endif
          enddo
-         do mw=mwaves,1,-1
+         do mw=num_waves,1,-1
             if (lambda(mw).gt.0.d0) then
                hRstar= hRstar - beta(mw)*r(1,mw)
                huRstar= huRstar - beta(mw)*r(2,mw)
@@ -495,7 +489,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
 
       enddo ! end iteration on Riemann problem
 
-      do mw=1,mwaves
+      do mw=1,num_waves
          sw(mw)=lambda(mw)
          fw(1,mw)=beta(mw)*r(2,mw)
          fw(2,mw)=beta(mw)*r(3,mw)
@@ -512,7 +506,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
 
 
 !-----------------------------------------------------------------------
-      subroutine riemann_ssqfwave(maxiter,meqn,mwaves,hL,hR,huL,huR, &
+      subroutine riemann_ssqfwave(maxiter,num_eqn,num_waves,hL,hR,huL,huR, &
           hvL,hvR,bL,bR,uL,uR,vL,vR,phiL,phiR,sE1,sE2,drytol,g,sw,fw)
 
       ! solve shallow water equations given single left and right states
@@ -521,28 +515,28 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
       implicit none
 
       !input
-      integer meqn,mwaves,maxiter
+      integer num_eqn,num_waves,maxiter
 
-      double precision hL,hR,huL,huR,bL,bR,uL,uR,phiL,phiR,sE1,sE2
-      double precision vL,vR,hvL,hvR
-      double precision drytol,g
+      real(kind=8) hL,hR,huL,huR,bL,bR,uL,uR,phiL,phiR,sE1,sE2
+      real(kind=8) vL,vR,hvL,hvR
+      real(kind=8) drytol,g
 
       !local
       integer iter
 
       logical sonic
 
-      double precision delh,delhu,delphi,delb,delhdecomp,delphidecomp
-      double precision s1s2bar,s1s2tilde,hbar,hLstar,hRstar,hustar
-      double precision uRstar,uLstar,hstarHLL
-      double precision deldelh,deldelphi
-      double precision alpha1,alpha2,beta1,beta2,delalpha1,delalpha2
-      double precision criticaltol,convergencetol
-      double precision sL,sR
-      double precision uhat,chat,sRoe1,sRoe2
+      real(kind=8) delh,delhu,delphi,delb,delhdecomp,delphidecomp
+      real(kind=8) s1s2bar,s1s2tilde,hbar,hLstar,hRstar,hustar
+      real(kind=8) uRstar,uLstar,hstarHLL
+      real(kind=8) deldelh,deldelphi
+      real(kind=8) alpha1,alpha2,beta1,beta2,delalpha1,delalpha2
+      real(kind=8) criticaltol,convergencetol
+      real(kind=8) sL,sR
+      real(kind=8) uhat,chat,sRoe1,sRoe2
 
-      double precision sw(mwaves)
-      double precision fw(meqn,mwaves)
+      real(kind=8) sw(num_waves)
+      real(kind=8) fw(num_eqn,num_waves)
 
       !determine del vectors
       delh = hR-hL
@@ -697,7 +691,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
 
 
 !-----------------------------------------------------------------------
-      subroutine riemann_fwave(meqn,mwaves,hL,hR,huL,huR,hvL,hvR, &
+      subroutine riemann_fwave(num_eqn,num_waves,hL,hR,huL,huR,hvL,hvR, &
                   bL,bR,uL,uR,vL,vR,phiL,phiR,s1,s2,drytol,g,sw,fw)
 
       ! solve shallow water equations given single left and right states
@@ -707,19 +701,19 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
       implicit none
 
       !input
-      integer meqn,mwaves
+      integer num_eqn,num_waves
 
-      double precision hL,hR,huL,huR,bL,bR,uL,uR,phiL,phiR,s1,s2
-      double precision hvL,hvR,vL,vR
-      double precision drytol,g
+      real(kind=8) hL,hR,huL,huR,bL,bR,uL,uR,phiL,phiR,s1,s2
+      real(kind=8) hvL,hvR,vL,vR
+      real(kind=8) drytol,g
 
-      double precision sw(mwaves)
-      double precision fw(meqn,mwaves)
+      real(kind=8) sw(num_waves)
+      real(kind=8) fw(num_eqn,num_waves)
 
       !local
-      double precision delh,delhu,delphi,delb,delhdecomp,delphidecomp
-      double precision deldelh,deldelphi
-      double precision beta1,beta2
+      real(kind=8) delh,delhu,delphi,delb,delhdecomp,delphidecomp
+      real(kind=8) deldelh,deldelphi
+      real(kind=8) beta1,beta2
 
 
       !determine del vectors
@@ -768,16 +762,16 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
       implicit none
 
       !input
-      double precision hL,hR,uL,uR,drytol,g
+      real(kind=8) hL,hR,uL,uR,drytol,g
       integer maxiter
 
       !output
-      double precision s1m,s2m
+      real(kind=8) s1m,s2m
       logical rare1,rare2
 
       !local
-      double precision hm,u1m,u2m,um,delu
-      double precision h_max,h_min,h0,F_max,F_min,dfdh,F0,slope,gL,gR
+      real(kind=8) hm,u1m,u2m,um,delu
+      real(kind=8) h_max,h_min,h0,F_max,F_min,dfdh,F0,slope,gL,gR
       integer iter
 
 
