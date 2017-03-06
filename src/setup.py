@@ -18,7 +18,8 @@ one_d_riemann = ['acoustics',
                    'euler_with_efix',
                    'nonlinear_elasticity_fwave',
                    'reactive_euler_with_efix',
-                   'shallow_roe_with_efix']
+                   'shallow_roe_with_efix',
+                   'shallow_roe_tracer']
 
 two_d_ptwise_riemann = ['acoustics']
 
@@ -53,7 +54,7 @@ def configuration(parent_package='',top_path=None):
 
     for rp in one_d_ptwise_riemann:
         rp_ext = rp + "_1D_ptwise"
-        rp_src = [os.path.join(src_dir, 'rp1_ptwise.f90'), 
+        rp_src = [os.path.join(src_dir, 'rp1_ptwise.f90'),
                   os.path.join(src_dir, 'rp1_' + rp + '_ptwise.f90')]
         config.add_extension(rp_ext, rp_src)
 
@@ -95,7 +96,7 @@ def configuration(parent_package='',top_path=None):
     for rp_dict in special_target_list:
         rp_ext = rp_dict['ext']
         rp_src = [os.path.join(src_dir,src) for src in rp_dict['srcs']]
-    
+
         config.add_extension(rp_ext,rp_src)
 
     return config
