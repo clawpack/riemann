@@ -36,7 +36,7 @@ subroutine rp1(maxmx,num_eqn,num_waves,num_aux,num_ghost,num_cells, &
     integer :: i,m,mw
     logical :: efix
 
-    data efix /.false./    ! Use entropy fix for transonic rarefactions
+    data efix /.true./    ! Use entropy fix for transonic rarefactions
 
     ! Gravity constant set in setprob.f or the shallow1D.py file
     real(kind=8) :: grav
