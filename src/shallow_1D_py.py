@@ -2,39 +2,29 @@
 # encoding: utf-8
 r"""
 Riemann solvers for the shallow water equations.
-    
+
 The available solvers are:
  * Roe - Use Roe averages to caluclate the solution to the Riemann problem
  * HLL - Use a HLL solver
- * Exact - Use a newton iteration to calculate the exact solution to the 
+ * Exact - Use a newton iteration to calculate the exact solution to the
         Riemann problem
 
-.. math:: 
+.. math::
     q_t + f(q)_x = 0
-  
-where 
 
-.. math:: 
+where
+
+.. math::
     q(x,t) = \left [ \begin{array}{c} h \\ h u \end{array} \right ],
-  
-the flux function is 
 
-.. math:: 
+the flux function is
+
+.. math::
     f(q) = \left [ \begin{array}{c} h u \\ hu^2 + 1/2 g h^2 \end{array}\right ].
 
 and :math:`h` is the water column height, :math:`u` the velocity and :math:`g`
 is the gravitational acceleration.
-
-:Authors:
-    Kyle T. Mandli (2009-02-05): Initial version
 """
-# ============================================================================
-#      Copyright (C) 2009 Kyle T. Mandli <mandli@amath.washington.edu>
-#
-#  Distributed under the terms of the Berkeley Software Distribution (BSD) 
-#  license
-#                     http://www.opensource.org/licenses/
-# ============================================================================
 
 from __future__ import absolute_import
 import numpy as np
@@ -43,30 +33,31 @@ from six.moves import range
 num_eqn = 2
 num_waves = 2
 
-def shallow_roe_1D(q_l,q_r,aux_l,aux_r,problem_data):
+
+def shallow_roe_1D(q_l, q_r, aux_l, aux_r, problem_data):
     r"""
     Roe shallow water solver in 1d::
-    
+
         ubar = (sqrt(u_l) + sqrt(u_r)) / (sqrt(h_l) + sqrt(h_r))
         cbar = sqrt( 0.5 * g * (h_l + h_r))
-         
+
         W_1 = |      1      |  s_1 = ubar - cbar
               | ubar - cbar |
-         
+
         W_2 = |      1      |  s_1 = ubar + cbar
               | ubar + cbar |
-          
+
         a1 = 0.5 * ( - delta_hu + (ubar + cbar) * delta_h ) / cbar
         a2 = 0.5 * (   delta_hu - (ubar - cbar) * delta_h ) / cbar
-    
+
     *problem_data* should contain:
      - *g* - (float) Gravitational constant
-     - *efix* - (bool) Boolean as to whether a entropy fix should be used, if 
+     - *efix* - (bool) Boolean as to whether a entropy fix should be used, if
        not present, false is assumed
-            
+
     :Version: 1.0 (2009-02-05)
     """
-    
+
     # Array shapes
     num_rp = q_l.shape[1]
     
@@ -180,21 +171,26 @@ def shallow_fwave_1d(q_l, q_r, aux_l, aux_r, problem_data):
     r"""Shallow water Riemann solver using fwaves
 
     Also includes support for bathymetry but be wary if you think you might have
-    dry states as this has not been tested.  
-    
+    dry states as this has not been tested.
+
     *problem_data* should contain:
      - *grav* - (float) Gravitational constant
+     - *dry_tolerance* - (float) Set velocities to zero if h is below this
+       tolerance.
      - *sea_level* - (float) Datum from which the dry-state is calculated.
-            
+
     :Version: 1.0 (2014-09-05)
+    :Version: 2.0 (2017-03-07)
     """
 
     g = problem_data['grav']
+    dry_tolerance = problem_data['dry_tolerance']
+    sea_level = problem_data['sea_level']
 
     num_rp = q_l.shape[1]
     num_eqn = 2
     num_waves = 2
-    
+
     # Output arrays
     fwave = np.empty( (num_eqn, num_waves, num_rp) )
     s = np.empty( (num_waves, num_rp) )
@@ -202,42 +198,51 @@ def shallow_fwave_1d(q_l, q_r, aux_l, aux_r, problem_data):
     apdq = np.zeros( (num_eqn, num_rp) )
 
     # Extract state
-    u_l = np.where(q_l[0,:] - problem_data['sea_level'] > 1e-3, 
-                   q_l[1,:] / q_l[0,:], 0.0)
-    u_r = np.where(q_r[0,:] - problem_data['sea_level'] > 1e-3, 
-                   q_r[1,:] / q_r[0,:], 0.0)
-    phi_l = q_l[0,:] * u_l**2 + 0.5 * g * q_l[0,:]**2
-    phi_r = q_r[0,:] * u_r**2 + 0.5 * g * q_r[0,:]**2
+    u_l = np.where(q_l[0, :] - sea_level > dry_tolerance,
+                   q_l[1, :] / q_l[0, :], 0.0)
+    u_r = np.where(q_r[0, :] - sea_level > dry_tolerance,
+                   q_r[1, :] / q_r[0, :], 0.0)
+    phi_l = q_l[0, :] * u_l**2 + 0.5 * g * q_l[0, :]**2
+    phi_r = q_r[0, :] * u_r**2 + 0.5 * g * q_r[0, :]**2
+    h_bar = 0.5 * (q_l[0, :] + q_r[0, :])
 
     # Speeds
-    s[0,:] = u_l - np.sqrt(g * q_l[0,:])
-    s[1,:] = u_r + np.sqrt(g * q_r[0,:])
+    u_hat = (np.sqrt(g * q_l[0, :]) * u_l + np.sqrt(g * q_r[0, :]) * u_r)      \
+            / (np.sqrt(g * q_l[0, :]) + np.sqrt(g * q_r[0, :]))
+    c_hat = np.sqrt(g * h_bar)
+    s[0, :] = np.amin(np.vstack((u_l - np.sqrt(g * q_l[0, :]),
+                                 u_hat - c_hat)), axis=0)
+    s[1, :] = np.amax(np.vstack((u_r + np.sqrt(g * q_r[0, :]),
+                                 u_hat + c_hat)), axis=0)
 
-    delta1 = q_r[1,:] - q_l[1,:]
-    delta2 = phi_r - phi_l + g * 0.5 * (q_r[0,:] + q_l[0,:]) * (aux_r[0,:] - aux_l[0,:])
+    delta1 = q_r[1, :] - q_l[1, :]
+    delta2 = phi_r - phi_l + g * h_bar * (aux_r[0, :] - aux_l[0, :])
 
-    beta1 = (s[1,:] * delta1 - delta2) / (s[1,:] - s[0,:])
-    beta2 = (delta2 - s[0,:] * delta1) / (s[1,:] - s[0,:])
+    beta1 = (s[1, :] * delta1 - delta2) / (s[1, :] - s[0, :])
+    beta2 = (delta2 - s[0, :] * delta1) / (s[1, :] - s[0, :])
 
-    fwave[0,0,:] = beta1
-    fwave[1,0,:] = beta1 * s[0,:]
-    fwave[0,1,:] = beta2
-    fwave[1,1,:] = beta2 * s[1,:]
+    fwave[0, 0, :] = beta1
+    fwave[1, 0, :] = beta1 * s[0, :]
+    fwave[0, 1, :] = beta2
+    fwave[1, 1, :] = beta2 * s[1, :]
 
     for m in range(num_eqn):
         for mw in range(num_waves):
-            amdq[m,:] += (s[mw,:] < 0.0) * fwave[m,mw,:]
-            apdq[m,:] += (s[mw,:] >= 0.0) * fwave[m,mw,:]
+            amdq[m, :] += (s[mw, :] < 0.0) * fwave[m, mw, :]
+            apdq[m, :] += (s[mw, :] > 0.0) * fwave[m, mw, :]
+
+            amdq[m, :] += (s[mw, :] == 0.0) * fwave[m, mw, :] * 0.5
+            apdq[m, :] += (s[mw, :] == 0.0) * fwave[m, mw, :] * 0.5
 
     return fwave, s, amdq, apdq
 
-    
-def shallow_exact_1D(q_l,q_r,aux_l,aux_r,problem_data):
+
+def shallow_exact_1D(q_l, q_r, aux_l, aux_r, problem_data):
     r"""
     Exact shallow water Riemann solver
-    
+
     .. warning::
         This solver has not been implemented.
-    
+
     """
     raise NotImplementedError("The exact swe solver has not been implemented.")
