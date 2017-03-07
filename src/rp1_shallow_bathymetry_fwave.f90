@@ -34,8 +34,8 @@ subroutine rp1(maxm,num_eqn,num_waves,num_aux,num_ghost,num_cells,ql,qr,auxl,aux
     real(kind=8), intent(out) :: amdq(num_eqn, 1-num_ghost:maxm+num_ghost)
     real(kind=8), intent(out) :: apdq(num_eqn, 1-num_ghost:maxm+num_ghost)
     
-    real(kind=8) :: grav, dry_tolerance
-    common /cparam/ grav, dry_tolerance
+    real(kind=8) :: grav, dry_tolerance, sea_level
+    common /cparam/ grav, dry_tolerance, sea_level
     
     real(kind=8) :: hl, ul, hr, ur, hbar, uhat, chat, bl, br, phil, phir
     real(kind=8) :: R(2,2), fluxdiff(2), beta(2)
@@ -48,7 +48,7 @@ subroutine rp1(maxm,num_eqn,num_waves,num_aux,num_ghost,num_cells,ql,qr,auxl,aux
     do i=2-num_ghost,num_cells+num_ghost
         ! # Left states
         hl = qr(1, i - 1)
-        if (hl > dry_tolerance) then
+        if (hl - sea_level > dry_tolerance) then
             ul = qr(2, i - 1) / hl
             phil = qr(1, i - 1) * ul**2 + 0.5d0 * grav * qr(1, i - 1)**2
         else
@@ -59,7 +59,7 @@ subroutine rp1(maxm,num_eqn,num_waves,num_aux,num_ghost,num_cells,ql,qr,auxl,aux
         
         ! # Right states
         hr = ql(1, i)
-        if (hr > dry_tolerance) then
+        if (hr - sea_level > dry_tolerance) then
             ur = ql(2, i)/hr
             phir = ql(1, i) * ur**2 + 0.5d0 * grav * ql(1, i)**2
         else
