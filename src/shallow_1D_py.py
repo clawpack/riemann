@@ -198,9 +198,9 @@ def shallow_fwave_1d(q_l, q_r, aux_l, aux_r, problem_data):
     apdq = np.zeros( (num_eqn, num_rp) )
 
     # Extract state
-    u_l = np.where(q_l[0, :] - sea_level > dry_tolerance,
+    u_l = np.where(q_l[0, :] > dry_tolerance,
                    q_l[1, :] / q_l[0, :], 0.0)
-    u_r = np.where(q_r[0, :] - sea_level > dry_tolerance,
+    u_r = np.where(q_r[0, :] > dry_tolerance,
                    q_r[1, :] / q_r[0, :], 0.0)
     phi_l = q_l[0, :] * u_l**2 + 0.5 * g * q_l[0, :]**2
     phi_r = q_r[0, :] * u_r**2 + 0.5 * g * q_r[0, :]**2
