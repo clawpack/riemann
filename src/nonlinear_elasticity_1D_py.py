@@ -103,7 +103,7 @@ def sigma(q, aux, problem_data):
     r"""Stress-strain relation."""
     stress_relation = problem_data.get('stress_relation', 'exponential')
     if stress_relation == 'exponential':
-        return np.exp(aux[K,:]*q[strain,:])
+        return np.exp(aux[K,:]*q[strain,:]) - 1.
     elif stress_relation == 'quadratic':
         return aux[K1,:]*q[strain,:] + aux[K2,:]*q[strain,:]**2
 
