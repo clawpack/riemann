@@ -40,7 +40,7 @@ subroutine rpn2(ixy, maxm, num_eqn, num_waves, num_aux, num_ghost, &
     real(kind=8) :: grav, dry_tolerance, sea_level
     common /cparam/ grav, dry_tolerance, sea_level
     
-    real(kind=8) :: hl, ul, vl, bl, hr, ur, vr, br, hbar, uhat, vhat, chat
+    real(kind=8) :: hl, ul, vl, bl, hr, ur, vr, br, hbar, uhat, chat
     real(kind=8) :: phil, phir, dry_state_l, dry_state_r
     real(kind=8) :: R(3,3)
     real(kind=8) :: fluxdiff(3), beta(3)
@@ -91,8 +91,7 @@ subroutine rpn2(ixy, maxm, num_eqn, num_waves, num_aux, num_ghost, &
     
         ! Roe average states (Roe's linearization)
         hbar = 0.5d0 * (hr + hl)
-        uhat = (sqrt(hr) * ur + sqrt(hl) * ul) / (sqrt(hr) + sqrt(hl)) 
-        ! vhat = (sqrt(hr) * vr + sqrt(hl) * vl) / (sqrt(hr) + sqrt(hl))
+        uhat = (sqrt(hr) * ur + sqrt(hl) * ul) / (sqrt(hr) + sqrt(hl))
         chat = sqrt(grav * hbar)
     
         ! Flux differences
@@ -143,10 +142,5 @@ subroutine rpn2(ixy, maxm, num_eqn, num_waves, num_aux, num_ghost, &
         enddo
 
     enddo ! End of main loop
-
-    if (.not.all(amdq == 0.d0) .or. .not.all(apdq == 0.d0)) then
-        ! print *,amdq, apdq
-        stop "Uhoh"
-    end if
 
 end subroutine rpn2
