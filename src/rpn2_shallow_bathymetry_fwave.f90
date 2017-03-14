@@ -66,10 +66,6 @@ subroutine rpn2(ixy, maxm, num_eqn, num_waves, num_aux, num_ghost, &
         dry_state_l = merge(0.d0, 1.d0, qr(1, i - 1) < dry_tolerance)
         dry_state_r = merge(0.d0, 1.d0, ql(1, i) < dry_tolerance)
 
-        if (qr(1, i - 1) < dry_tolerance .or. ql(1, i) < dry_tolerance) then
-            stop "Cannot handle dry-states quite yet!"
-        end if
-
         ! Note that for the states below u is always the normal velocity and
         ! v is always the tangential velocity
 
