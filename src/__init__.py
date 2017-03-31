@@ -63,6 +63,7 @@ try:
     from . import nonlinear_elasticity_fwave_1D
     from . import reactive_euler_with_efix_1D
     from . import shallow_roe_with_efix_1D
+    from . import shallow_bathymetry_fwave_1D
     from . import shallow_roe_tracer_1D
     from . import traffic_1D
     from . import traffic_vc_1D
@@ -79,6 +80,8 @@ try:
     from . import kpp_2D
     from . import psystem_2D
     from . import shallow_roe_with_efix_2D
+    from . import shallow_bathymetry_fwave_2D
+    from . import sw_aug_2D
     from . import shallow_sphere_2D
     from . import vc_acoustics_2D
     from . import vc_advection_2D

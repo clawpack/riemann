@@ -19,6 +19,7 @@ one_d_riemann = ['acoustics',
                    'nonlinear_elasticity_fwave',
                    'reactive_euler_with_efix',
                    'shallow_roe_with_efix',
+                   'shallow_bathymetry_fwave',
                    'shallow_roe_tracer']
 
 two_d_ptwise_riemann = ['acoustics']
@@ -30,6 +31,8 @@ two_d_riemann = ['acoustics',
                    'euler_5wave',
                    'psystem',
                    'shallow_roe_with_efix',
+                   'shallow_bathymetry_fwave',
+                   'sw_aug',
                    'shallow_sphere',
                    'vc_acoustics',
                    'vc_advection',
