@@ -1,6 +1,6 @@
 c-----------------------------------------------------------------------
       subroutine riemann_aug_JCP(maxiter,meqn,mwaves,hL,hR,huL,huR,
-     &   hvL,hvR,bL,bR,uL,uR,vL,vR,phiL,phiR,sE1,sE2,drytol,g,sw,fw)
+     &   hvL,hvR,bL,bR,uL,uR,vL,vR,phiL,phiR,pL,pR,sE1,sE2,sw,fw)
 
       ! solve shallow water equations given single left and right states
       ! This solver is described in J. Comput. Phys. (6): 3089-3113, March 2008
@@ -12,7 +12,7 @@ c-----------------------------------------------------------------------
       ! instabilities that arise (with any solver) as flow becomes transcritical over variable topo
       ! due to loss of hyperbolicity.
 
-
+      use geoclaw_module, only: g => grav, drytol => dry_tolerance
 
       implicit none
 
@@ -20,9 +20,8 @@ c-----------------------------------------------------------------------
       integer meqn,mwaves,maxiter
       double precision fw(meqn,mwaves)
       double precision sw(mwaves)
-      double precision hL,hR,huL,huR,bL,bR,uL,uR,phiL,phiR,sE1,sE2
+      double precision hL,hR,huL,huR,bL,bR,uL,uR,phiL,phiR,pR,pL,sE1,sE2
       double precision hvL,hvR,vL,vR
-      double precision drytol,g
 
 
       !local
@@ -39,21 +38,25 @@ c-----------------------------------------------------------------------
       double precision criticaltol_2, hustar_interface
       double precision s1s2bar,s1s2tilde,hbar,hLstar,hRstar,hustar
       double precision huRstar,huLstar,uRstar,uLstar,hstarHLL
-      double precision deldelh,deldelphi
+      double precision deldelh,deldelphi,delp
       double precision s1m,s2m,hm
       double precision det1,det2,det3,determinant
 
       logical rare1,rare2,rarecorrector,rarecorrectortest,sonic
+
+      real(kind=8), parameter :: rho = 1025.d0
 
       !determine del vectors
       delh = hR-hL
       delhu = huR-huL
       delphi = phiR-phiL
       delb = bR-bL
+#ifdef RP_PRESSURE
+      delp = pR-pL
+#endif
       delnorm = delh**2 + delphi**2
 
-      call riemanntype(hL,hR,uL,uR,hm,s1m,s2m,rare1,rare2,
-     &                                          1,drytol,g)
+      call riemanntype(hL,hR,uL,uR,hm,s1m,s2m,rare1,rare2,1)
 
 
       lambda(1)= min(sE1,s2m) !Modified Einfeldt speed
@@ -115,7 +118,11 @@ c     !determine the steady state wave -------------------
       criticaltol = max(drytol*g, 1d-6)
       criticaltol_2 = sqrt(criticaltol)
       deldelh = -delb
-      deldelphi = -g*0.5d0*(hR+hL)*delb
+#ifdef RP_PRESSURE
+      deldelphi = -0.5d0*(hR+hL)*(g*delb + delp / rho)
+#else
+      deldelphi = -0.5d0*(hR+hL)*g*delb
+#endif
 
 c     !determine a few quanitites needed for steady state wave if iterated
       hLstar=hL
@@ -196,6 +203,10 @@ c        !find jump in phi, deldelphi
 c        !find bounds in case of critical state resonance, or negative states
          deldelphi=min(deldelphi,g*max(-hLstar*delb,-hRstar*delb))
          deldelphi=max(deldelphi,g*min(-hLstar*delb,-hRstar*delb))
+
+#ifdef RP_PRESSURE
+         deldelphi=deldelphi - hbar * delp / rho
+#endif
 
          del(1)=delh-deldelh
          del(2)=delhu
@@ -288,19 +299,20 @@ c        !solve for beta(k) using Cramers Rule=================
 
 c-----------------------------------------------------------------------
       subroutine riemann_ssqfwave(maxiter,meqn,mwaves,hL,hR,huL,huR,
-     &    hvL,hvR,bL,bR,uL,uR,vL,vR,phiL,phiR,sE1,sE2,drytol,g,sw,fw)
+     &    hvL,hvR,bL,bR,uL,uR,vL,vR,phiL,phiR,pL,pR,sE1,sE2,sw,fw)
 
       ! solve shallow water equations given single left and right states
       ! steady state wave is subtracted from delta [q,f]^T before decomposition
+
+      use geoclaw_module, only: g => grav, drytol => dry_tolerance
 
       implicit none
 
       !input
       integer meqn,mwaves,maxiter
 
-      double precision hL,hR,huL,huR,bL,bR,uL,uR,phiL,phiR,sE1,sE2
+      double precision hL,hR,huL,huR,bL,bR,uL,uR,phiL,phiR,pR,pL,sE1,sE2
       double precision vL,vR,hvL,hvR
-      double precision drytol,g
 
       !local
       integer iter
@@ -310,7 +322,7 @@ c-----------------------------------------------------------------------
       double precision delh,delhu,delphi,delb,delhdecomp,delphidecomp
       double precision s1s2bar,s1s2tilde,hbar,hLstar,hRstar,hustar
       double precision uRstar,uLstar,hstarHLL
-      double precision deldelh,deldelphi
+      double precision deldelh,deldelphi,delp
       double precision alpha1,alpha2,beta1,beta2,delalpha1,delalpha2
       double precision criticaltol,convergencetol
       double precision sL,sR
@@ -319,17 +331,20 @@ c-----------------------------------------------------------------------
       double precision sw(mwaves)
       double precision fw(meqn,mwaves)
 
+      real(kind=8), parameter :: rho = 1025.d0
+
       !determine del vectors
       delh = hR-hL
       delhu = huR-huL
       delphi = phiR-phiL
       delb = bR-bL
+      delp = pR - pL
 
       convergencetol= 1.d-16
       criticaltol = 1.d-99
 
       deldelh = -delb
-      deldelphi = -g*0.5d0*(hR+hL)*delb
+      deldelphi = -0.5d0*(hR+hL)*(g * delb + delp / rho)
 
 !     !if no source term, skip determining steady state wave
       if (abs(delb).gt.0.d0) then
@@ -387,6 +402,7 @@ c           !find jump in phi, deldelphi
 !           !bounds in case of critical state resonance, or negative states
             deldelphi=min(deldelphi,g*max(-hLstar*delb,-hRstar*delb))
             deldelphi=max(deldelphi,g*min(-hLstar*delb,-hRstar*delb))
+            deldelphi=deldelphi - hbar * delp / rho
 
 !---------determine fwaves ------------------------------------------
 
@@ -473,28 +489,31 @@ c               hustar=huL+alpha1*sE1
 
 c-----------------------------------------------------------------------
       subroutine riemann_fwave(meqn,mwaves,hL,hR,huL,huR,hvL,hvR,
-     &            bL,bR,uL,uR,vL,vR,phiL,phiR,s1,s2,drytol,g,sw,fw)
+     &            bL,bR,uL,uR,vL,vR,phiL,phiR,pL,pR,s1,s2,sw,fw)
 
       ! solve shallow water equations given single left and right states
       ! solution has two waves.
       ! flux - source is decomposed.
+
+      use geoclaw_module, only: g => grav, drytol => dry_tolerance
 
       implicit none
 
       !input
       integer meqn,mwaves
 
-      double precision hL,hR,huL,huR,bL,bR,uL,uR,phiL,phiR,s1,s2
-      double precision hvL,hvR,vL,vR
-      double precision drytol,g
+      real(kind=8), intent(in) :: hL,hR,huL,huR,bL,bR,uL,uR,phiL,phiR
+      real(kind=8), intent(in) :: hvL,hvR,vL,vR,pL,pR,s1,s2
 
-      double precision sw(mwaves)
-      double precision fw(meqn,mwaves)
+      real(kind=8), intent(inout) :: sw(mwaves)
+      real(kind=8), intent(inout) :: fw(meqn,mwaves)
 
       !local
       double precision delh,delhu,delphi,delb,delhdecomp,delphidecomp
-      double precision deldelh,deldelphi
+      double precision deldelh,deldelphi,delp
       double precision beta1,beta2
+
+      real(kind=8), parameter :: rho = 1025.d0
 
 
       !determine del vectors
@@ -502,8 +521,9 @@ c-----------------------------------------------------------------------
       delhu = huR-huL
       delphi = phiR-phiL
       delb = bR-bL
+      delp = pR - pL
 
-      deldelphi = -g*0.5d0*(hR+hL)*delb
+      deldelphi = -0.5d0*(hR+hL)*(g * delb + delp / rho)
       delphidecomp = delphi - deldelphi
 
       !flux decomposition
@@ -535,15 +555,16 @@ c-----------------------------------------------------------------------
 
 c=============================================================================
       subroutine riemanntype(hL,hR,uL,uR,hm,s1m,s2m,rare1,rare2,
-     &             maxiter,drytol,g)
+     &             maxiter)
 
       !determine the Riemann structure (wave-type in each family)
 
+      use geoclaw_module, only: g => grav, drytol => dry_tolerance
 
       implicit none
 
       !input
-      double precision hL,hR,uL,uR,drytol,g
+      double precision hL,hR,uL,uR
       integer maxiter
 
       !output
