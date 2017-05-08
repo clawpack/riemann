@@ -30,11 +30,11 @@ subroutine rpt2(ixy,imp,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,aux1,aux2,aux3,asdq,b
 
     use amr_module, only: mcapa
     
-    use geoclaw_module, only: g => grav, earth_radius, pi
+    use geoclaw_module, only: g => grav, rho, earth_radius, pi
 
     use multilayer_module, only: num_layers, eigen_method, inundation_method
     use multilayer_module, only: eigen_func, inundation_eigen_func
-    use multilayer_module, only: dry_tolerance, rho, aux_layer_index
+    use multilayer_module, only: dry_tolerance, aux_layer_index
 
     implicit none
 
