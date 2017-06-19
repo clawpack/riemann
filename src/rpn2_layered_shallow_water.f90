@@ -49,10 +49,10 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
 
     use amr_module, only: mcapa
 
-    use geoclaw_module, only: g => grav, pi, earth_radius
+    use geoclaw_module, only: g => grav, rho, pi, earth_radius
 
     use multilayer_module, only: num_layers, eigen_func
-    use multilayer_module, only: dry_tolerance, aux_layer_index, rho, r
+    use multilayer_module, only: dry_tolerance, aux_layer_index, r
     use multilayer_module, only: eigen_method, inundation_method
     use multilayer_module, only: eigen_func, inundation_eigen_func
 
@@ -820,12 +820,19 @@ subroutine solve_single_layer_rp(layer_index, h_l, h_r, hu_l, hu_r, hv_l, hv_r, 
 
     ! Locals
     integer :: mw
-    real(kind=8) :: hL, hR, huL, huR, hvL, hvR, uL, uR, vL, vR, bL, bR
+    real(kind=8) :: hL, hR, huL, huR, hvL, hvR, uL, uR, vL, vR, bL, bR, pL, pR
     real(kind=8) :: phiL, phiR, wall(3), drytol
     real(kind=8) :: hstar, hstartest, s1m, s2m, rare1, rare2, sL, sR, uhat, chat, sRoe1, sRoe2, sE1, sE2
 
     ! Parameters (should be anyway)
     integer :: maxiter
+
+    ! Density used in pressure gradient calculation
+    ! This needs to be realistic here as compared to air density so we cannot
+    ! use what is stored in the multilayer_module unless real densities are 
+    ! being used
+    ! TODO - fix this limitation 
+    real(kind=8), parameter :: rho = 1025.d0
 
     drytol = dry_tolerance(layer_index)
 
@@ -837,6 +844,8 @@ subroutine solve_single_layer_rp(layer_index, h_l, h_r, hu_l, hu_r, hv_l, hv_r, 
     hvR = hv_r(layer_index)
     bL = b_l
     bR = b_r
+    pL = 0.d0
+    pR = 0.d0
 
     ! ========================================
     !  Begin Snipped Code From rpn2_geoclaw.f
@@ -923,7 +932,8 @@ subroutine solve_single_layer_rp(layer_index, h_l, h_r, hu_l, hu_r, hv_l, hv_r, 
          maxiter = 1
 
          call riemann_aug_JCP(maxiter,3,3,hL,hR,huL,huR,hvL,hvR,bL,bR,uL,uR, &
-                                          vL,vR,phiL,phiR,sE1,sE2,drytol,g,sw,fw)
+                                          vL,vR,phiL,phiR,pL,pR,sE1,sE2,     &
+                                          drytol,g,rho,sw,fw)
 
 !         call riemann_ssqfwave(maxiter,meqn,mwaves,hL,hR,huL,huR,
 !     &     hvL,hvR,bL,bR,uL,uR,vL,vR,phiL,phiR,sE1,sE2,drytol,g,sw,fw)

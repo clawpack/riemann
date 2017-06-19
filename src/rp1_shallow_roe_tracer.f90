@@ -2,17 +2,20 @@ subroutine rp1(maxmx,num_eqn,num_waves,num_aux,num_ghost,num_cells, &
                ql,qr,auxl,auxr,wave,s,amdq,apdq)
 
 ! Solve Riemann problems for the 1D shallow water equations
-!   (h)_t + (u h)_x = 0
-!   (uh)_t + ( uuh + .5*gh^2 )_x = 0
+! with an additional passively advected tracer:
+!    (h)_t + (u h)_x = 0
+!    (uh)_t + ( uuh + .5*gh^2 )_x = 0
+!    c_t + uc_x = 0
 ! using Roe's approximate Riemann solver with entropy fix for
 ! transonic rarefractions.
 
-! waves: 2
-! equations: 2
+! waves: 3
+! equations: 3
 
 ! Conserved quantities:
 !       1 depth
 !       2 momentum
+!       3 tracer
 
 ! See http://www.clawpack.org/riemann.html for a detailed explanation
 ! of the Riemann solver API.
@@ -31,10 +34,9 @@ subroutine rp1(maxmx,num_eqn,num_waves,num_aux,num_ghost,num_cells, &
     real(kind=8) :: a1,a2,ubar,cbar,s0,s1,s2,s3,hr1,uhr1,hl2,uhl2,sfract,df
     real(kind=8) :: delta(2)
     integer :: i,m,mw
-
     logical :: efix
 
-    data efix /.true./    !# Use entropy fix for transonic rarefactions
+    data efix /.true./    ! Use entropy fix for transonic rarefactions
 
     ! Gravity constant set in setprob.f or the shallow1D.py file
     real(kind=8) :: grav
@@ -42,7 +44,6 @@ subroutine rp1(maxmx,num_eqn,num_waves,num_aux,num_ghost,num_cells, &
 
     ! Main loop of the Riemann solver.
     do 30 i=2-num_ghost,num_cells+num_ghost
-    
     
         ! compute  Roe-averaged quantities:
         ubar = (qr(2,i-1)/dsqrt(qr(1,i-1)) + ql(2,i)/dsqrt(ql(1,i)))/ &
@@ -60,11 +61,18 @@ subroutine rp1(maxmx,num_eqn,num_waves,num_aux,num_ghost,num_cells, &
         ! Finally, compute the waves.
         wave(1,1,i) = a1
         wave(2,1,i) = a1*(ubar - cbar)
+        wave(3,1,i) = 0.d0
         s(1,i) = ubar - cbar
                  
         wave(1,2,i) = a2
         wave(2,2,i) = a2*(ubar + cbar)
+        wave(3,2,i) = 0.d0
         s(2,i) = ubar + cbar
+
+        wave(1,3,i) = 0.d0
+        wave(2,3,i) = 0.d0
+        wave(3,3,i) = ql(3,i) - qr(3,i-1)
+        s(3,i) = ubar
                  
     30 enddo
 
@@ -78,7 +86,7 @@ subroutine rp1(maxmx,num_eqn,num_waves,num_aux,num_ghost,num_cells, &
     ! amdq = SUM s*wave   over left-going waves
     ! apdq = SUM s*wave   over right-going waves
 
-    do m=1,2
+    do m=1,num_waves
         do i=2-num_ghost, num_cells+num_ghost
             amdq(m,i) = 0.d0
             apdq(m,i) = 0.d0
@@ -120,7 +128,7 @@ subroutine rp1(maxmx,num_eqn,num_waves,num_aux,num_ghost,num_cells, &
         ! check for fully supersonic case:
         if (s0 >= 0.d0 .and. s(1,i) > 0.d0)  then
             ! everything is right-going
-            do m=1,2
+            do m=1,num_eqn
                 amdq(m,i) = 0.d0
                 enddo
             go to 200
@@ -142,12 +150,12 @@ subroutine rp1(maxmx,num_eqn,num_waves,num_aux,num_ghost,num_cells, &
             sfract = 0.d0   !# this shouldn't happen since s0 < 0
         endif
 
-        do m=1,2
+        do m=1,num_eqn
             amdq(m,i) = sfract*wave(m,1,i)
             enddo
           
         ! -------------------------------------------------------
-        ! check 2-wave:
+        ! check 2-wave (second nonlinear wave, note tracer contact is 3-wave):
         ! ---------------
         ! u+c in right state  (cell i)
         s3 = ql(2,i)/ql(1,i) + dsqrt(grav*ql(1,i))
@@ -168,7 +176,7 @@ subroutine rp1(maxmx,num_eqn,num_waves,num_aux,num_ghost,num_cells, &
             go to 200
         endif
     
-        do m=1,2
+        do m=1,num_eqn
             amdq(m,i) = amdq(m,i) + sfract*wave(m,2,i)
             enddo
 
@@ -178,19 +186,24 @@ subroutine rp1(maxmx,num_eqn,num_waves,num_aux,num_ghost,num_cells, &
     ! compute the rightgoing flux differences:
     ! df = SUM s*wave   is the total flux difference and apdq = df - amdq
 
-    do m=1,2
-        do i = 2-num_ghost, num_cells+num_ghost
+    do i = 2-num_ghost, num_cells+num_ghost
+        do m=1,2
             df = 0.d0
-            do mw=1,num_waves
+            do mw=1,2
                 df = df + s(mw,i)*wave(m,mw,i)
                 enddo
             apdq(m,i) = df - amdq(m,i)
             enddo
+            
+        ! tracer (which is in non-conservation form)
+        if (s(3,i) < 0) then
+            amdq(m,i) = amdq(m,i) + s(3,i)*wave(m,3,i)
+          else
+            apdq(m,i) = apdq(m,i) + s(3,i)*wave(m,3,i)
+          endif
+          
         enddo
 
     return
 
-    end subroutine rp1
-
-
-
+end subroutine rp1

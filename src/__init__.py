@@ -28,8 +28,10 @@ from . import euler_with_efix_1D_constants
 from . import nonlinear_elasticity_fwave_1D_constants
 from . import reactive_euler_with_efix_1D_constants
 from . import shallow_roe_with_efix_1D_constants
+from . import shallow_roe_tracer_1D_constants
 from . import traffic_1D_constants
 from . import traffic_vc_1D_constants
+from . import traffic_vc_tracer_1D_constants
 from . import acoustics_2D_constants
 from . import acoustics_mapped_2D_constants
 from . import advection_2D_constants
@@ -61,8 +63,12 @@ try:
     from . import nonlinear_elasticity_fwave_1D
     from . import reactive_euler_with_efix_1D
     from . import shallow_roe_with_efix_1D
+    from . import shallow_bathymetry_fwave_1D
+    from . import shallow_roe_tracer_1D
     from . import traffic_1D
     from . import traffic_vc_1D
+    from . import traffic_vc_fwave_1D
+    from . import traffic_vc_tracer_1D
     from . import acoustics_2D
     from . import acoustics_mapped_2D
     from . import acoustics_2D_ptwise
@@ -74,6 +80,8 @@ try:
     from . import kpp_2D
     from . import psystem_2D
     from . import shallow_roe_with_efix_2D
+    from . import shallow_bathymetry_fwave_2D
+    from . import sw_aug_2D
     from . import shallow_sphere_2D
     from . import vc_acoustics_2D
     from . import vc_advection_2D
