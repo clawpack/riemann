@@ -7,7 +7,6 @@ subroutine rp1(maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 
 ! waves:     2
 ! equations: 2
-! aux fields: 2
 
 ! Conserved quantities:
 !       1 pressure
@@ -40,8 +39,8 @@ subroutine rp1(maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 
     implicit double precision (a-h,o-z)
 
-    dimension auxl(2, 1-mbc:maxm+mbc)
-    dimension auxr(2, 1-mbc:maxm+mbc)
+    dimension auxl(maux, 1-mbc:maxm+mbc)
+    dimension auxr(maux, 1-mbc:maxm+mbc)
     dimension wave(meqn, mwaves, 1-mbc:maxm+mbc)
     dimension    s(mwaves, 1-mbc:maxm+mbc)
     dimension   ql(meqn, 1-mbc:maxm+mbc)
