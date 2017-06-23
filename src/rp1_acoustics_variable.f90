@@ -7,6 +7,7 @@ subroutine rp1(maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 
 ! waves:     2
 ! equations: 2
+! aux fields: 2
 
 ! Conserved quantities:
 !       1 pressure
