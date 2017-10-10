@@ -34,18 +34,18 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apd
 
     implicit double precision (a-h,o-z)
 
-    dimension wave(meqn, mwaves, 1-mbc:maxm+mbc)
-    dimension    s(mwaves, 1-mbc:maxm+mbc)
-    dimension   ql(meqn, 1-mbc:maxm+mbc)
-    dimension   qr(meqn, 1-mbc:maxm+mbc)
-    dimension apdq(meqn, 1-mbc:maxm+mbc)
-    dimension amdq(meqn, 1-mbc:maxm+mbc)
-    dimension auxl(maux, 1-mbc:maxm+mbc)
-    dimension auxr(maux, 1-mbc:maxm+mbc)
+    double precision, intent(in)  ::   ql(meqn, 1-mbc:maxm+mbc)
+    double precision, intent(in)  ::   qr(meqn, 1-mbc:maxm+mbc)
+    double precision, intent(in)  :: auxl(maux, 1-mbc:maxm+mbc)
+    double precision, intent(in)  :: auxr(maux, 1-mbc:maxm+mbc)
+    double precision, intent(out) :: wave(meqn, mwaves, 1-mbc:maxm+mbc)
+    double precision, intent(out) ::    s(mwaves, 1-mbc:maxm+mbc)
+    double precision, intent(out) :: apdq(meqn, 1-mbc:maxm+mbc)
+    double precision, intent(out) :: amdq(meqn, 1-mbc:maxm+mbc)
 
 !     local arrays
 !     ------------
-    dimension delta(3)
+    double precision :: delta(3)
 
 !     # density, bulk modulus, and sound speed, and impedence of medium:
 !     # (should be set in setprob.f)
