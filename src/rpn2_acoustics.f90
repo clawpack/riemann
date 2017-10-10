@@ -76,7 +76,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apd
 !     # split the jump in q at each interface into waves
 
 !     # find a1 and a2, the coefficients of the 2 eigenvectors:
-    do 20 i = 2-mbc, mx+mbc
+    do i = 2-mbc, mx+mbc
         delta(1) = ql(1,i) - qr(1,i-1)
         delta(2) = ql(mu,i) - qr(mu,i-1)
         a1 = (-delta(1) + zz*delta(2)) / (2.d0*zz)
@@ -93,17 +93,24 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apd
         wave(mu,2,i) = a2
         wave(mv,2,i) = 0.d0
         s(2,i) = cc
+    enddo
     
-    20 END DO
 
 
 !     # compute the leftgoing and rightgoing flux differences:
 !     # Note s(i,1) < 0   and   s(i,2) > 0.
 
-    forall (m=1:meqn,  i=2-mbc: mx+mbc)
-    amdq(m,i) = s(1,i)*wave(m,1,i)
-    apdq(m,i) = s(2,i)*wave(m,2,i)
-    end forall
+    ! forall (m=1:meqn,  i=2-mbc: mx+mbc)
+    ! amdq(m,i) = s(1,i)*wave(m,1,i)
+    ! apdq(m,i) = s(2,i)*wave(m,2,i)
+    ! end forall
+
+    do i = 2-mbc, mx+mbc
+        do m = 1,meqn
+        amdq(m,i) = s(1,i)*wave(m,1,i)
+        apdq(m,i) = s(2,i)*wave(m,2,i)
+        enddo
+    enddo
 
     return
     end subroutine rpn2
