@@ -31,6 +31,10 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apd
 !                                    and right state ql(i,:)
 ! From the basic clawpack routines, this routine is called with ql = qr
 
+!   # density, bulk modulus, and sound speed, and impedence of medium:
+!   # (should be set in setprob.f)
+    use problem_para_module, only: rho,bulk,cc,zz
+
 
     implicit double precision (a-h,o-z)
 
@@ -46,11 +50,6 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apd
 !     local arrays
 !     ------------
     double precision :: delta(3)
-
-!     # density, bulk modulus, and sound speed, and impedence of medium:
-!     # (should be set in setprob.f)
-    common /cparam/ rho,bulk,cc,zz
-
 
 
 !     # set mu to point to  the component of the system that corresponds
