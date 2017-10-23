@@ -37,6 +37,10 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apd
         use cudafor
 #endif
 
+!     # density, bulk modulus, and sound speed, and impedence of medium:
+!     # (should be set in setprob.f)
+    use problem_para_module, only: cc, zz, bulk, rho
+
     implicit double precision (a-h,o-z)
 
     double precision, intent(in)  ::   ql(meqn, 1-mbc:maxm+mbc)
@@ -52,10 +56,6 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apd
 !     local arrays
 !     ------------
     double precision :: delta1, delta2, delta3
-
-!     # density, bulk modulus, and sound speed, and impedence of medium:
-!     # (should be set in setprob.f)
-    common /cparam/ rho,bulk,cc,zz
 
 ! #ifdef CUDA
 !     attributes(device) :: ql, qr, auxl, auxr, wave, s, apdq, amdq
