@@ -512,10 +512,10 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
                         alpha(3) = r * g * h_l(2) / ((s(5,i) - u_l(2))**2 - g * h_l(2))
                         
                         eig_vec(1,5) = 1.d0
-                        eig_vec(n_index,5) = s(i,5)
+                        eig_vec(n_index,5) = s(5,i)
                         eig_vec(t_index,5) = v_r(1)
                         eig_vec(4,5) = alpha(3)
-                        eig_vec(n_index,5) = s(i,5) * alpha(3)
+                        eig_vec(n_index,5) = s(5,i) * alpha(3)
                         eig_vec(t_index,6) = v_r(2) * alpha(3)
                     end if
                 end if
