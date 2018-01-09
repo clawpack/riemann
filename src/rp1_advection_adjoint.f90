@@ -40,8 +40,8 @@ subroutine rp1(maxmx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
     
         wave(1,1,i) = ql(1,i) - qr(1,i-1)
         s(1,i) = -u
-        amdq(1,i) = dmin1(u, 0.d0) * wave(1,1,i)
-        apdq(1,i) = dmax1(u, 0.d0) * wave(1,1,i)
+        amdq(1,i) = dmin1(s(1,i), 0.d0) * wave(1,1,i)
+        apdq(1,i) = dmax1(s(1,i), 0.d0) * wave(1,1,i)
     30 END DO
 
     return
