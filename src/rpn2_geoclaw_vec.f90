@@ -41,36 +41,39 @@
       use amr_module, only: mcapa
 
       use storm_module, only: pressure_forcing, pressure_index
-      use statistics
 
       implicit none
 
       !input
       integer maxm,meqn,maux,mwaves,mbc,mx,ixy
 
-      double precision  fwave(1-mbc:maxm+mbc, meqn, mwaves)
-      double precision  s(1-mbc:maxm+mbc, mwaves)
-      double precision  ql(1-mbc:maxm+mbc, meqn)
-      double precision  qr(1-mbc:maxm+mbc, meqn)
-      double precision  apdq(1-mbc:maxm+mbc,meqn)
-      double precision  amdq(1-mbc:maxm+mbc,meqn)
-      double precision  auxl(1-mbc:maxm+mbc,maux)
-      double precision  auxr(1-mbc:maxm+mbc,maux)
+      real(kind=8)  fwave(1-mbc:maxm+mbc, meqn, mwaves)
+      real(kind=8)  s(1-mbc:maxm+mbc, mwaves)
+      real(kind=8)  ql(1-mbc:maxm+mbc, meqn)
+      real(kind=8)  qr(1-mbc:maxm+mbc, meqn)
+      real(kind=8)  apdq(1-mbc:maxm+mbc,meqn)
+      real(kind=8)  amdq(1-mbc:maxm+mbc,meqn)
+      real(kind=8)  auxl(1-mbc:maxm+mbc,maux)
+      real(kind=8)  auxr(1-mbc:maxm+mbc,maux)
 
       !local only
       integer m,i,mw,maxiter,mu,nv
-      double precision wall(3)
-      !double precision fw(3,3)
-      !double precision sw(3)
-      double precision fw11, fw12, fw13, fw21, fw22, fw23, fw31, fw32, fw33
-      double precision sw1, sw2, sw3
-
-      double precision hR,hL,huR,huL,hvR,hvL,pL,pR
-      double precision bR,bL
-
-      double precision tw,dxdc
+      real(kind=8) wall(3)
       
-      double precision sqrt_ghL, sqrt_ghR
+      !  Due to what seems to be a bug with the Intel Compilers (versions 16, 17 and 18 at least),
+      !  these arrays declared as PRIVATE in a !$OMP SIMD loop had to be decomposed into scalars.
+      !  This may not be necessary for future versions of the Intel Compilers.
+      !real(kind=8) fw(3,3)
+      !real(kind=8) sw(3)
+      real(kind=8) fw11, fw12, fw13, fw21, fw22, fw23, fw31, fw32, fw33
+      real(kind=8) sw1, sw2, sw3
+! 
+      real(kind=8) hR,hL,huR,huL,hvR,hvL,pL,pR
+      real(kind=8) bR,bL
+
+      real(kind=8) tw,dxdc
+      
+      real(kind=8) sqrt_ghL, sqrt_ghR
 
       logical rare1,rare2
       
@@ -95,10 +98,8 @@
       endif
 
       !loop through Riemann problems at each grid cell
-#if defined(_OPENMP)
       !$OMP SIMD PRIVATE(hL,hR,huL,huR,hvL,hvR,bL,bR,pL,pR, &
       !$OMP& fw11,fw12,fw13,fw21,fw22,fw23,fw31,fw32,fw33,sw1,sw2,sw3)
-#endif
       do i=2-mbc,mx+mbc
 
          !Riemann problem variables
@@ -158,7 +159,7 @@
       if (mcapa > 0) then
           if (ixy == 1) then
               dxdc = earth_radius*deg2rad
-              !DIR$ SIMD
+              !$OMP SIMD
               do i=2-mbc,mx+mbc
                   do mw=1,3
                       s(i,mw) = dxdc * s(i,mw)
@@ -168,7 +169,7 @@
                   enddo
               enddo
           else
-              !DIR$ SIMD
+              !$OMP SIMD
               do i=2-mbc,mx+mbc
                   dxdc=earth_radius*cos(auxl(i,3))*deg2rad
                   do mw=1,3
@@ -198,7 +199,7 @@
 
       !============= compute fluctuations=============================================
 
-      !DIR$ SIMD
+      !$OMP SIMD
       do i=2-mbc,mx+mbc
            do  mw=1,3
               if (s(i,mw) < 0.d0) then
@@ -223,26 +224,25 @@ subroutine solve_rpn(hL, hR, huL, huR, hvL, hvR, bL, bR, pL, pR, sw1,sw2,sw3,fw1
       use amr_module, only: mcapa
 
       use storm_module, only: pressure_forcing, pressure_index
-      use statistics
 
       implicit none
 
       !input
-      double precision hL, hR, huL, huR, hvL, hvR, bL, bR, pL, pR
+      real(kind=8) hL, hR, huL, huR, hvL, hvR, bL, bR, pL, pR
       
       !output
-      !double precision sw(3), fw(3,3)
-      double precision sw1,sw2,sw3,fw11,fw12,fw13,fw21,fw22,fw23,fw31,fw32,fw33
+      !real(kind=8) sw(3), fw(3,3)
+      real(kind=8) sw1,sw2,sw3,fw11,fw12,fw13,fw21,fw22,fw23,fw31,fw32,fw33
 
       !local only
       integer m,i,mw,maxiter
-      double precision wall1, wall2, wall3
-      double precision uR,uL,vR,vL,phiR,phiL
-      double precision sL,sR,sRoe1,sRoe2,sE1,sE2,uhat,chat
-      double precision s1m,s2m
-      double precision hstar,hstartest,hstarHLL,sLtest,sRtest
-      double precision tw,dxdc      
-      double precision sqrt_ghL, sqrt_ghR
+      real(kind=8) wall1, wall2, wall3
+      real(kind=8) uR,uL,vR,vL,phiR,phiL
+      real(kind=8) sL,sR,sRoe1,sRoe2,sE1,sE2,uhat,chat
+      real(kind=8) s1m,s2m
+      real(kind=8) hstar,hstartest,hstarHLL,sLtest,sRtest
+      real(kind=8) tw,dxdc      
+      real(kind=8) sqrt_ghL, sqrt_ghR
       logical rare1,rare2
          
          ! For completely dry states, do not skip problem (hinders

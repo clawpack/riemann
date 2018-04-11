@@ -1,4 +1,4 @@
-! This code has been adapted for vectorization. 
+    ! This code has been adapted for vectorization. 
 ! For more details on how to use it, see the Makefile of the chile2010 example.
 
 !-----------------------------------------------------------------------
@@ -22,36 +22,42 @@
 
       !input
       integer meqn,mwaves,maxiter
-      !double precision fw(meqn,mwaves)
-      !double precision sw(mwaves)
-      double precision sw1,sw2,sw3,fw11,fw12,fw13,fw21,fw22,fw23,fw31,fw32,fw33
-      double precision hL,hR,huL,huR,bL,bR,uL,uR,phiL,phiR,sE1,sE2
-      double precision hvL,hvR,vL,vR,pL,pR
-      double precision drytol,g,rho
+      
+      !  Due to what seems to be a bug with the Intel Compilers (versions 16, 17 and 18 at least),
+      !  these arrays declared as PRIVATE in a !$OMP SIMD loop (in rpn2_geoclaw_vec.f90) had 
+      !  to be decomposed into scalars.
+      !  This may not be necessary for future versions of the Intel Compilers.
+      
+      !real(kind=8) fw(meqn,mwaves)
+      !real(kind=8) sw(mwaves)
+      real(kind=8) sw1,sw2,sw3,fw11,fw12,fw13,fw21,fw22,fw23,fw31,fw32,fw33
+      real(kind=8) hL,hR,huL,huR,bL,bR,uL,uR,phiL,phiR,sE1,sE2
+      real(kind=8) hvL,hvR,vL,vR,pL,pR
+      real(kind=8) drytol,g,rho
 
 
       !local
       integer m,mw,k,iter
-      double precision A(3,3)
-      double precision r(3,3)
-      double precision lambda(3)
-      double precision del(3)
-      double precision beta(3)
+      real(kind=8) A(3,3)
+      real(kind=8) r(3,3)
+      real(kind=8) lambda(3)
+      real(kind=8) del(3)
+      real(kind=8) beta(3)
 
-      double precision delh,delhu,delphi,delb,delnorm
-      double precision rare1st,rare2st,sdelta,raremin,raremax
-      double precision criticaltol,convergencetol,raretol
-      double precision criticaltol_2, hustar_interface
-      double precision s1s2bar,s1s2tilde,hbar,hLstar,hRstar,hustar
-      double precision huRstar,huLstar,uRstar,uLstar,hstarHLL
-      double precision deldelh,deldelphi,delP
-      double precision s1m,s2m,hm
-      double precision det1,det2,det3,determinant
+      real(kind=8) delh,delhu,delphi,delb,delnorm
+      real(kind=8) rare1st,rare2st,sdelta,raremin,raremax
+      real(kind=8) criticaltol,convergencetol,raretol
+      real(kind=8) criticaltol_2, hustar_interface
+      real(kind=8) s1s2bar,s1s2tilde,hbar,hLstar,hRstar,hustar
+      real(kind=8) huRstar,huLstar,uRstar,uLstar,hstarHLL
+      real(kind=8) deldelh,deldelphi,delP
+      real(kind=8) s1m,s2m,hm
+      real(kind=8) det1,det2,det3,determinant
 
       logical rare1,rare2,rarecorrector,rarecorrectortest,sonic
       
       ! used to pre-compute square roots
-      double precision sqrt_ghL, sqrt_ghR, sqrt_ghm
+      real(kind=8) sqrt_ghL, sqrt_ghR, sqrt_ghm
 
       !determine del vectors
       delh = hR-hL
@@ -326,258 +332,6 @@
       end !subroutine riemann_aug_JCP-------------------------------------------------
 
 
-!-----------------------------------------------------------------------
-      subroutine riemann_ssqfwave(maxiter,meqn,mwaves,hL,hR,huL,huR, &
-         hvL,hvR,bL,bR,uL,uR,vL,vR,phiL,phiR,pL,pR,sE1,sE2,drytol,g, &
-         rho,sw,fw)
-
-      ! solve shallow water equations given single left and right states
-      ! steady state wave is subtracted from delta [q,f]^T before decomposition
-
-      implicit none
-
-      !input
-      integer meqn,mwaves,maxiter
-
-      double precision hL,hR,huL,huR,bL,bR,uL,uR,phiL,phiR,sE1,sE2
-      double precision vL,vR,hvL,hvR,pL,pR
-      double precision drytol,g,rho
-
-      !local
-      integer iter
-
-      logical sonic
-
-      double precision delh,delhu,delphi,delb,delhdecomp,delphidecomp
-      double precision s1s2bar,s1s2tilde,hbar,hLstar,hRstar,hustar
-      double precision uRstar,uLstar,hstarHLL
-      double precision deldelh,deldelphi,delP
-      double precision alpha1,alpha2,beta1,beta2,delalpha1,delalpha2
-      double precision criticaltol,convergencetol
-      double precision sL,sR
-      double precision uhat,chat,sRoe1,sRoe2
-
-      double precision sw(mwaves)
-      double precision fw(meqn,mwaves)
-
-      !determine del vectors
-      delh = hR-hL
-      delhu = huR-huL
-      delphi = phiR-phiL
-      delb = bR-bL
-      delP = pR - pL
-
-      convergencetol= 1.d-16
-      criticaltol = 1.d-99
-
-      deldelh = -delb
-      deldelphi = -0.5d0 * (hR + hL) * (g * delb + delP / rho)
-
-!     !if no source term, skip determining steady state wave
-      if (abs(delb).gt.0.d0) then
-!
-         !determine a few quanitites needed for steady state wave if iterated
-         hLstar=hL
-         hRstar=hR
-         uLstar=uL
-         uRstar=uR
-         hstarHLL = max((huL-huR+sE2*hR-sE1*hL)/(sE2-sE1),0.d0) ! middle state in an HLL solve
-
-         alpha1=0.d0
-         alpha2=0.d0
-
-!        !iterate to better determine Riemann problem
-         !do iter=1,maxiter ! since maxiter=1, this loop is not neecessary!
-
-            !determine steady state wave (this will be subtracted from the delta vectors)
-            hbar =  max(0.5d0*(hLstar+hRstar),0.d0)
-            s1s2bar = 0.25d0*(uLstar+uRstar)**2 - g*hbar
-            s1s2tilde= max(0.d0,uLstar*uRstar) - g*hbar
-
-
-            !find if sonic problem
-            sonic=.false.
-            if (abs(s1s2bar).le.criticaltol) sonic=.true.
-            if (s1s2bar*s1s2tilde.le.criticaltol) sonic=.true.
-            if (s1s2bar*sE1*sE2.le.criticaltol) sonic = .true.
-            if (min(abs(sE1),abs(sE2)).lt.criticaltol) sonic=.true.
-
-            !find jump in h, deldelh
-            if (sonic) then
-               deldelh =  -delb
-            else
-               deldelh = delb*g*hbar/s1s2bar
-            endif
-!           !bounds in case of critical state resonance, or negative states
-            if (sE1.lt.-criticaltol.and.sE2.gt.criticaltol) then
-               deldelh = min(deldelh,hstarHLL*(sE2-sE1)/sE2)
-               deldelh = max(deldelh,hstarHLL*(sE2-sE1)/sE1)
-            elseif (sE1.ge.criticaltol) then
-               deldelh = min(deldelh,hstarHLL*(sE2-sE1)/sE1)
-               deldelh = max(deldelh,-hL)
-            elseif (sE2.le.-criticaltol) then
-               deldelh = min(deldelh,hR)
-               deldelh = max(deldelh,hstarHLL*(sE2-sE1)/sE2)
-            endif
-
-            !find jump in phi, deldelphi
-            if (sonic) then
-               deldelphi = -g*hbar*delb
-            else
-               deldelphi = -delb*g*hbar*s1s2tilde/s1s2bar
-            endif
-!           !bounds in case of critical state resonance, or negative states
-            deldelphi=min(deldelphi,g*max(-hLstar*delb,-hRstar*delb))
-            deldelphi=max(deldelphi,g*min(-hLstar*delb,-hRstar*delb))
-
-!---------determine fwaves ------------------------------------------
-
-!           !first decomposition
-            delhdecomp = delh-deldelh
-            delalpha1 = (sE2*delhdecomp - delhu)/(sE2-sE1)-alpha1
-            alpha1 = alpha1 + delalpha1
-            delalpha2 = (delhu - sE1*delhdecomp)/(sE2-sE1)-alpha2
-            alpha2 = alpha2 + delalpha2
-
-            !second decomposition
-            delphidecomp = delphi - deldelphi
-            beta1 = (sE2*delhu - delphidecomp)/(sE2-sE1)
-            beta2 = (delphidecomp - sE1*delhu)/(sE2-sE1)
-
-            ! no exits! -> vectorization
-!             if ((delalpha2**2+delalpha1**2).lt.convergencetol**2) then
-!                exit
-!             endif
-!
-            if (sE2.gt.0.d0.and.sE1.lt.0.d0) then
-               hLstar=hL+alpha1
-               hRstar=hR-alpha2
-!               hustar=huL+alpha1*sE1
-               hustar = huL + beta1
-            elseif (sE1.ge.0.d0) then
-               hLstar=hL
-               hustar=huL
-               hRstar=hR - alpha1 - alpha2
-            elseif (sE2.le.0.d0) then
-               hRstar=hR
-               hustar=huR
-               hLstar=hL + alpha1 + alpha2
-            endif
-!
-            if (hLstar.gt.drytol) then
-               uLstar=hustar/hLstar
-            else
-               hLstar=max(hLstar,0.d0)
-               uLstar=0.d0
-            endif
-!
-            if (hRstar.gt.drytol) then
-               uRstar=hustar/hRstar
-            else
-               hRstar=max(hRstar,0.d0)
-               uRstar=0.d0
-            endif
-
-         !enddo ! since maxiter=1, this loop is not neecessary!
-      endif
-
-      delhdecomp = delh - deldelh
-      delphidecomp = delphi - deldelphi
-
-      !first decomposition
-      alpha1 = (sE2*delhdecomp - delhu)/(sE2-sE1)
-      alpha2 = (delhu - sE1*delhdecomp)/(sE2-sE1)
-
-      !second decomposition
-      beta1 = (sE2*delhu - delphidecomp)/(sE2-sE1)
-      beta2 = (delphidecomp - sE1*delhu)/(sE2-sE1)
-
-      ! 1st nonlinear wave
-      fw(1,1) = alpha1*sE1
-      fw(2,1) = beta1*sE1
-      fw(3,1) = fw(1,1)*vL
-      ! 2nd nonlinear wave
-      fw(1,3) = alpha2*sE2
-      fw(2,3) = beta2*sE2
-      fw(3,3) = fw(1,3)*vR
-      ! advection of transverse wave
-      fw(1,2) = 0.d0
-      fw(2,2) = 0.d0
-      fw(3,2) = hR*uR*vR - hL*uL*vL -fw(3,1)-fw(3,3)
-      !speeds
-      sw(1)=sE1
-      sw(2)=0.5d0*(sE1+sE2)
-      sw(3)=sE2
-
-      return
-
-      end subroutine !-------------------------------------------------
-
-
-!-----------------------------------------------------------------------
-      subroutine riemann_fwave(meqn,mwaves,hL,hR,huL,huR,hvL,hvR, &
-                 bL,bR,uL,uR,vL,vR,phiL,phiR,pL,pR,s1,s2,drytol,g,rho, &
-                 sw,fw)
-
-      ! solve shallow water equations given single left and right states
-      ! solution has two waves.
-      ! flux - source is decomposed.
-
-      implicit none
-
-      !input
-      integer meqn,mwaves
-
-      double precision hL,hR,huL,huR,bL,bR,uL,uR,phiL,phiR,s1,s2
-      double precision hvL,hvR,vL,vR,pL,pR
-      double precision drytol,g,rho
-
-      double precision sw(mwaves)
-      double precision fw(meqn,mwaves)
-
-      !local
-      double precision delh,delhu,delphi,delb,delhdecomp,delphidecomp
-      double precision deldelh,deldelphi,delP
-      double precision beta1,beta2
-
-
-      !determine del vectors
-      delh = hR-hL
-      delhu = huR-huL
-      delphi = phiR-phiL
-      delb = bR-bL
-      delP = pR - pL
-
-      deldelphi = -0.5d0 * (hR + hL) * (g * delb + delP / rho)
-      delphidecomp = delphi - deldelphi
-
-      !flux decomposition
-      beta1 = (s2*delhu - delphidecomp)/(s2-s1)
-      beta2 = (delphidecomp - s1*delhu)/(s2-s1)
-
-      sw(1)=s1
-      sw(2)=0.5d0*(s1+s2)
-      sw(3)=s2
-      ! 1st nonlinear wave
-      fw(1,1) = beta1
-      fw(2,1) = beta1*s1
-      fw(3,1) = beta1*vL
-      ! 2nd nonlinear wave
-      fw(1,3) = beta2
-      fw(2,3) = beta2*s2
-      fw(3,3) = beta2*vR
-      ! advection of transverse wave
-      fw(1,2) = 0.d0
-      fw(2,2) = 0.d0
-      fw(3,2) = hR*uR*vR - hL*uL*vL -fw(3,1)-fw(3,3)
-      return
-
-      end !subroutine -------------------------------------------------
-
-
-
-
-
 !=============================================================================
       subroutine riemanntype(hL,hR,uL,uR,hm,s1m,s2m,rare1,rare2, &
                   maxiter,drytol,g)
@@ -588,18 +342,18 @@
       implicit none
 
       !input
-      double precision hL,hR,uL,uR,drytol,g
+      real(kind=8) hL,hR,uL,uR,drytol,g
       integer maxiter
 
       !output
-      double precision s1m,s2m
+      real(kind=8) s1m,s2m
       logical rare1,rare2
 
       !local
-      double precision hm,u1m,u2m,um,delu
-      double precision h_max,h_min,h0,F_max,F_min,dfdh,F0,slope,gL,gR
+      real(kind=8) hm,u1m,u2m,um,delu
+      real(kind=8) h_max,h_min,h0,F_max,F_min,dfdh,F0,slope,gL,gR
       integer iter
-      double precision sqrt_ghL, sqrt_ghR
+      real(kind=8) sqrt_ghL, sqrt_ghR
 
 
 
