@@ -39,8 +39,6 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
 !     #                                    and right state ql(i,:)
 !     # From the basic clawpack routines, this routine is called with ql = qr
 
-!     # aux arrays not used in this solver.
-
     implicit double precision (a-h,o-z)
 
     dimension fwave(meqn, mwaves, 1-mbc:maxm+mbc)
@@ -77,6 +75,10 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
 
 
 !     # split the jump in f(q) at each interface into waves
+!     # The jump is split into a leftgoing wave traveling at speed -c
+!     # relative to the material properties to the left of the interface,
+!     # and a rightgoing wave traveling at speed +c
+!     # relative to the material properties to the right of the interface,
 
 !     # find b1 and b2, the coefficients of the 2 eigenvectors:
     do 20 i = 2-mbc, mx+mbc
@@ -106,7 +108,6 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
         beta2 = (zim*delta(1) - delta(2)) / (zi+zim)
     
 !       # Compute the waves. Eigenvectors switched for adjoint:
-!       # (speeds negative of eigenvalues because we are going backward in time)
 
         fwave(1,1,i) = beta1
         fwave(mu,1,i) = beta1*zim

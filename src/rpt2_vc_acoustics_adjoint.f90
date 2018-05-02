@@ -44,6 +44,15 @@ subroutine rpt2(ixy,imp,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,aux1,aux2,aux3,asdq,b
             i1 = i
         endif
 
+!        # The flux difference asdq is split into downward moving part
+!        # traveling at speed -c relative to the medium below and
+!        # an upward moving part traveling
+!        # at speed +c relative to the medium above.
+
+!        # Note that the sum of these parts does not give all of asdq
+!        # since there is also reflection at the interfaces which decreases
+!        # the flux.
+
 !        # sound speed in each row of cells:
         cm = aux1(2,i1)
         c = aux2(2,i1)
@@ -59,15 +68,15 @@ subroutine rpt2(ixy,imp,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,aux1,aux2,aux3,asdq,b
     
     !        # The down-going flux difference bmasdq is the product  -c * wave
     
-        bmasdq(1,i) = -cc * a2
+        bmasdq(1,i) = -cm * a2
         bmasdq(mu,i) = 0.d0
-        bmasdq(mv,i) = -cc * a2 * zm
+        bmasdq(mv,i) = -cm * a2 * zm
     
     !        # The up-going flux difference bpasdq is the product  c * wave
     
-        bpasdq(1,i) = cc * a1
+        bpasdq(1,i) = cp * a1
         bpasdq(mu,i) = 0.d0
-        bpasdq(mv,i) = -cc * a1 * zp
+        bpasdq(mv,i) = -cp * a1 * zp
     
     20 END DO
 
