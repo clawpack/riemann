@@ -6,38 +6,27 @@ Riemann solvers for the Euler equations
 This module contains Riemann solvers for the Euler equations which have the
 form (in 1d):
 
-.. math:: 
+.. math::
     q_t + f(q)_x = 0
-  
-where 
 
-.. math:: 
+where
+
+.. math::
     q(x,t) = \left [ \begin{array}{c} \rho \\ \rho u \\ E \end{array} \right ],
-  
-the flux function is 
 
-.. math:: 
+the flux function is
+
+.. math::
     f(q) = \left [ \begin{array}{c} \rho u \\ \rho u^2 + p \\ u(E+p) \end{array}\right ].
 
-and :math:`\rho` is the density, :math:`u` the velocity, :math:`E` is the 
+and :math:`\rho` is the density, :math:`u` the velocity, :math:`E` is the
 energy and :math:`p` is the pressure.
 
 Unless otherwise noted, the ideal gas equation of state is used:
 
 .. math::
     E = (\gamma - 1) \left (E - \frac{1}{2}\rho u^2 \right)
-
-:Authors:
-    Kyle T. Mandli (2009-06-26): Initial version
-    Kyle T. Mandli (2011-03-28): Interleaved version
 """
-# ============================================================================
-#      Copyright (C) 2009 Kyle T. Mandli <mandli@amath.washington.edu>
-#
-#  Distributed under the terms of the Berkeley Software Distribution (BSD) 
-#  license
-#                     http://www.opensource.org/licenses/
-# ============================================================================
 
 from __future__ import absolute_import
 import numpy as np
@@ -48,17 +37,17 @@ num_eqn = 3
 def euler_roe_1D(q_l,q_r,aux_l,aux_r,problem_data):
     r"""
     Roe Euler solver in 1d
-    
+
     *aug_global* should contain -
      - *gamma* - (float) Ratio of the heat capacities
      - *gamma1* - (float) :math:`1 - \gamma`
      - *efix* - (bool) Whether to use an entropy fix or not
-    
+
     See :ref:`pyclaw_rp` for more details.
-    
+
     :Version: 1.0 (2009-6-26)
     """
-    
+
     # Problem dimensions
     num_rp = q_l.shape[1]
     num_waves = 3
@@ -68,7 +57,7 @@ def euler_roe_1D(q_l,q_r,aux_l,aux_r,problem_data):
     s = np.empty( (num_waves, num_rp) )
     amdq = np.zeros( (num_eqn, num_rp) )
     apdq = np.zeros( (num_eqn, num_rp) )
-    
+
     # Solver parameters
     gamma1 = problem_data['gamma1']
 
@@ -80,23 +69,23 @@ def euler_roe_1D(q_l,q_r,aux_l,aux_r,problem_data):
     a2 = gamma1 / a**2 * ((enthalpy -u**2)*delta[0,...] + u*delta[1,...] - delta[2,...])
     a3 = (delta[1,...] + (a-u) * delta[0,...] - a*a2) / (2.0*a)
     a1 = delta[0,...] - a2 - a3
-    
+
     # Compute the waves
     wave[0,0,...] = a1
     wave[1,0,...] = a1 * (u-a)
     wave[2,0,...] = a1 * (enthalpy - u*a)
     s[0,...] = u - a
-    
+
     wave[0,1,...] = a2
     wave[1,1,...] = a2 * u
     wave[2,1,...] = a2 * 0.5 * u**2
     s[1,...] = u
-    
+
     wave[0,2,...] = a3
     wave[1,2,...] = a3 * (u+a)
     wave[2,2,...] = a3 * (enthalpy + u*a)
     s[2,...] = u + a
-    
+
     # Entropy fix
     if problem_data['efix']:
         raise NotImplementedError("Entropy fix has not been implemented!")
@@ -108,20 +97,18 @@ def euler_roe_1D(q_l,q_r,aux_l,aux_r,problem_data):
                 s_index[0,:] = s[mw,:]
                 amdq[m,:] += np.min(s_index,axis=0) * wave[m,mw,:]
                 apdq[m,:] += np.max(s_index,axis=0) * wave[m,mw,:]
-    
 
     return wave,s,amdq,apdq
 
 def euler_hll_1D(q_l,q_r,aux_l,aux_r,problem_data):
     r"""
     HLL euler solver ::
-    
-         
+
         W_1 = Q_hat - Q_l    s_1 = min(u_l-c_l,u_l+c_l,lambda_roe_1,lambda_roe_2)
         W_2 = Q_r - Q_hat    s_2 = max(u_r-c_r,u_r+c_r,lambda_roe_1,lambda_roe_2)
-    
+
         Q_hat = ( f(q_r) - f(q_l) - s_2 * q_r + s_1 * q_l ) / (s_1 - s_2)
-    
+
     *problem_data* should contain:
      - *gamma* - (float) Ratio of the heat capacities
      - *gamma1* - (float) :math:`1 - \gamma`
@@ -138,10 +125,10 @@ def euler_hll_1D(q_l,q_r,aux_l,aux_r,problem_data):
     s = np.empty( (num_waves, num_rp) )
     amdq = np.zeros( (num_eqn, num_rp) )
     apdq = np.zeros( (num_eqn, num_rp) )
-    
+
     # Solver parameters
     gamma1 = problem_data['gamma1']
-    
+
     # Calculate Roe averages, right and left speeds
     u, a, _, pl, pr = roe_averages(q_l,q_r,problem_data)
     H_r = (q_r[2,:] + pr) / q_r[0,:]
@@ -164,17 +151,17 @@ def euler_hll_1D(q_l,q_r,aux_l,aux_r,problem_data):
 
     # Compute middle state
     q_hat = np.empty((num_eqn,num_rp))
-    q_hat[0,:] = (q_r[1,:] - q_l[1,:] 
-                    - s[1,:] * q_r[0,:] + s[0,:] * q_l[0,:]) / (s[0,:] - s[1,:])
-    q_hat[1,:] = (q_r[1,:]**2/q_r[0,:] + pr - (q_l[1,:]**2/q_l[0,:] + pl)
-                    - s[1,:] * q_r[1,:] + s[0,:] * q_l[1,:]) / (s[0,:] - s[1,:])
-    q_hat[2,:] = ((q_r[2,:] + pr)*q_r[1,:]/q_r[0,:] - (q_l[2,:] + pl)*q_l[1,:]/q_l[0,:] 
-                    - s[1,:] * q_r[2,:] + s[0,:] * q_l[2,:]) / (s[0,:] - s[1,:])
+    q_hat[0,:] = (q_r[1,:] - q_l[1,:] -
+                    s[1,:] * q_r[0,:] + s[0,:] * q_l[0,:]) / (s[0,:] - s[1,:])
+    q_hat[1,:] = (q_r[1,:]**2/q_r[0,:] + pr - (q_l[1,:]**2/q_l[0,:] + pl) -
+                    s[1,:] * q_r[1,:] + s[0,:] * q_l[1,:]) / (s[0,:] - s[1,:])
+    q_hat[2,:] = ((q_r[2,:] + pr)*q_r[1,:]/q_r[0,:] - (q_l[2,:] + pl)*q_l[1,:]/q_l[0,:] -
+                    s[1,:] * q_r[2,:] + s[0,:] * q_l[2,:]) / (s[0,:] - s[1,:])
 
     # Compute each family of waves
     wave[:,0,:] = q_hat - q_l
     wave[:,1,:] = q_r - q_hat
-    
+
     # Compute variations
     s_index = np.zeros((2,num_rp))
     for m in range(num_eqn):
@@ -182,35 +169,37 @@ def euler_hll_1D(q_l,q_r,aux_l,aux_r,problem_data):
             s_index[0,:] = s[mw,:]
             amdq[m,:] += np.min(s_index,axis=0) * wave[m,mw,:]
             apdq[m,:] += np.max(s_index,axis=0) * wave[m,mw,:]
-            
+
     return wave, s, amdq, apdq
 
 def euler_hllc_1D(q_l,q_r,aux_l,aux_r,problem_data):
     r"""
     HLLC Euler solver ::
 
-    W_1 = q_hat_l - q_l      s_1 = min(u_l-c_l,u_l+c_l,lambda_roe_1,lambda_roe_2)
-    W_2 = q_hat_r - q_hat_l  s_2 = s_m
-    W_3 = q_r - q_hat_r      s_3 = max(u_r-c_r,u_r+c_r,lambda_roe_1,lambda_roe_2)
-
-    s_m = (p_r - p_l + rho_l*u_l*(s_l - u_l) - rho_r*u_r*(s_r - u_r))\
+        W_1 = q_hat_l - q_l      s_1 = min(u_l-c_l,u_l+c_l,lambda_roe_1,lambda_roe_2)
+        W_2 = q_hat_r - q_hat_l  s_2 = s_m
+        W_3 = q_r - q_hat_r      s_3 = max(u_r-c_r,u_r+c_r,lambda_roe_1,lambda_roe_2)
+        s_m = (p_r - p_l + rho_l*u_l*(s_l - u_l) - rho_r*u_r*(s_r - u_r))\
           / (rho_l*(s_l-u_l) - rho_r*(s_r - u_r))
 
-    # left middle state
-    q_hat_l[0,:] = rho_l*(s_l - u_l)/(s_l - s_m)
-    q_hat_l[1,:] = rho_l*(s_l - u_l)/(s_l - s_m)*s_m
-    q_hat_l[2,:] = rho_l*(s_l - u_l)/(s_l - s_m)\
+    left middle state::
+
+        q_hat_l[0,:] = rho_l*(s_l - u_l)/(s_l - s_m)
+        q_hat_l[1,:] = rho_l*(s_l - u_l)/(s_l - s_m)*s_m
+        q_hat_l[2,:] = rho_l*(s_l - u_l)/(s_l - s_m)\
                 *(E_l/rho_l + (s_m - u_l)*(s_m + p_l/(rho_l*(s_l - u_l))))
-    
-    # right middle state
-    q_hat_r[0,:] = rho_r*(s_r - u_r)/(s_r - s_m)
-    q_hat_r[1,:] = rho_r*(s_r - u_r)/(s_r - s_m)*s_m
-    q_hat_r[2,:] = rho_r*(s_r - u_r)/(s_r - s_m)\
+
+    right middle state::
+
+        q_hat_r[0,:] = rho_r*(s_r - u_r)/(s_r - s_m)
+        q_hat_r[1,:] = rho_r*(s_r - u_r)/(s_r - s_m)*s_m
+        q_hat_r[2,:] = rho_r*(s_r - u_r)/(s_r - s_m)\
                 *(E_r/rho_r + (s_m - u_r)*(s_m + p_r/(rho_r*(s_r - u_r))))
 
     *problem_data* should contain:
-    - *gamma* - (float) Ratio of specific heat capacities
-    - *gamma1* - (float) :math:`\gamma - 1`
+
+        - *gamma*: (float) Ratio of specific heat capacities
+        - *gamma1*: (float) :math:`\gamma - 1`
 
     :Version 1.0 (2015-11-18)
     """
