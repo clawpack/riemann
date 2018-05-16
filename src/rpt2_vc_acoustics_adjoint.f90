@@ -63,20 +63,23 @@ subroutine rpt2(ixy,imp,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,aux1,aux2,aux3,asdq,b
         zz = aux2(1,i1)*aux2(2,i1)
         zp = aux3(1,i1)*aux3(2,i1)
 
-        a1 = (asdq(1,i)*zz - asdq(mv,i)) / (zp + zz)
-        a2 = (zz*asdq(1,i) + asdq(mv,i)) / (zz + zm)
-    
+    !        # transmitted part of down-going wave:
+        a1 = (zz*asdq(1,i) + asdq(mv,i)) / (zz + zm)
+
+!        # transmitted part of up-going wave:
+        a2 = (asdq(1,i)*zz - asdq(mv,i)) / (zp + zz)
+
     !        # The down-going flux difference bmasdq is the product  -c * wave
     
-        bmasdq(1,i) = -cm * a2
+        bmasdq(1,i) = -cm * a1
         bmasdq(mu,i) = 0.d0
-        bmasdq(mv,i) = -cm * a2 * zm
+        bmasdq(mv,i) = -cm * a1 * zm
     
     !        # The up-going flux difference bpasdq is the product  c * wave
     
-        bpasdq(1,i) = cp * a1
+        bpasdq(1,i) = cp * a2
         bpasdq(mu,i) = 0.d0
-        bpasdq(mv,i) = -cp * a1 * zp
+        bpasdq(mv,i) = -cp * a2 * zp
     
     20 END DO
 
