@@ -359,32 +359,6 @@ subroutine rpt2_single_layer(ixy,imp,ql,qr,aux1,aux2,aux3,asdq,bmasdq,bpasdq)
          endif
       endif
 
-!        !check and see if cell that transverse waves are going in is high and dry
-!        if (imp.eq.1) then
-!             eta = qr(1) + aux2(1,1)
-!             topo1 = aux1(1,1)
-!             topo3 = aux3(1,1)
-!        else
-!             eta = ql(1) + aux2(2,1)
-!             topo1 = aux1(2,1)
-!             topo3 = aux3(2,1)
-!        endif
-!        if (eta.lt.max(topo1,topo3)) go to 90
-
-!       if (mcapa > 0) then
-!          if (ixy.eq.2) then
-!             dxdcp=(earth_radius*pi/180.d0)
-!             dxdcm = dxdcp
-!          else
-!             if (imp.eq.1) then
-!                dxdcp = earth_radius*pi*cos(aux3(1,3))/180.d0
-!                dxdcm = earth_radius*pi*cos(aux1(1,3))/180.d0
-!             else
-!                dxdcp = earth_radius*pi*cos(aux3(2,3))/180.d0
-!                dxdcm = earth_radius*pi*cos(aux1(2,3))/180.d0
-!             endif
-!          endif
-!       endif
 
 !=====Determine some speeds necessary for the Jacobian=================
             vhat=(vr*dsqrt(hr))/(dsqrt(hr)+dsqrt(hl)) + &
