@@ -155,7 +155,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
             h_hat_r(j) = auxl(j+aux_layer_index-1,i)
             
             h_ave(:) = 0.5d0 * (h_l(:) + h_r(:))
-            
+
             ! Check for dry states
             if (h_l(j) < dry_tolerance(j)) then
                 dry_state_l(j) = .true.
@@ -633,7 +633,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
             if (ixy == 1) then
                 dxdc=(earth_radius*pi/180.d0)
             else
-                dxdc=auxl(3, i)
+                dxdc=earth_radius*cos(auxl(3,i))*pi/180.d0
             endif
 
             do mw=1,mwaves
