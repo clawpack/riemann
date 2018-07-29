@@ -1,3 +1,5 @@
+#include "cudaclaw/arrayIndex.H"
+
 #define RHO 1.d0
 #define BULK 4.d0
 
@@ -18,8 +20,8 @@ module acoustics_module
         real(CLAW_REAL), intent(in) :: aux_l(NCOEFFS), aux_r(NCOEFFS)
 
         ! Output arguments
-        real(CLAW_REAL), intent(inout) :: wave(NEQNS, NWAVES)
-        real(CLAW_REAL), intent(inout) :: s(NWAVES)
+        real(CLAW_REAL), intent(inout) :: wave(*)
+        real(CLAW_REAL), intent(inout) :: s(*)
 
         ! Locals
         real(CLAW_REAL) :: delta(3), a(2)
@@ -44,15 +46,32 @@ module acoustics_module
         a(2) = ( delta(1) + z * delta(2)) / (2.d0 * z)
 
         ! Compute waves
-        wave(1, 1) = -a(1) * z
-        wave(2, 1) = a(1)
-        wave(3, 1) = 0.d0
-        s(1) = -c
+        wave( &
+            GET_INDEX_SHARED_WAVE_1INDEX(threadIdx%y, threadIdx%x, 1, 1, NWAVES, NEQNS, blockDim%y, blockDim%x) &
+            ) = -a(1) * z
+        wave( &
+            GET_INDEX_SHARED_WAVE_1INDEX(threadIdx%y, threadIdx%x, 1, 2, NWAVES, NEQNS, blockDim%y, blockDim%x) &
+            ) = a(1)
+        wave( &
+            GET_INDEX_SHARED_WAVE_1INDEX(threadIdx%y, threadIdx%x, 1, 3, NWAVES, NEQNS, blockDim%y, blockDim%x) &
+            ) = 0.d0
+        s( &
+            GET_INDEX_SHARED_SPEED_1INDEX(threadIdx%y, threadIdx%x, 1, NWAVES, blockDim%y, blockDim%x) &
+            ) = -c
 
-        wave(1, 2) = a(2) * z
-        wave(2, 2) = a(2)
-        wave(3, 2) = 0.d0
-        s(2) = c
+        wave( &
+            GET_INDEX_SHARED_WAVE_1INDEX(threadIdx%y, threadIdx%x, 2, 1, NWAVES, NEQNS, blockDim%y, blockDim%x) &
+            ) = a(2) * z
+        wave( &
+            GET_INDEX_SHARED_WAVE_1INDEX(threadIdx%y, threadIdx%x, 2, 2, NWAVES, NEQNS, blockDim%y, blockDim%x) &
+            ) = a(2)
+        wave( &
+            GET_INDEX_SHARED_WAVE_1INDEX(threadIdx%y, threadIdx%x, 2, 3, NWAVES, NEQNS, blockDim%y, blockDim%x) &
+            ) = 0.d0
+        s( &
+            GET_INDEX_SHARED_SPEED_1INDEX(threadIdx%y, threadIdx%x, 2, NWAVES, blockDim%y, blockDim%x) &
+            ) = c
+
 
     end subroutine riemann_acoustics_homo_2d_x
 
@@ -67,8 +86,8 @@ module acoustics_module
         real(CLAW_REAL), intent(in) :: aux_l(NCOEFFS), aux_r(NCOEFFS)
 
         ! Output arguments
-        real(CLAW_REAL), intent(inout) :: wave(NEQNS, NWAVES)
-        real(CLAW_REAL), intent(inout) :: s(NWAVES)
+        real(CLAW_REAL), intent(inout) :: wave(*)
+        real(CLAW_REAL), intent(inout) :: s(*)
 
         ! Locals
         real(CLAW_REAL) :: delta(3), a(2)
@@ -93,15 +112,34 @@ module acoustics_module
         a(2) = ( delta(1) + z * delta(3)) / (2.d0 * z)
 
         ! Compute waves
-        wave(1, 1) = -a(1) * z
-        wave(3, 1) = a(1)
-        wave(2, 1) = 0.d0
-        s(1) = -c
 
-        wave(1, 2) = a(2) * z
-        wave(3, 2) = a(2)
-        wave(2, 2) = 0.d0
-        s(2) = c
+        wave( &
+            GET_INDEX_SHARED_WAVE_1INDEX(threadIdx%y, threadIdx%x, 1, 1, NWAVES, NEQNS, blockDim%y, blockDim%x) &
+            ) = -a(1) * z
+        wave( &
+            GET_INDEX_SHARED_WAVE_1INDEX(threadIdx%y, threadIdx%x, 1, 3, NWAVES, NEQNS, blockDim%y, blockDim%x) &
+            ) = a(1)
+        wave( &
+            GET_INDEX_SHARED_WAVE_1INDEX(threadIdx%y, threadIdx%x, 1, 2, NWAVES, NEQNS, blockDim%y, blockDim%x) &
+            ) = 0.d0
+        s( &
+            GET_INDEX_SHARED_SPEED_1INDEX(threadIdx%y, threadIdx%x, 1, NWAVES, blockDim%y, blockDim%x) &
+            ) = -c
+
+        wave( &
+            GET_INDEX_SHARED_WAVE_1INDEX(threadIdx%y, threadIdx%x, 2, 1, NWAVES, NEQNS, blockDim%y, blockDim%x) &
+            ) = a(2) * z
+        wave( &
+            GET_INDEX_SHARED_WAVE_1INDEX(threadIdx%y, threadIdx%x, 2, 3, NWAVES, NEQNS, blockDim%y, blockDim%x) &
+            ) = a(2)
+        wave( &
+            GET_INDEX_SHARED_WAVE_1INDEX(threadIdx%y, threadIdx%x, 2, 2, NWAVES, NEQNS, blockDim%y, blockDim%x) &
+            ) = 0.d0
+        s( &
+            GET_INDEX_SHARED_SPEED_1INDEX(threadIdx%y, threadIdx%x, 2, NWAVES, blockDim%y, blockDim%x) &
+            ) = c
+
+
 
     end subroutine riemann_acoustics_homo_2d_y
 end module acoustics_module
