@@ -551,12 +551,13 @@ c=============================================================================
       double precision hL,hR,uL,uR,drytol,g
       integer maxiter
 
-      !output
-      double precision s1m,s2m
+      !output 
+      ! 1 and 2 represent wave speeds relavant to 1st field and 2nd field
+      double precision s1m,s2m, hm
       logical rare1,rare2
 
       !local
-      double precision hm,u1m,u2m,um,delu
+      double precision u1m,u2m,um,delu
       double precision h_max,h_min,h0,F_max,F_min,dfdh,F0,slope,gL,gR
       integer iter
 
@@ -568,10 +569,19 @@ c     !Test for Riemann structure
       h_max=max(hR,hL)
       delu=uR-uL
 
+      ! Have dry state on either side
+      ! Only one rarefaction wave
+      ! another shock wave has 0 jump and moves at the same speed
+      ! as one edge of the rarefaction wave
       if (h_min.le.drytol) then
          hm=0.d0
          um=0.d0
+         ! Eq. (54) in the JCP paper. 
+         ! Either hR or hL is almost zero
+         ! So the expression below corresponds to either Eq. (54a)
+         ! or Eq. (54b)
          s1m=uR+uL-2.d0*sqrt(g*hR)+2.d0*sqrt(g*hL)
+         ! TODO: this can be replaced with s2m = s1m
          s2m=uR+uL-2.d0*sqrt(g*hR)+2.d0*sqrt(g*hL)
          if (hL.le.0.d0) then
             rare2=.true.
@@ -588,17 +598,22 @@ c     !Test for Riemann structure
 
          if (F_min.gt.0.d0) then !2-rarefactions
 
+            ! (13.56) in the FVMHP book
             hm=(1.d0/(16.d0*g))*
      &               max(0.d0,-delu+2.d0*(sqrt(g*hL)+sqrt(g*hR)))**2
             um=sign(1.d0,hm)*(uL+2.d0*(sqrt(g*hL)-sqrt(g*hm)))
 
+            ! wave speed of the right edge of 1-rarefaction
             s1m=uL+2.d0*sqrt(g*hL)-3.d0*sqrt(g*hm)
+            ! wave speed of the left edge of 2-rarefaction
             s2m=uR-2.d0*sqrt(g*hR)+3.d0*sqrt(g*hm)
 
             rare1=.true.
             rare2=.true.
 
          elseif (F_max.le.0.d0) then !2 shocks
+            ! Below it solves for the intersection of two Hugoniot loci
+            ! to get accurate Riemann solution
 
 c           !root finding using a Newton iteration on sqrt(h)===
             h0=h_max
@@ -612,10 +627,14 @@ c           !root finding using a Newton iteration on sqrt(h)===
                h0=(sqrt(h0)-F0/slope)**2
             enddo
                hm=h0
+               ! u1m and u2m are (13.19) and (13.20) in the FVMHP book
+               ! in this case we should have u1m ~= u2m?
                u1m=uL-(hm-hL)*sqrt((.5d0*g)*(1/hm + 1/hL))
                u2m=uR+(hm-hR)*sqrt((.5d0*g)*(1/hm + 1/hR))
                um=.5d0*(u1m+u2m)
 
+               ! QUESTION: I can't derive this.
+               ! This seems to be the speeds of the two shocks
                s1m=u1m-sqrt(g*hm)
                s2m=u2m+sqrt(g*hm)
                rare1=.false.
@@ -633,14 +652,22 @@ c           !root finding using a Newton iteration on sqrt(h)===
 
             hm=h0
             if (hL.gt.hR) then
+               ! Eq. (13.55) in the FVMHP book
                um=uL+2.d0*sqrt(g*hL)-2.d0*sqrt(g*hm)
                s1m=uL+2.d0*sqrt(g*hL)-3.d0*sqrt(g*hm)
+               ! TODO: this can be replaced with s1m+2*sqrt(g*hm) or 
+               ! even completely avoid doing sqrt(g*hm) again
+               ! QUESTION: what's s2m here?
                s2m=uL+2.d0*sqrt(g*hL)-sqrt(g*hm)
                rare1=.true.
                rare2=.false.
             else
                s2m=uR-2.d0*sqrt(g*hR)+3.d0*sqrt(g*hm)
+               ! TODO: this can be replaced with s2m-2*sqrt(g*hm) or 
+               ! even completely avoid doing sqrt(g*hm) again
+               ! QUESTION: what's s1m here?
                s1m=uR-2.d0*sqrt(g*hR)+sqrt(g*hm)
+               ! Eq. (13.55) in the FVMHP book
                um=uR-2.d0*sqrt(g*hR)+2.d0*sqrt(g*hm)
                rare2=.true.
                rare1=.false.
