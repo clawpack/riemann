@@ -1,28 +1,40 @@
-! #include "cudaclaw/arrayIndex.H"
-
-#define GRAVITY 1.d0
+#include "cudaclaw/arrayIndex.H"
 
 module shallow_topo_device_module
-      use geoclaw_module, only: g => grav, drytol => dry_tolerance, rho
-      use geoclaw_module, only: earth_radius, deg2rad
-      use amr_module, only: mcapa
 
-      use storm_module, only: pressure_forcing, pressure_index
+    use geoclaw_riemann_utils_module
+#ifdef CUDA
+    real(CLAW_REAL) :: g = 9.81
+    real(CLAW_REAL) :: drytol = 0.001
+    real(CLAW_REAL) :: rho = 1025.0
+    attributes(constant) :: g,drytol,rho ! in device constant memory
+#else
+    use geoclaw_module, only: g => grav, drytol => dry_tolerance, rho
+    use geoclaw_module, only: earth_radius, deg2rad
+    use storm_module, only: pressure_forcing, pressure_index
+    use amr_module, only: mcapa
+#endif
+
 
     contains
 
+#ifdef CUDA
+    attributes(device) &
+#endif
     subroutine riemann_shallow_topo(ixy, q_l, q_r, aux_l, aux_r,    &
-            fwave, s)
+            fwave, s) bind (C,name='riemann_shallow_topo')
 
         implicit none
 
-        integer, intent(in) :: ixy
+        integer, value, intent(in) :: ixy
         real(CLAW_REAL), intent(in) :: q_l(NEQNS), q_r(NEQNS)
         real(CLAW_REAL), intent(in) :: aux_r(NCOEFFS), aux_l(NCOEFFS)
 
         ! Output arguments
-        real(CLAW_REAL), intent(inout) :: fwave(NEQNS,NWAVES)
-        real(CLAW_REAL), intent(inout) :: s(NWAVES)
+        ! real(CLAW_REAL), intent(inout) :: fwave(NEQNS,NWAVES)
+        ! real(CLAW_REAL), intent(inout) :: s(NWAVES)
+        real(CLAW_REAL), intent(inout) :: fwave(*)
+        real(CLAW_REAL), intent(inout) :: s(*)
 
         !local only
         integer m,mw,maxiter,mu,nv
@@ -46,10 +58,10 @@ module shallow_topo_device_module
 
         !Initialize Riemann problem for grid interface
         do mw=1,NWAVES
-            s(mw)=0.d0
-            fwave(1,mw)=0.d0
-            fwave(2,mw)=0.d0
-            fwave(3,mw)=0.d0
+            s(GET_INDEX_SHARED_SPEED_1INDEX(threadIdx%y, threadIdx%x, mw, NWAVES, blockDim%y, blockDim%x)) = 0.d0 
+            fwave(GET_INDEX_SHARED_WAVE_1INDEX(threadIdx%y, threadIdx%x, mw, 1, NWAVES, NEQNS, blockDim%y, blockDim%x)) = 0.d0 
+            fwave(GET_INDEX_SHARED_WAVE_1INDEX(threadIdx%y, threadIdx%x, mw, 2, NWAVES, NEQNS, blockDim%y, blockDim%x)) = 0.d0 
+            fwave(GET_INDEX_SHARED_WAVE_1INDEX(threadIdx%y, threadIdx%x, mw, 3, NWAVES, NEQNS, blockDim%y, blockDim%x)) = 0.d0 
         enddo
 
         !        !set normal direction
@@ -71,10 +83,12 @@ module shallow_topo_device_module
             huR = q_r(mu) 
             bL = aux_l(1)
             bR = aux_r(1)
+#ifndef CUDA
             if (pressure_forcing) then
                 pL = aux_l(pressure_index)
                 pR = aux_r(pressure_index)
             end if
+#endif
 
             hvL=q_l(nv) 
             hvR=q_r(nv)
@@ -188,32 +202,18 @@ module shallow_topo_device_module
             enddo
 
             do mw=1,NWAVES
-                s(mw)=sw(mw)
-                fwave(1,mw)=fw(1,mw)
-                fwave(mu,mw)=fw(2,mw)
-                fwave(nv,mw)=fw(3,mw)
+                s(GET_INDEX_SHARED_SPEED_1INDEX(threadIdx%y, threadIdx%x, mw, NWAVES, blockDim%y, blockDim%x)) = sw(mw)
+                fwave( &
+                    GET_INDEX_SHARED_WAVE_1INDEX(threadIdx%y, threadIdx%x, mw, 1, NWAVES, NEQNS, blockDim%y, blockDim%x) &
+                    ) = fw(1,mw)
+                fwave( &
+                    GET_INDEX_SHARED_WAVE_1INDEX(threadIdx%y, threadIdx%x, mw, mu, NWAVES, NEQNS, blockDim%y, blockDim%x) &
+                    ) = fw(2,mw)
+                fwave( &
+                    GET_INDEX_SHARED_WAVE_1INDEX(threadIdx%y, threadIdx%x, mw, nv, NWAVES, NEQNS, blockDim%y, blockDim%x) &
+                    ) = fw(3,mw)
             enddo
         endif
-
-
-! ! mcapa > 0 is not supported for GPU version
-! #ifndef CUDA
-!         !==========Capacity for mapping from latitude longitude to physical space====
-!         if (mcapa.gt.0) then
-!             if (ixy.eq.1) then
-!                 dxdc=(earth_radius*deg2rad)
-!             else
-!                 dxdc=earth_radius*cos(aux_r(3))*deg2rad
-!             endif
-! 
-!             do mw=1,NWAVES
-!                 s(mw)=dxdc*s(mw)
-!                 fwave(1,mw)=dxdc*fwave(1,mw)
-!                 fwave(2,mw)=dxdc*fwave(2,mw)
-!                 fwave(3,mw)=dxdc*fwave(3,mw)
-!             enddo
-!         endif
-! #endif
 
         !===============================================================================
         return

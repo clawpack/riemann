@@ -1,7 +1,12 @@
-c-----------------------------------------------------------------------
-      subroutine riemann_aug_JCP(maxiter,meqn,mwaves,hL,hR,huL,huR,
-     &   hvL,hvR,bL,bR,uL,uR,vL,vR,phiL,phiR,pL,pR,sE1,sE2,drytol,g,rho,
-     &   sw,fw)
+module geoclaw_riemann_utils_module
+    contains
+!-----------------------------------------------------------------------
+#ifdef CUDA
+    attributes(device) &
+#endif
+      subroutine riemann_aug_JCP(maxiter,meqn,mwaves,hL,hR,huL,huR, &
+              hvL,hvR,bL,bR,uL,uR,vL,vR,phiL,phiR,pL,pR,sE1,sE2,drytol,g,rho, &
+              sw,fw)
 
       ! solve shallow water equations given single left and right states
       ! This solver is described in J. Comput. Phys. (6): 3089-3113, March 2008
@@ -52,8 +57,8 @@ c-----------------------------------------------------------------------
       delP = pR - pL
       delnorm = delh**2 + delphi**2
 
-      call riemanntype(hL,hR,uL,uR,hm,s1m,s2m,rare1,rare2,
-     &                                          1,drytol,g)
+      call riemanntype(hL,hR,uL,uR,hm,s1m,s2m,rare1,rare2, &
+          1,drytol,g)
 
 
       lambda(1)= min(sE1,s2m) !Modified Einfeldt speed
@@ -65,7 +70,7 @@ c-----------------------------------------------------------------------
       
       hstarHLL = max((huL-huR+sE2*hR-sE1*hL)/(sE2-sE1),0.d0) ! middle state in an HLL solve
 
-c     !determine the middle entropy corrector wave------------------------
+!     !determine the middle entropy corrector wave------------------------
       rarecorrectortest=.false.
       rarecorrector=.false.
       if (rarecorrectortest) then
@@ -78,8 +83,8 @@ c     !determine the middle entropy corrector wave------------------------
             !see which rarefaction is larger
             rare1st=3.d0*(sqrt(g*hL)-sqrt(g*hm))
             rare2st=3.d0*(sqrt(g*hR)-sqrt(g*hm))
-            if (max(rare1st,rare2st).gt.raremin*sdelta.and.
-     &         max(rare1st,rare2st).lt.raremax*sdelta) then
+            if (max(rare1st,rare2st).gt.raremin*sdelta.and.  &
+                max(rare1st,rare2st).lt.raremax*sdelta) then
                   rarecorrector=.true.
                if (rare1st.gt.rare2st) then
                   lambda(2)=s1m
@@ -93,7 +98,7 @@ c     !determine the middle entropy corrector wave------------------------
          if (hstarHLL.lt.min(hL,hR)/5.d0) rarecorrector=.false.
       endif
 
-c     ## Is this correct 2-wave when rarecorrector == .true. ??
+!     ## Is this correct 2-wave when rarecorrector == .true. ??
       do mw=1,mwaves
          r(1,mw)=1.d0
          r(2,mw)=lambda(mw)
@@ -101,15 +106,15 @@ c     ## Is this correct 2-wave when rarecorrector == .true. ??
       enddo
       if (.not.rarecorrector) then
          lambda(2) = 0.5d0*(lambda(1)+lambda(3))
-c         lambda(2) = max(min(0.5d0*(s1m+s2m),sE2),sE1)
+!         lambda(2) = max(min(0.5d0*(s1m+s2m),sE2),sE1)
          r(1,2)=0.d0
          r(2,2)=0.d0
          r(3,2)=1.d0
       endif
-c     !---------------------------------------------------
+!     !---------------------------------------------------
 
 
-c     !determine the steady state wave -------------------
+!     !determine the steady state wave -------------------
       !criticaltol = 1.d-6
       ! MODIFIED:
       criticaltol = max(drytol*g, 1d-6)
@@ -117,7 +122,7 @@ c     !determine the steady state wave -------------------
       deldelh = -delb
       deldelphi = -0.5d0 * (hR + hL) * (g * delb + delp / rho)
 
-c     !determine a few quanitites needed for steady state wave if iterated
+!     !determine a few quanitites needed for steady state wave if iterated
       hLstar=hL
       hRstar=hR
       uLstar=uL
@@ -138,7 +143,7 @@ c     !determine a few quanitites needed for steady state wave if iterated
             huLstar=uLstar*hLstar
             huRstar=uRstar*hRstar
             lambda(2) = 0.5d0*(lambda(1)+lambda(3))
-c           lambda(2) = max(min(0.5d0*(s1m+s2m),sE2),sE1)
+!           lambda(2) = max(min(0.5d0*(s1m+s2m),sE2),sE1)
             r(1,2)=0.d0
             r(2,2)=0.d0
             r(3,2)=1.d0
@@ -148,7 +153,7 @@ c           lambda(2) = max(min(0.5d0*(s1m+s2m),sE2),sE1)
          s1s2bar = 0.25d0*(uLstar+uRstar)**2 - g*hbar
          s1s2tilde= max(0.d0,uLstar*uRstar) - g*hbar
 
-c        !find if sonic problem
+!        !find if sonic problem
          ! MODIFIED from 5.3.1 version
          sonic = .false.
          if (abs(s1s2bar) <= criticaltol) then
@@ -169,13 +174,13 @@ c        !find if sonic problem
             sonic = .true.
          end if
 
-c        !find jump in h, deldelh
+!        !find jump in h, deldelh
          if (sonic) then
             deldelh =  -delb
          else
             deldelh = delb*g*hbar/s1s2bar
          endif
-c        !find bounds in case of critical state resonance, or negative states
+!        !find bounds in case of critical state resonance, or negative states
          if (sE1.lt.-criticaltol.and.sE2.gt.criticaltol) then
             deldelh = min(deldelh,hstarHLL*(sE2-sE1)/sE2)
             deldelh = max(deldelh,hstarHLL*(sE2-sE1)/sE1)
@@ -187,13 +192,13 @@ c        !find bounds in case of critical state resonance, or negative states
             deldelh = max(deldelh,hstarHLL*(sE2-sE1)/sE2)
          endif
 
-c        !find jump in phi, deldelphi
+!        !find jump in phi, deldelphi
          if (sonic) then
             deldelphi = -g*hbar*delb
          else
             deldelphi = -delb*g*hbar*s1s2tilde/s1s2bar
          endif
-c        !find bounds in case of critical state resonance, or negative states
+!        !find bounds in case of critical state resonance, or negative states
          deldelphi=min(deldelphi,g*max(-hLstar*delb,-hRstar*delb))
          deldelphi=max(deldelphi,g*min(-hLstar*delb,-hRstar*delb))
          deldelphi = deldelphi - hbar * delp / rho
@@ -202,13 +207,13 @@ c        !find bounds in case of critical state resonance, or negative states
          del(2)=delhu
          del(3)=delphi-deldelphi
 
-c        !Determine determinant of eigenvector matrix========
+!        !Determine determinant of eigenvector matrix========
          det1=r(1,1)*(r(2,2)*r(3,3)-r(2,3)*r(3,2))
          det2=r(1,2)*(r(2,1)*r(3,3)-r(2,3)*r(3,1))
          det3=r(1,3)*(r(2,1)*r(3,2)-r(2,2)*r(3,1))
          determinant=det1-det2+det3
 
-c        !solve for beta(k) using Cramers Rule=================
+!        !solve for beta(k) using Cramers Rule=================
          do k=1,3
             do mw=1,3
                   A(1,mw)=r(1,mw)
@@ -287,10 +292,13 @@ c        !solve for beta(k) using Cramers Rule=================
       end !subroutine riemann_aug_JCP-------------------------------------------------
 
 
-c-----------------------------------------------------------------------
-      subroutine riemann_ssqfwave(maxiter,meqn,mwaves,hL,hR,huL,huR,
-     &    hvL,hvR,bL,bR,uL,uR,vL,vR,phiL,phiR,pL,pR,sE1,sE2,drytol,g,
-     &    rho,sw,fw)
+!-----------------------------------------------------------------------
+#ifdef CUDA
+    attributes(device) &
+#endif
+      subroutine riemann_ssqfwave(maxiter,meqn,mwaves,hL,hR,huL,huR, &
+              hvL,hvR,bL,bR,uL,uR,vL,vR,phiL,phiR,pL,pR,sE1,sE2,drytol,g, &
+              rho,sw,fw)
 
       ! solve shallow water equations given single left and right states
       ! steady state wave is subtracted from delta [q,f]^T before decomposition
@@ -356,14 +364,14 @@ c-----------------------------------------------------------------------
             s1s2tilde= max(0.d0,uLstar*uRstar) - g*hbar
 
 
-c           !find if sonic problem
+!           !find if sonic problem
             sonic=.false.
             if (abs(s1s2bar).le.criticaltol) sonic=.true.
             if (s1s2bar*s1s2tilde.le.criticaltol) sonic=.true.
             if (s1s2bar*sE1*sE2.le.criticaltol) sonic = .true.
             if (min(abs(sE1),abs(sE2)).lt.criticaltol) sonic=.true.
 
-c           !find jump in h, deldelh
+!           !find jump in h, deldelh
             if (sonic) then
                deldelh =  -delb
             else
@@ -381,7 +389,7 @@ c           !find jump in h, deldelh
                deldelh = max(deldelh,hstarHLL*(sE2-sE1)/sE2)
             endif
 
-c           !find jump in phi, deldelphi
+!           !find jump in phi, deldelphi
             if (sonic) then
                deldelphi = -g*hbar*delb
             else
@@ -412,7 +420,7 @@ c           !find jump in phi, deldelphi
             if (sE2.gt.0.d0.and.sE1.lt.0.d0) then
                hLstar=hL+alpha1
                hRstar=hR-alpha2
-c               hustar=huL+alpha1*sE1
+!               hustar=huL+alpha1*sE1
                hustar = huL + beta1
             elseif (sE1.ge.0.d0) then
                hLstar=hL
@@ -474,10 +482,13 @@ c               hustar=huL+alpha1*sE1
       end subroutine !-------------------------------------------------
 
 
-c-----------------------------------------------------------------------
-      subroutine riemann_fwave(meqn,mwaves,hL,hR,huL,huR,hvL,hvR,
-     &            bL,bR,uL,uR,vL,vR,phiL,phiR,pL,pR,s1,s2,drytol,g,rho,
-     &            sw,fw)
+!-----------------------------------------------------------------------
+#ifdef CUDA
+    attributes(device) &
+#endif
+      subroutine riemann_fwave(meqn,mwaves,hL,hR,huL,huR,hvL,hvR, &
+              bL,bR,uL,uR,vL,vR,phiL,phiR,pL,pR,s1,s2,drytol,g,rho, &
+              sw,fw)
 
       ! solve shallow water equations given single left and right states
       ! solution has two waves.
@@ -538,9 +549,12 @@ c-----------------------------------------------------------------------
 
 
 
-c=============================================================================
-      subroutine riemanntype(hL,hR,uL,uR,hm,s1m,s2m,rare1,rare2,
-     &             maxiter,drytol,g)
+!=============================================================================
+#ifdef CUDA
+    attributes(device) &
+#endif
+      subroutine riemanntype(hL,hR,uL,uR,hm,s1m,s2m,rare1,rare2, &
+              maxiter,drytol,g)
 
       !determine the Riemann structure (wave-type in each family)
 
@@ -563,7 +577,7 @@ c=============================================================================
 
 
 
-c     !Test for Riemann structure
+!     !Test for Riemann structure
 
       h_min=min(hR,hL)
       h_max=max(hR,hL)
@@ -593,14 +607,14 @@ c     !Test for Riemann structure
 
       else
          F_min= delu+2.d0*(sqrt(g*h_min)-sqrt(g*h_max))
-         F_max= delu +
-     &         (h_max-h_min)*(sqrt(.5d0*g*(h_max+h_min)/(h_max*h_min)))
+         F_max= delu + &
+             (h_max-h_min)*(sqrt(.5d0*g*(h_max+h_min)/(h_max*h_min)))
 
          if (F_min.gt.0.d0) then !2-rarefactions
 
             ! (13.56) in the FVMHP book
-            hm=(1.d0/(16.d0*g))*
-     &               max(0.d0,-delu+2.d0*(sqrt(g*hL)+sqrt(g*hR)))**2
+            hm=(1.d0/(16.d0*g))* &
+                max(0.d0,-delu+2.d0*(sqrt(g*hL)+sqrt(g*hR)))**2
             um=sign(1.d0,hm)*(uL+2.d0*(sqrt(g*hL)-sqrt(g*hm)))
 
             ! wave speed of the right edge of 1-rarefaction
@@ -615,14 +629,14 @@ c     !Test for Riemann structure
             ! Below it solves for the intersection of two Hugoniot loci
             ! to get accurate Riemann solution
 
-c           !root finding using a Newton iteration on sqrt(h)===
+!           !root finding using a Newton iteration on sqrt(h)===
             h0=h_max
             do iter=1,maxiter
                gL=sqrt(.5d0*g*(1/h0 + 1/hL))
                gR=sqrt(.5d0*g*(1/h0 + 1/hR))
                F0=delu+(h0-hL)*gL + (h0-hR)*gR
-               dfdh=gL-g*(h0-hL)/(4.d0*(h0**2)*gL)+
-     &                   gR-g*(h0-hR)/(4.d0*(h0**2)*gR)
+               dfdh=gL-g*(h0-hL)/(4.d0*(h0**2)*gL)+ &
+                   gR-g*(h0-hR)/(4.d0*(h0**2)*gR)
                slope=2.d0*sqrt(h0)*dfdh
                h0=(sqrt(h0)-F0/slope)**2
             enddo
@@ -644,8 +658,8 @@ c           !root finding using a Newton iteration on sqrt(h)===
             h0=h_min
 
             do iter=1,maxiter
-               F0=delu + 2.d0*(sqrt(g*h0)-sqrt(g*h_max))
-     &                  + (h0-h_min)*sqrt(.5d0*g*(1/h0+1/h_min))
+               F0=delu + 2.d0*(sqrt(g*h0)-sqrt(g*h_max)) &
+                   + (h0-h_min)*sqrt(.5d0*g*(1/h0+1/h_min))
                slope=(F_max-F0)/(h_max-h_min)
                h0=h0-F0/slope
             enddo
@@ -678,3 +692,4 @@ c           !root finding using a Newton iteration on sqrt(h)===
       return
 
       end ! subroutine riemanntype----------------------------------------------------------------
+end module geoclaw_riemann_utils_module
