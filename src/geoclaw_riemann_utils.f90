@@ -1,9 +1,3 @@
-module geoclaw_riemann_utils_module
-    contains
-!-----------------------------------------------------------------------
-#ifdef CUDA
-    attributes(device) &
-#endif
       subroutine riemann_aug_JCP(maxiter,meqn,mwaves,hL,hR,huL,huR, &
               hvL,hvR,bL,bR,uL,uR,vL,vR,phiL,phiR,pL,pR,sE1,sE2,drytol,g,rho, &
               sw,fw)
@@ -293,9 +287,6 @@ module geoclaw_riemann_utils_module
 
 
 !-----------------------------------------------------------------------
-#ifdef CUDA
-    attributes(device) &
-#endif
       subroutine riemann_ssqfwave(maxiter,meqn,mwaves,hL,hR,huL,huR, &
               hvL,hvR,bL,bR,uL,uR,vL,vR,phiL,phiR,pL,pR,sE1,sE2,drytol,g, &
               rho,sw,fw)
@@ -483,9 +474,6 @@ module geoclaw_riemann_utils_module
 
 
 !-----------------------------------------------------------------------
-#ifdef CUDA
-    attributes(device) &
-#endif
       subroutine riemann_fwave(meqn,mwaves,hL,hR,huL,huR,hvL,hvR, &
               bL,bR,uL,uR,vL,vR,phiL,phiR,pL,pR,s1,s2,drytol,g,rho, &
               sw,fw)
@@ -550,9 +538,6 @@ module geoclaw_riemann_utils_module
 
 
 !=============================================================================
-#ifdef CUDA
-    attributes(device) &
-#endif
       subroutine riemanntype(hL,hR,uL,uR,hm,s1m,s2m,rare1,rare2, &
               maxiter,drytol,g)
 
@@ -692,4 +677,3 @@ module geoclaw_riemann_utils_module
       return
 
       end ! subroutine riemanntype----------------------------------------------------------------
-end module geoclaw_riemann_utils_module
