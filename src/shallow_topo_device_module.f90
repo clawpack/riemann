@@ -7,10 +7,15 @@
 module shallow_topo_device_module
 
 #ifdef CUDA
-    real(CLAW_REAL) :: g = 9.81
-    real(CLAW_REAL) :: drytol = 0.001
-    real(CLAW_REAL) :: rho = 1025.0
+    real(CLAW_REAL), parameter :: g = 9.81
+    real(CLAW_REAL), parameter :: drytol = 0.001
+    real(CLAW_REAL), parameter :: rho = 1025.0
+    real(CLAW_REAL), parameter :: earth_radius = 6367.5E3
+    real(CLAW_REAL), parameter :: deg2rad = 4.d0*datan(1.d0) / 180.d0
     attributes(constant) :: g,drytol,rho ! in device constant memory
+#ifdef USE_CAPA
+    attributes(constant) :: earth_radius,deg2rad
+#endif
 #else
     ! should not be used
     use geoclaw_module, only: g => grav, drytol => dry_tolerance, rho
@@ -49,7 +54,10 @@ module shallow_topo_device_module
         double precision bR,bL,sL,sR,sRoe1,sRoe2,sE1,sE2,uhat,chat
         double precision s1m,s2m
         double precision hstar,hstartest,hstarHLL,sLtest,sRtest
-        double precision tw,dxdc
+        double precision tw
+#ifdef USE_CAPA
+        double precision dxdc
+#endif
 
         logical rare1,rare2
 
@@ -175,17 +183,40 @@ module shallow_topo_device_module
                 fw(3,mw)=fw(3,mw)*wall(mw)
             enddo
 
+#ifdef USE_CAPA
+            dxdc=(earth_radius*deg2rad)
+#endif
             do mw=1,NWAVES
-                s(GET_INDEX_SHARED_SPEED_1INDEX(threadIdx%y, threadIdx%x, mw, NWAVES, blockDim%y, blockDim%x)) = sw(mw)
+                s(GET_INDEX_SHARED_SPEED_1INDEX(threadIdx%y, threadIdx%x, mw, NWAVES, blockDim%y, blockDim%x)) = &
+#ifdef USE_CAPA
+                    sw(mw)*dxdc
+#else
+                    sw(mw)
+#endif
                 fwave( &
                     GET_INDEX_SHARED_WAVE_1INDEX(threadIdx%y, threadIdx%x, mw, 1, NWAVES, NEQNS, blockDim%y, blockDim%x) &
-                    ) = fw(1,mw)
+                    ) = &
+#ifdef USE_CAPA
+                    fw(1,mw)*dxdc
+#else
+                    fw(1,mw)
+#endif
                 fwave( &
                     GET_INDEX_SHARED_WAVE_1INDEX(threadIdx%y, threadIdx%x, mw, 2, NWAVES, NEQNS, blockDim%y, blockDim%x) &
-                    ) = fw(2,mw)
+                    ) = &
+#ifdef USE_CAPA
+                    fw(2,mw)*dxdc
+#else
+                    fw(2,mw)
+#endif
                 fwave( &
                     GET_INDEX_SHARED_WAVE_1INDEX(threadIdx%y, threadIdx%x, mw, 3, NWAVES, NEQNS, blockDim%y, blockDim%x) &
-                    ) = fw(3,mw)
+                    ) = &
+#ifdef USE_CAPA
+                    fw(3,mw)*dxdc
+#else
+                    fw(3,mw)
+#endif
             enddo
         endif
 
@@ -220,7 +251,10 @@ module shallow_topo_device_module
         double precision bR,bL,sL,sR,sRoe1,sRoe2,sE1,sE2,uhat,chat
         double precision s1m,s2m
         double precision hstar,hstartest,hstarHLL,sLtest,sRtest
-        double precision tw,dxdc
+        double precision tw
+#ifdef USE_CAPA
+        double precision dydc
+#endif
 
         logical rare1,rare2
 
@@ -339,6 +373,7 @@ module shallow_topo_device_module
 
 
             !        !eliminate ghost fluxes for wall
+            ! TODO: merge this loop with the one below
             do mw=1,NWAVES
                 sw(mw)=sw(mw)*wall(mw)
 
@@ -347,17 +382,40 @@ module shallow_topo_device_module
                 fw(3,mw)=fw(3,mw)*wall(mw)
             enddo
 
+#ifdef USE_CAPA
+            dydc = earth_radius*cos(aux_r(3))*deg2rad
+#endif
             do mw=1,NWAVES
-                s(GET_INDEX_SHARED_SPEED_1INDEX(threadIdx%y, threadIdx%x, mw, NWAVES, blockDim%y, blockDim%x)) = sw(mw)
+                s(GET_INDEX_SHARED_SPEED_1INDEX(threadIdx%y, threadIdx%x, mw, NWAVES, blockDim%y, blockDim%x)) = &
+#ifdef USE_CAPA
+                    sw(mw)*dydc
+#else
+                    sw(mw)
+#endif
                 fwave( &
                     GET_INDEX_SHARED_WAVE_1INDEX(threadIdx%y, threadIdx%x, mw, 1, NWAVES, NEQNS, blockDim%y, blockDim%x) &
-                    ) = fw(1,mw)
+                    ) = &
+#ifdef USE_CAPA
+                    fw(1,mw)*dydc
+#else
+                    fw(1,mw)
+#endif
                 fwave( &
                     GET_INDEX_SHARED_WAVE_1INDEX(threadIdx%y, threadIdx%x, mw, 3, NWAVES, NEQNS, blockDim%y, blockDim%x) &
-                    ) = fw(2,mw)
+                    ) = &
+#ifdef USE_CAPA
+                    fw(2,mw)*dydc
+#else
+                    fw(2,mw)
+#endif
                 fwave( &
                     GET_INDEX_SHARED_WAVE_1INDEX(threadIdx%y, threadIdx%x, mw, 2, NWAVES, NEQNS, blockDim%y, blockDim%x) &
-                    ) = fw(3,mw)
+                    ) = &
+#ifdef USE_CAPA
+                    fw(3,mw)*dydc
+#else
+                    fw(3,mw)
+#endif
             enddo
         endif
 
