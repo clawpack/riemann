@@ -832,6 +832,7 @@ attributes(device) &
 
                 um=uL+2.d0*sqrtgh1-2.d0*sqrtgh2
                 s1m=uL+2.d0*sqrtgh1-3.d0*sqrtgh2
+                s2m=uL+2.d0*sqrtgh1-sqrtgh2
 
                 rare1=.true.
                 rare2=.false.
