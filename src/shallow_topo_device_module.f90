@@ -10,10 +10,10 @@ module shallow_topo_device_module
     real(CLAW_REAL), parameter :: g = 9.81
     real(CLAW_REAL), parameter :: drytol = 0.001
     real(CLAW_REAL), parameter :: rho = 1025.0
-    real(CLAW_REAL), parameter :: earth_radius = 6367.5E3
-    real(CLAW_REAL), parameter :: deg2rad = 4.d0*datan(1.d0) / 180.d0
     attributes(constant) :: g,drytol,rho ! in device constant memory
 #ifdef USE_CAPA
+    real(CLAW_REAL), parameter :: earth_radius = 6367.5E3
+    real(CLAW_REAL), parameter :: deg2rad = 4.d0*datan(1.d0) / 180.d0
     attributes(constant) :: earth_radius,deg2rad
 #endif
 #else
@@ -39,24 +39,22 @@ module shallow_topo_device_module
         real(CLAW_REAL), intent(in) :: aux_r(NCOEFFS), aux_l(NCOEFFS)
 
         ! Output arguments
-        ! real(CLAW_REAL), intent(inout) :: fwave(NEQNS,NWAVES)
-        ! real(CLAW_REAL), intent(inout) :: s(NWAVES)
         real(CLAW_REAL), intent(inout) :: fwave(*)
         real(CLAW_REAL), intent(inout) :: s(*)
 
         !local only
         integer m,mw
-        double precision wall(3)
-        double precision fw(3,3)
-        double precision sw(3)
+        real(CLAW_REAL) wall(3)
+        real(CLAW_REAL) fw(3,3)
+        real(CLAW_REAL) sw(3)
 
-        double precision hR,hL,huR,huL,uR,uL,hvR,hvL,vR,vL,phiR,phiL
-        double precision bR,bL,sL,sR,sRoe1,sRoe2,sE1,sE2,uhat,chat
-        double precision s1m,s2m
-        double precision hstar,hstartest,hstarHLL,sLtest,sRtest
-        double precision tw
+        real(CLAW_REAL) hR,hL,uR,uL,vR,vL,phiR,phiL
+        real(CLAW_REAL) bR,bL,sL,sR,sRoe1,sRoe2,sE1,sE2,uhat,chat
+        real(CLAW_REAL) s1m,s2m
+        real(CLAW_REAL) hstar,hstartest,hstarHLL,sLtest,sRtest
+        real(CLAW_REAL) tw
 #ifdef USE_CAPA
-        double precision dxdc
+        real(CLAW_REAL) dxdc
 #endif
 
         logical rare1,rare2
@@ -77,36 +75,27 @@ module shallow_topo_device_module
             !Riemann problem variables
             hL = q_l(1) 
             hR = q_r(1) 
-            huL = q_l(2) 
-            huR = q_r(2) 
             bL = aux_l(1)
             bR = aux_r(1)
 
-            hvL=q_l(3) 
-            hvR=q_r(3)
-
             !check for wet/dry boundary
             if (hR.gt.drytol) then
-                uR=huR/hR
-                vR=hvR/hR
-                phiR = 0.5d0*g*hR**2 + huR**2/hR
+                uR=q_r(2)/hR
+                vR=q_r(3)/hR
+                phiR = 0.5d0*g*hR**2 + q_r(2)**2/hR
             else
                 hR = 0.d0
-                huR = 0.d0
-                hvR = 0.d0
                 uR = 0.d0
                 vR = 0.d0
                 phiR = 0.d0
             endif
 
             if (hL.gt.drytol) then
-                uL=huL/hL
-                vL=hvL/hL
-                phiL = 0.5d0*g*hL**2 + huL**2/hL
+                uL=q_l(2)/hL
+                vL=q_l(3)/hL
+                phiL = 0.5d0*g*hL**2 + q_l(2)**2/hL
             else
                 hL=0.d0
-                huL=0.d0
-                hvL=0.d0
                 uL=0.d0
                 vL=0.d0
                 phiL = 0.d0
@@ -117,35 +106,36 @@ module shallow_topo_device_module
             wall(3) = 1.d0
             if (hR.le.drytol) then
                 call riemanntype(hL,hL,uL,-uL,hstar,s1m,s2m, &
-                         rare1,rare2,drytol,g)
+                         rare1,rare2)
                 hstartest=max(hL,hstar)
+                if (hstartest+bL.lt.bR) then 
                 ! hL+bL < bR && hstar+bL < bR, so water can't overtop right cell (move into right cell)
-                if (hstartest+bL.lt.bR) then !right state should become ghost values that mirror left for wall problem
+                ! so right state should become ghost values that mirror left for wall problem
                     !                bR=hstartest+bL
                     wall(2)=0.d0
                     wall(3)=0.d0
                     hR=hL
-                    huR=-huL
                     bR=bL
                     phiR=phiL
                     uR=-uL
                     vR=vL
-                    ! hL+bL < bR && hstar+bL > bR, so we set bR to the water level in the left cell
-                    ! so that water can possibly overtop the right cell (move into the right cell)
+                    ! Here we already have huR=-huL
                 elseif (hL+bL.lt.bR) then 
+                ! hL+bL < bR && hstar+bL > bR, so we set bR to the water level in the left cell
+                ! so that water can possibly overtop the right cell (move into the right cell)
                     bR=hL+bL
-                    ! hL+bL > bR || hstar+bL > bR, don't have to do anything about bR 
+                ! otherwise
+                ! hL+bL > bR || hstar+bL > bR, don't have to do anything about bR 
                 endif
             elseif (hL.le.drytol) then ! right surface is lower than left topo
                 call riemanntype(hR,hR,-uR,uR,hstar,s1m,s2m, &
-                         rare1,rare2,drytol,g)
+                         rare1,rare2)
                 hstartest=max(hR,hstar)
                 if (hstartest+bR.lt.bL) then  !left state should become ghost values that mirror right
                     !               bL=hstartest+bR
                     wall(1)=0.d0
                     wall(2)=0.d0
                     hL=hR
-                    huL=-huR
                     bL=bR
                     phiL=phiR
                     uL=-uR
@@ -170,9 +160,9 @@ module shallow_topo_device_module
             !--------------------end initializing...finally----------
             !solve Riemann problem.
 
-            call riemann_aug_JCP(hL,hR,huL, &
-                     huR,hvL,hvR,bL,bR,uL,uR,vL,vR,phiL,phiR,sE1,sE2, &
-                                                 drytol,g,rho,sw,fw)
+            call riemann_aug_JCP(hL,hR, &
+                     bL,bR,uL,uR,vL,vR,phiL,phiR,sE1,sE2, &
+                                                 sw,fw)
 
             !        !eliminate ghost fluxes for wall
             do mw=1,NWAVES
@@ -236,24 +226,22 @@ module shallow_topo_device_module
         real(CLAW_REAL), intent(in) :: aux_r(NCOEFFS), aux_l(NCOEFFS)
 
         ! Output arguments
-        ! real(CLAW_REAL), intent(inout) :: fwave(NEQNS,NWAVES)
-        ! real(CLAW_REAL), intent(inout) :: s(NWAVES)
         real(CLAW_REAL), intent(inout) :: fwave(*)
         real(CLAW_REAL), intent(inout) :: s(*)
 
         !local only
         integer m,mw
-        double precision wall(3)
-        double precision fw(3,3)
-        double precision sw(3)
+        real(CLAW_REAL) wall(3)
+        real(CLAW_REAL) fw(3,3)
+        real(CLAW_REAL) sw(3)
 
-        double precision hR,hL,huR,huL,uR,uL,hvR,hvL,vR,vL,phiR,phiL
-        double precision bR,bL,sL,sR,sRoe1,sRoe2,sE1,sE2,uhat,chat
-        double precision s1m,s2m
-        double precision hstar,hstartest,hstarHLL,sLtest,sRtest
-        double precision tw
+        real(CLAW_REAL) hR,hL,uR,uL,vR,vL,phiR,phiL
+        real(CLAW_REAL) bR,bL,sL,sR,sRoe1,sRoe2,sE1,sE2,uhat,chat
+        real(CLAW_REAL) s1m,s2m
+        real(CLAW_REAL) hstar,hstartest,hstarHLL,sLtest,sRtest
+        real(CLAW_REAL) tw
 #ifdef USE_CAPA
-        double precision dydc
+        real(CLAW_REAL) dydc
 #endif
 
         logical rare1,rare2
@@ -274,36 +262,27 @@ module shallow_topo_device_module
             !Riemann problem variables
             hL = q_l(1) 
             hR = q_r(1) 
-            huL = q_l(3) 
-            huR = q_r(3) 
             bL = aux_l(1)
             bR = aux_r(1)
 
-            hvL=q_l(2) 
-            hvR=q_r(2)
-
             !check for wet/dry boundary
             if (hR.gt.drytol) then
-                uR=huR/hR
-                vR=hvR/hR
-                phiR = 0.5d0*g*hR**2 + huR**2/hR
+                uR=q_r(3)/hR
+                vR=q_r(2)/hR
+                phiR = 0.5d0*g*hR**2 + q_r(3)**2/hR
             else
                 hR = 0.d0
-                huR = 0.d0
-                hvR = 0.d0
                 uR = 0.d0
                 vR = 0.d0
                 phiR = 0.d0
             endif
 
             if (hL.gt.drytol) then
-                uL=huL/hL
-                vL=hvL/hL
-                phiL = 0.5d0*g*hL**2 + huL**2/hL
+                uL=q_l(3)/hL
+                vL=q_l(2)/hL
+                phiL = 0.5d0*g*hL**2 + q_l(3)**2/hL
             else
                 hL=0.d0
-                huL=0.d0
-                hvL=0.d0
                 uL=0.d0
                 vL=0.d0
                 phiL = 0.d0
@@ -314,35 +293,36 @@ module shallow_topo_device_module
             wall(3) = 1.d0
             if (hR.le.drytol) then
                 call riemanntype(hL,hL,uL,-uL,hstar,s1m,s2m, &
-                         rare1,rare2,drytol,g)
+                         rare1,rare2)
                 hstartest=max(hL,hstar)
+                if (hstartest+bL.lt.bR) then 
                 ! hL+bL < bR && hstar+bL < bR, so water can't overtop right cell (move into right cell)
-                if (hstartest+bL.lt.bR) then !right state should become ghost values that mirror left for wall problem
+                ! so right state should become ghost values that mirror left for wall problem
                     !                bR=hstartest+bL
                     wall(2)=0.d0
                     wall(3)=0.d0
                     hR=hL
-                    huR=-huL
                     bR=bL
                     phiR=phiL
                     uR=-uL
                     vR=vL
-                    ! hL+bL < bR && hstar+bL > bR, so we set bR to the water level in the left cell
-                    ! so that water can possibly overtop the right cell (move into the right cell)
+                    ! Here we already have huR=-huL
                 elseif (hL+bL.lt.bR) then 
+                ! hL+bL < bR && hstar+bL > bR, so we set bR to the water level in the left cell
+                ! so that water can possibly overtop the right cell (move into the right cell)
                     bR=hL+bL
-                    ! hL+bL > bR || hstar+bL > bR, don't have to do anything about bR 
+                ! otherwise
+                ! hL+bL > bR || hstar+bL > bR, don't have to do anything about bR 
                 endif
             elseif (hL.le.drytol) then ! right surface is lower than left topo
                 call riemanntype(hR,hR,-uR,uR,hstar,s1m,s2m, &
-                         rare1,rare2,drytol,g)
+                         rare1,rare2)
                 hstartest=max(hR,hstar)
                 if (hstartest+bR.lt.bL) then  !left state should become ghost values that mirror right
                     !               bL=hstartest+bR
                     wall(1)=0.d0
                     wall(2)=0.d0
                     hL=hR
-                    huL=-huR
                     bL=bR
                     phiL=phiR
                     uL=-uR
@@ -367,12 +347,11 @@ module shallow_topo_device_module
             !--------------------end initializing...finally----------
             !solve Riemann problem.
 
-            call riemann_aug_JCP(hL,hR,huL, &
-                     huR,hvL,hvR,bL,bR,uL,uR,vL,vR,phiL,phiR,sE1,sE2, &
-                                                 drytol,g,rho,sw,fw)
+            call riemann_aug_JCP(hL,hR, &
+                     bL,bR,uL,uR,vL,vR,phiL,phiR,sE1,sE2, &
+                                                 sw,fw)
 
-
-            !        !eliminate ghost fluxes for wall
+            ! eliminate ghost fluxes for wall
             ! TODO: merge this loop with the one below
             do mw=1,NWAVES
                 sw(mw)=sw(mw)*wall(mw)
@@ -423,9 +402,11 @@ module shallow_topo_device_module
         return
     end subroutine riemann_shallow_topo_y
 
+#ifdef CUDA
 attributes(device) &
-    subroutine riemann_aug_JCP(hL,hR,huL,huR, &
-              hvL,hvR,bL,bR,uL,uR,vL,vR,phiL,phiR,sE1,sE2,drytol,g,rho, &
+#endif
+    subroutine riemann_aug_JCP(hL,hR, &
+              bL,bR,uL,uR,vL,vR,phiL,phiR,sE1,sE2, &
               sw,fw)
 
       ! solve shallow water equations given single left and right states
@@ -435,42 +416,40 @@ attributes(device) &
       implicit none
 
       !input
-      double precision fw(NEQNS,NWAVES)
-      double precision sw(NWAVES)
-      double precision hL,hR,huL,huR,bL,bR,uL,uR,phiL,phiR,sE1,sE2
-      double precision hvL,hvR,vL,vR
-      double precision drytol,g,rho
+      real(CLAW_REAL) fw(NEQNS,NWAVES)
+      real(CLAW_REAL) sw(NWAVES)
+      real(CLAW_REAL) hL,hR,bL,bR,uL,uR,phiL,phiR,sE1,sE2
+      real(CLAW_REAL) vL,vR
 
 
       !local
       integer m,mw,k,iter
-      double precision A(3,3)
-      double precision r(3,3)
-      double precision lambda(3)
-      double precision del(3)
-      double precision beta(3)
+      real(CLAW_REAL) A(3,3)
+      real(CLAW_REAL) r(3,3)
+      real(CLAW_REAL) lambda(3)
+      real(CLAW_REAL) del(3)
+      real(CLAW_REAL) beta(3)
 
-      double precision delh,delhu,delphi,delb,delnorm
-      double precision rare1st,rare2st,sdelta,raremin,raremax
-      double precision criticaltol,convergencetol,raretol
-      double precision criticaltol_2, hustar_interface
-      double precision s1s2bar,s1s2tilde,hbar,hLstar,hRstar,hustar
-      double precision huRstar,huLstar,uRstar,uLstar,hstarHLL
-      double precision deldelh,deldelphi
-      double precision s1m,s2m,hm
-      double precision det1,det2,det3,determinant
+      real(CLAW_REAL) delh,delhu,delphi,delb,delnorm
+      real(CLAW_REAL) rare1st,rare2st,sdelta,raremin,raremax
+      real(CLAW_REAL) criticaltol,convergencetol,raretol
+      real(CLAW_REAL) criticaltol_2, hustar_interface
+      real(CLAW_REAL) s1s2bar,s1s2tilde,hbar,hLstar,hRstar,hustar
+      real(CLAW_REAL) huRstar,huLstar,uRstar,uLstar,hstarHLL
+      real(CLAW_REAL) deldelh,deldelphi
+      real(CLAW_REAL) s1m,s2m,hm
+      real(CLAW_REAL) det1,det2,det3,determinant
 
       logical rare1,rare2,rarecorrector,rarecorrectortest,sonic
 
       !determine del vectors
       delh = hR-hL
-      delhu = huR-huL
+      delhu = hR*uR-hL*uL
       delphi = phiR-phiL
       delb = bR-bL
       delnorm = delh**2 + delphi**2
 
-      call riemanntype(hL,hR,uL,uR,hm,s1m,s2m,rare1,rare2, &
-          drytol,g)
+      call riemanntype(hL,hR,uL,uR,hm,s1m,s2m,rare1,rare2)
 
 
       lambda(1)= min(sE1,s2m) !Modified Einfeldt speed
@@ -480,7 +459,7 @@ attributes(device) &
       lambda(2) = 0.d0  ! ### Fix to avoid uninitialized value in loop on mw -- Correct?? ###
 
       
-      hstarHLL = max((huL-huR+sE2*hR-sE1*hL)/(sE2-sE1),0.d0) ! middle state in an HLL solve
+      hstarHLL = max((hL*uL-hR*uR+sE2*hR-sE1*hL)/(sE2-sE1),0.d0) ! middle state in an HLL solve
 
 !     !determine the middle entropy corrector wave------------------------
       rarecorrectortest=.false.
@@ -691,7 +670,7 @@ attributes(device) &
       fw(3,3)=fw(3,3)*vR
       fw(3,2)= 0.d0
  
-      hustar_interface = huL + fw(1,1)   ! = huR - fw(1,3)
+      hustar_interface = hL*uL + fw(1,1)   ! = huR - fw(1,3)
       if (hustar_interface <= 0.0d0) then
           fw(3,1) = fw(3,1) + (hR*uR*vR - hL*uL*vL - fw(3,1)- fw(3,3))
         else
@@ -708,26 +687,27 @@ attributes(device) &
 
 
 !=============================================================================
+#ifdef CUDA
 attributes(device) &
-      subroutine riemanntype(hL,hR,uL,uR,hm,s1m,s2m,rare1,rare2, &
-              drytol,g)
+#endif
+      subroutine riemanntype(hL,hR,uL,uR,hm,s1m,s2m,rare1,rare2)
 
+      ! TODO: do I need double precision in this if maxiter = 1 anyway?
       !determine the Riemann structure (wave-type in each family)
-
 
       implicit none
 
       !input
-      double precision hL,hR,uL,uR,drytol,g
+      real(CLAW_REAL) hL,hR,uL,uR
 
       !output 
       ! 1 and 2 represent wave speeds relavant to 1st field and 2nd field
-      double precision s1m,s2m, hm
+      real(CLAW_REAL) s1m,s2m,hm
       logical rare1,rare2
 
       !local
-      double precision u1m,u2m,um,delu
-      double precision h_max,h_min,h0,F_max,F_min,dfdh,F0,slope,gL,gR
+      real(CLAW_REAL) u1m,u2m,um,delu
+      real(CLAW_REAL) h_max,h_min,h0,F_max,F_min,dfdh,F0,slope,gL,gR
       ! temporary
       real(CLAW_REAL) :: sqrtgh1,sqrtgh2
       integer iter
@@ -844,8 +824,8 @@ attributes(device) &
                ! ! Eq. (13.55) in the FVMHP book
                ! um=uR-2.d0*sqrt(g*hR)+2.d0*sqrt(g*hm)
 
-               s2m=uR-2.d0*sqrtgh1+3.d0*sqrtgh2
                s1m=uR-2.d0*sqrtgh1+sqrtgh2
+               s2m=uR-2.d0*sqrtgh1+3.d0*sqrtgh2
                um=uR-2.d0*sqrtgh1+2.d0*sqrtgh2
                rare2=.true.
                rare1=.false.
