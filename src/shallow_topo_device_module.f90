@@ -51,8 +51,7 @@ module shallow_topo_device_module
         real(CLAW_REAL) hR,hL,uR,uL,vR,vL,phiR,phiL
         real(CLAW_REAL) bR,bL,sL,sR,sRoe1,sRoe2,sE1,sE2,uhat,chat
         real(CLAW_REAL) s1m,s2m
-        real(CLAW_REAL) hstar,hstartest,hstarHLL,sLtest,sRtest
-        real(CLAW_REAL) tw
+        real(CLAW_REAL) hstar,hstartest,hstarHLL
 #ifdef USE_CAPA
         real(CLAW_REAL) dxdc
 #endif
@@ -238,8 +237,7 @@ module shallow_topo_device_module
         real(CLAW_REAL) hR,hL,uR,uL,vR,vL,phiR,phiL
         real(CLAW_REAL) bR,bL,sL,sR,sRoe1,sRoe2,sE1,sE2,uhat,chat
         real(CLAW_REAL) s1m,s2m
-        real(CLAW_REAL) hstar,hstartest,hstarHLL,sLtest,sRtest
-        real(CLAW_REAL) tw
+        real(CLAW_REAL) hstar,hstartest,hstarHLL
 #ifdef USE_CAPA
         real(CLAW_REAL) dydc
 #endif
