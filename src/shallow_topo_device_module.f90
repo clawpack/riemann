@@ -68,18 +68,6 @@ module shallow_topo_device_module
             fwave(GET_INDEX_SHARED_WAVE_1INDEX(threadIdx%y, threadIdx%x, mw, 3, NWAVES, NEQNS, blockDim%y, blockDim%x)) = 0.d0 
         enddo
 
-        !zero (small) negative values if they exist
-        if (q_r(1) < drytol) then
-              q_r(1) = max(q_r(1),0.d0)
-              q_r(2) = 0.d0
-              q_r(3) = 0.d0
-        endif
-
-        if (q_l(1) < drytol) then
-              q_l(1)=max(q_l(1),0.d0)
-              q_l(2) = 0.d0
-              q_l(3) = 0.d0
-        endif
 
         !skip problem if in a completely dry area
         if (q_l(1) > drytol .or. q_r(1) > drytol) then
@@ -266,19 +254,6 @@ module shallow_topo_device_module
             fwave(GET_INDEX_SHARED_WAVE_1INDEX(threadIdx%y, threadIdx%x, mw, 2, NWAVES, NEQNS, blockDim%y, blockDim%x)) = 0.d0 
             fwave(GET_INDEX_SHARED_WAVE_1INDEX(threadIdx%y, threadIdx%x, mw, 3, NWAVES, NEQNS, blockDim%y, blockDim%x)) = 0.d0 
         enddo
-
-        !zero (small) negative values if they exist
-        if (q_r(1) < drytol) then
-              q_r(1) = max(q_r(1),0.d0)
-              q_r(2) = 0.d0
-              q_r(3) = 0.d0
-        endif
-
-        if (q_l(1) < drytol) then
-              q_l(1)=max(q_l(1),0.d0)
-              q_l(2) = 0.d0
-              q_l(3) = 0.d0
-        endif
 
 
         !skip problem if in a completely dry area
