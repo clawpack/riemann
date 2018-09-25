@@ -54,7 +54,6 @@ module shallow_topo_device_module
         real(CLAW_REAL) bR,bL,sL,sR,sRoe1,sRoe2,sE1,sE2,uhat,chat
         real(CLAW_REAL) s1m,s2m
         real(CLAW_REAL) hstar,hstartest,hstarHLL
-        real(CLAW_REAL) s_tmp
 #ifdef USE_CAPA
         real(CLAW_REAL) dxdc
 #endif
@@ -71,14 +70,16 @@ module shallow_topo_device_module
             fwave(GET_INDEX_SHARED_WAVE_1INDEX(threadIdx%y, threadIdx%x, mw, 3, NWAVES, NEQNS, blockDim%y, blockDim%x)) = 0.d0 
         enddo
 
+#ifdef DEBUG
         !zero (small) negative values if they exist
         if (q_r(1) < 0.d0) then
             print *, "Warning in riemann solver x. q_r(1) < 0.0: ", q_r(1)
         endif
 
         if (q_l(1) < 0.d0) then
-            print *, "Warning in riemann solver x. q_l(1) < 0.0", q_l(1)
+            print *, "Warning in riemann solver x. q_l(1) < 0.0: ", q_l(1)
         endif
+#endif
 
         !skip problem if in a completely dry area
         if (q_l(1) > drytol .or. q_r(1) > drytol) then
@@ -221,12 +222,6 @@ module shallow_topo_device_module
             enddo
         endif
 
-!         do mw=1,NWAVES
-!             s_tmp = s(GET_INDEX_SHARED_SPEED_1INDEX(threadIdx%y, threadIdx%x, mw, NWAVES, blockDim%y, blockDim%x)) 
-!             if (s_tmp > 1.0E20) then
-!                 print *, "in riemann solver x, s ", mw, " is inf. s = ", s_tmp
-!             endif
-!         enddo
 
         !===============================================================================
         return
@@ -258,7 +253,6 @@ module shallow_topo_device_module
         real(CLAW_REAL) bR,bL,sL,sR,sRoe1,sRoe2,sE1,sE2,uhat,chat
         real(CLAW_REAL) s1m,s2m
         real(CLAW_REAL) hstar,hstartest,hstarHLL
-        real(CLAW_REAL) :: s_tmp
 
 #ifdef USE_CAPA
         real(CLAW_REAL) dydc
@@ -276,6 +270,7 @@ module shallow_topo_device_module
             fwave(GET_INDEX_SHARED_WAVE_1INDEX(threadIdx%y, threadIdx%x, mw, 3, NWAVES, NEQNS, blockDim%y, blockDim%x)) = 0.d0 
         enddo
 
+#ifdef DEBUG
         !zero (small) negative values if they exist
         if (q_r(1) < 0.d0) then
             print *, "Warning in riemann solver y. q_r(1) < 0.0: ", q_r(1)
@@ -284,6 +279,7 @@ module shallow_topo_device_module
         if (q_l(1) < 0.d0) then
             print *, "Warning in riemann solver y. q_l(1) < 0.0: ", q_l(1)
         endif
+#endif
 
 
         !skip problem if in a completely dry area
@@ -429,12 +425,6 @@ module shallow_topo_device_module
         endif
 
 
-!         do mw=1,NWAVES
-!             s_tmp = s(GET_INDEX_SHARED_SPEED_1INDEX(threadIdx%y, threadIdx%x, mw, NWAVES, blockDim%y, blockDim%x)) 
-!             if (s_tmp > 1.0E20) then
-!                 print *, "in riemann solver y, s ", mw, " is inf. s = ", s_tmp
-!             endif
-!         enddo
 
         !===============================================================================
         return
