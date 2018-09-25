@@ -32,17 +32,16 @@ module shallow_topo_device_module
     attributes(device) &
 #endif
     subroutine riemann_shallow_topo_x(q_l, q_r, aux_l, aux_r,    &
-            fwave, s, blocksize) bind (C,name='riemann_shallow_topo_x')
+            fwave, s) bind (C,name='riemann_shallow_topo_x')
 
         implicit none
 
         real(c_double), intent(in) :: q_l(NEQNS), q_r(NEQNS)
         real(c_double), intent(in) :: aux_r(NCOEFFS), aux_l(NCOEFFS)
-        integer, intent(in) :: blocksize
 
         ! Output arguments
-        real(c_double), intent(inout) :: fwave(1:blocksize*NEQNS*NWAVES)
-        real(c_double), intent(inout) :: s(1:blocksize*NWAVES)
+        real(c_double), intent(inout) :: fwave(1:blockDim%x*blockDim%y*NEQNS*NWAVES)
+        real(c_double), intent(inout) :: s(1:blockDim%x*blockDim%y*NWAVES)
 
         !local only
         integer m,mw
@@ -222,7 +221,6 @@ module shallow_topo_device_module
             enddo
         endif
 
-
         !===============================================================================
         return
     end subroutine riemann_shallow_topo_x
@@ -231,17 +229,16 @@ module shallow_topo_device_module
     attributes(device) &
 #endif
     subroutine riemann_shallow_topo_y(q_l, q_r, aux_l, aux_r,    &
-            fwave, s, blocksize) bind (C,name='riemann_shallow_topo_y')
+            fwave, s) bind (C,name='riemann_shallow_topo_y')
 
         implicit none
 
         real(c_double), intent(in) :: q_l(NEQNS), q_r(NEQNS)
         real(c_double), intent(in) :: aux_r(NCOEFFS), aux_l(NCOEFFS)
-        integer, intent(in) :: blocksize
 
         ! Output arguments
-        real(c_double), intent(inout) :: fwave(1:blocksize*NEQNS*NWAVES)
-        real(c_double), intent(inout) :: s(1:blocksize*NWAVES)
+        real(c_double), intent(inout) :: fwave(1:blockDim%x*blockDim%y*NEQNS*NWAVES)
+        real(c_double), intent(inout) :: s(1:blockDim%x*blockDim%y*NWAVES)
 
         !local only
         integer m,mw
@@ -253,7 +250,6 @@ module shallow_topo_device_module
         real(CLAW_REAL) bR,bL,sL,sR,sRoe1,sRoe2,sE1,sE2,uhat,chat
         real(CLAW_REAL) s1m,s2m
         real(CLAW_REAL) hstar,hstartest,hstarHLL
-
 #ifdef USE_CAPA
         real(CLAW_REAL) dydc
 #endif
@@ -423,8 +419,6 @@ module shallow_topo_device_module
 #endif
             enddo
         endif
-
-
 
         !===============================================================================
         return
