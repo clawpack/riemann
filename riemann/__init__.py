@@ -98,7 +98,10 @@ except ImportError as e:
     traceback.print_exc()
     print("********************************************************************")
 
-import os
-if os.path.exists('./layered_shallow_water_1D.so'):
+
+# Layered SW solver is not compiled by default.
+try:
     import layered_shallow_water_1D
     from . import layered_shallow_water_1D_constants
+except ImportError:
+    pass
