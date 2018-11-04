@@ -60,6 +60,7 @@ try:
     from . import advection_1D_ptwise
     from . import burgers_1D
     from . import euler_with_efix_1D
+    from . import euler_hlle_1D
     from . import nonlinear_elasticity_fwave_1D
     from . import reactive_euler_with_efix_1D
     from . import shallow_roe_with_efix_1D
