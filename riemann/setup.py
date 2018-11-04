@@ -49,11 +49,10 @@ import os
 
 def configuration(parent_package='',top_path=None):
     from numpy.distutils.misc_util import Configuration
-    import numpy
 
     config = Configuration('riemann', parent_package, top_path)
 
-    src_dir = os.path.join(os.path.dirname(__file__),'')
+    src_dir = os.path.join(os.path.dirname(__file__),'../src/')
 
     for rp in one_d_ptwise_riemann:
         rp_ext = rp + "_1D_ptwise"
