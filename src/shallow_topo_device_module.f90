@@ -7,19 +7,17 @@
 module shallow_topo_device_module
     use, intrinsic :: iso_c_binding
 
-#ifdef CUDA
+#ifdef GEOCLAW
+
     use geoclaw_module, only: g => grav_d, drytol => dry_tolerance_d, rho => rho_d
 #ifdef USE_CAPA
-    use geoclaw_module, only: earth_radius => earth_radius_d
-    real(CLAW_REAL), parameter :: deg2rad = 4.d0*datan(1.d0) / 180.d0
-    attributes(constant) :: deg2rad
+    use geoclaw_module, only: earth_radius => earth_radius_d, deg2rad => deg2rad_d
 #endif
-#else
-    ! should not be used
-    use geoclaw_module, only: g => grav, drytol => dry_tolerance, rho
-    use geoclaw_module, only: earth_radius, deg2rad
-    use storm_module, only: pressure_forcing, pressure_index
-    use amr_module, only: mcapa
+
+#else 
+
+    use setprob_module, only: g => grav_d, drytol => dry_tolerance_d, rho => rho_d
+
 #endif
 
 
@@ -855,3 +853,11 @@ attributes(device) &
       return
       end ! subroutine riemanntype----------------------------------------------------------------
 end module shallow_topo_device_module
+
+! This is for the example, GPU/shallow_water_topo
+! These subroutines are not acutally used, but only for compilation
+subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
+end subroutine rpn2
+
+subroutine rpt2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
+end subroutine rpt2
