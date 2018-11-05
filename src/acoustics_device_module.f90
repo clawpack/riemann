@@ -1,9 +1,8 @@
 #include "cudaclaw/arrayIndex.H"
 
-#define RHO 1.d0
-#define BULK 4.d0
-
 module acoustics_module
+    use setprob_module, only: bulk => bulk_d, rho => rho_d
+    implicit none
     contains
     ! ==============================================================================
     !  Point-wise version of the homogeneous 2d acoustics problem
@@ -28,8 +27,8 @@ module acoustics_module
         real(CLAW_REAL) :: c,z
 
 
-        c = sqrt(BULK/RHO)
-        z = c*RHO
+        c = sqrt(bulk/rho)
+        z = c*rho
 
         ! note that notation for u and v reflects assumption that the
         ! Riemann problems are in the x-direction with u in the normal
@@ -94,8 +93,8 @@ module acoustics_module
         real(CLAW_REAL) :: c,z
 
 
-        c = sqrt(BULK/RHO)
-        z = c*RHO
+        c = sqrt(bulk/rho)
+        z = c*rho
 
         ! note that notation for u and v reflects assumption that the
         ! Riemann problems are in the x-direction with u in the normal

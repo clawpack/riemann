@@ -33,7 +33,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apd
 
 !   # density, bulk modulus, and sound speed, and impedence of medium:
 !   # (should be set in setprob.f)
-    use problem_para_module, only: rho,bulk,cc,zz
+    use setprob_module, only: rho,bulk,cc,zz
 
 
     implicit double precision (a-h,o-z)
