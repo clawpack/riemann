@@ -8,14 +8,11 @@ module shallow_topo_device_module
     use, intrinsic :: iso_c_binding
 
 #ifdef CUDA
-    real(CLAW_REAL), parameter :: g = 9.81
-    real(CLAW_REAL), parameter :: drytol = 0.001
-    real(CLAW_REAL), parameter :: rho = 1025.0
-    attributes(constant) :: g,drytol,rho ! in device constant memory
+    use geoclaw_module, only: g => grav_d, drytol => dry_tolerance_d, rho => rho_d
 #ifdef USE_CAPA
-    real(CLAW_REAL), parameter :: earth_radius = 6367.5E3
+    use geoclaw_module, only: earth_radius => earth_radius_d
     real(CLAW_REAL), parameter :: deg2rad = 4.d0*datan(1.d0) / 180.d0
-    attributes(constant) :: earth_radius,deg2rad
+    attributes(constant) :: deg2rad
 #endif
 #else
     ! should not be used
