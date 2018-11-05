@@ -91,6 +91,8 @@ def configuration(parent_package='',top_path=None):
     special_target_list = \
     [{'ext' :'kpp_2D',
       'srcs':['rpn2_kpp.f90','rpt2_dummy.f90']},
+     {'ext' :'euler_hlle_2D',
+      'srcs':['rpn2_euler_hlle.f90','rpt2_dummy.f90']},
      {'ext' :'euler_mapgrid_2D',
       'srcs':['rpn2_euler_mapgrid.f90','rpt2_euler_mapgrid.f90',
               'euler_roe_solver_mapgrid.f90','getquadinfo_mapgrid.f90']},

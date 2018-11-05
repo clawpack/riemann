@@ -78,6 +78,7 @@ try:
     from . import euler_mapgrid_2D
     from . import euler_5wave_2D
     from . import euler_4wave_2D
+    from . import euler_hlle_2D
     from . import kpp_2D
     from . import psystem_2D
     from . import shallow_roe_with_efix_2D
