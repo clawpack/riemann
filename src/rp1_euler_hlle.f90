@@ -2,7 +2,7 @@
 subroutine rp1(maxmx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 ! =========================================================
 
-! solve Riemann problems for the 1D Euler equations using the HLLj
+! solve Riemann problems for the 1D Euler equations using the HLLE
 ! approximate Riemann solver.
 
 ! waves: 2
