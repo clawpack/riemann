@@ -198,3 +198,11 @@ module shallow_module
         return
     end subroutine riemann_shallow_y
 end module shallow_module
+
+! This is for the example, GPU/shallow_water_no_topo
+! These subroutines are not acutally used, but only for compilation
+subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
+end subroutine rpn2
+
+subroutine rpt2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
+end subroutine rpt2
