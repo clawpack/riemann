@@ -52,7 +52,7 @@ def configuration(parent_package='',top_path=None):
 
     config = Configuration('riemann', parent_package, top_path)
 
-    src_dir = os.path.join(os.path.dirname(__file__),'../src/')
+    src_dir = os.path.join(os.path.dirname(__file__),os.path.join('..','src'))
 
     for rp in one_d_ptwise_riemann:
         rp_ext = rp + "_1D_ptwise"
