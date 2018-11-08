@@ -66,7 +66,7 @@ subroutine rpt2(ixy,imp,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,aux1,aux2,aux3,asdq,b
 
     logical :: in_rpt
 
-    common /param/  gamma
+    common /cparam/  gamma
 
     gamma1 = gamma - 1.d0
 
