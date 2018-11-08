@@ -186,10 +186,10 @@
             deldelh = max(deldelh,hstarHLL*(sE2-sE1)/sE2)
          endif
 
-c        ! adjust deldelh for well-balancing of atmospheric pressure difference 
+         ! adjust deldelh for well-balancing of atmospheric pressure difference 
          deldelh = deldelh - delP/(rho*g)
 
-c        !find jump in phi, deldelphi
+         !find jump in phi, deldelphi
          if (sonic) then
             deldelphi = -g*hbar*delb
          else
