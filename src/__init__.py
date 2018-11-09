@@ -60,6 +60,7 @@ try:
     from . import advection_1D_ptwise
     from . import burgers_1D
     from . import euler_with_efix_1D
+    from . import euler_hlle_1D
     from . import nonlinear_elasticity_fwave_1D
     from . import reactive_euler_with_efix_1D
     from . import shallow_roe_with_efix_1D
@@ -77,6 +78,8 @@ try:
     from . import euler_mapgrid_2D
     from . import euler_5wave_2D
     from . import euler_4wave_2D
+    from . import euler_hlle_2D
+    from . import euler_hlle_with_walls_2D
     from . import kpp_2D
     from . import psystem_2D
     from . import shallow_roe_with_efix_2D
