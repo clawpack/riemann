@@ -83,6 +83,7 @@ try:
     from . import euler_hlle_with_walls_2D
     from . import kpp_2D
     from . import psystem_2D
+    from . import shallow_hlle_2D
     from . import shallow_roe_with_efix_2D
     from . import shallow_bathymetry_fwave_2D
     from . import sw_aug_2D
