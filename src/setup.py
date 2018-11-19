@@ -19,6 +19,7 @@ one_d_riemann = ['acoustics',
                    'euler_hlle',
                    'nonlinear_elasticity_fwave',
                    'reactive_euler_with_efix',
+                   'shallow_hlle',
                    'shallow_roe_with_efix',
                    'shallow_bathymetry_fwave',
                    'shallow_roe_tracer']
@@ -91,6 +92,8 @@ def configuration(parent_package='',top_path=None):
     special_target_list = \
     [{'ext' :'kpp_2D',
       'srcs':['rpn2_kpp.f90','rpt2_dummy.f90']},
+     {'ext' :'shallow_hlle_2D',
+      'srcs':['rpn2_shallow_hlle.f90','rpt2_dummy.f90']},
      {'ext' :'euler_hlle_2D',
       'srcs':['rpn2_euler_hlle.f90','rpt2_dummy.f90']},
      {'ext' :'euler_hlle_with_walls_2D',
