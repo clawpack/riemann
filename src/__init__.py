@@ -63,6 +63,7 @@ try:
     from . import euler_hlle_1D
     from . import nonlinear_elasticity_fwave_1D
     from . import reactive_euler_with_efix_1D
+    from . import shallow_hlle_1D
     from . import shallow_roe_with_efix_1D
     from . import shallow_bathymetry_fwave_1D
     from . import shallow_roe_tracer_1D
