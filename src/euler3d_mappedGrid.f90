@@ -21,7 +21,7 @@ CONTAINS
   !                  creating the hexahedron using triangular boundaries are 
   !                  considered.}, 
   !    author={Grandy, J.}, year={1997}, month={Oct}}
-  !    http://dx.doi.org/10.2172/632793
+  !    https://doi.org/10.2172/632793
   !
   !    6*V_LD = 
   ! |x6-x0  x3-x0  x2-x7|   |x6-x0  x4-x0  x7-x5|   |x6-x0  x1-x0  x5-x2|
