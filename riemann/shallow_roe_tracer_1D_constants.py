@@ -4,4 +4,4 @@ num_eqn   = 3
 # Conserved quantities
 depth = 0
 momentum = 1
-tracer = 3
+tracer = 2
