@@ -5,3 +5,12 @@
 build
 # this is for the self-referential link put in by the in-place installer
 src/python/riemann/src
+
+# log files
+*.log
+
+# py3k cache directories
+__pycache__
+
+# ipython
+.ipynb_checkpoints
