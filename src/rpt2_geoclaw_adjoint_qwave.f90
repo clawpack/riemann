@@ -8,6 +8,8 @@ subroutine rpt2(ixy,imp,maxm,meqn,mwaves,maux,mbc,mx,ql,qr, &
 !                                                                           !
 !      # This Riemann solver is for the shallow water adjoint               !
 !             equations. It is similar to rpt2_vc_acoustics.f90
+!
+!      # See rpn2_geoclaw_adjoint_qwave.f90 for the equations and discussion!
 !                                                                           !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
