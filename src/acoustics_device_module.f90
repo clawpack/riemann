@@ -1,4 +1,4 @@
-#include "cudaclaw/arrayIndex.H"
+#include "arrayIndex.H"
 
 module acoustics_module
     use setprob_module, only: bulk => bulk_d, rho => rho_d

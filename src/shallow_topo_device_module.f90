@@ -1,4 +1,4 @@
-#include "cudaclaw/arrayIndex.H"
+#include "arrayIndex.H"
 
 #define MAXITER 1
 
