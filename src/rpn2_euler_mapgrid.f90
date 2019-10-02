@@ -41,7 +41,7 @@ subroutine rpn2(ixy,maxm, meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,ap
     integer :: mcapa,locrot, locarea
     double precision :: rot(4), area
 
-    common /param/  gamma
+    common /cparam/  gamma
 
     data efix /.true./
 
@@ -157,7 +157,7 @@ subroutine rpn2(ixy,maxm, meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,ap
 
     integer :: m
 
-    common /param/ gamma
+    common /cparam/ gamma
 
     gamma1 = gamma - 1.d0
 
