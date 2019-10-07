@@ -31,10 +31,15 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apd
 !                                    and right state ql(i,:)
 ! From the basic clawpack routines, this routine is called with ql = qr
 
-!   # density, bulk modulus, and sound speed, and impedence of medium:
-!   # (should be set in setprob.f)
-    use setprob_module, only: rho,bulk,cc,zz
+#ifdef CUDA
+        use memory_module, only: gpu_allocate, gpu_deallocate
+        use cuda_module, only: device_id, wait_for_all_gpu_tasks
+        use cudafor
+#endif
 
+!     # density, bulk modulus, and sound speed, and impedence of medium:
+!     # (should be set in setprob.f)
+    use setprob_module, only: cc, zz, bulk, rho
 
     implicit double precision (a-h,o-z)
 
@@ -43,14 +48,20 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apd
     double precision, intent(in)  :: auxl(maux, 1-mbc:maxm+mbc)
     double precision, intent(in)  :: auxr(maux, 1-mbc:maxm+mbc)
     double precision, intent(out) :: wave(meqn, mwaves, 1-mbc:maxm+mbc)
-    double precision, intent(out) ::    s(mwaves, 1-mbc:maxm+mbc)
+    double precision, intent(out) ::    s(1:mwaves, 1-mbc:maxm+mbc)
     double precision, intent(out) :: apdq(meqn, 1-mbc:maxm+mbc)
     double precision, intent(out) :: amdq(meqn, 1-mbc:maxm+mbc)
+    integer, intent(in) :: ixy, meqn, mwaves, maux, mbc, mx
 
 !     local arrays
 !     ------------
-    double precision :: delta(3)
+    double precision :: delta1, delta2, delta3
 
+! #ifdef CUDA
+!     attributes(device) :: ql, qr, auxl, auxr, wave, s, apdq, amdq
+! #endif
+
+    
 
 !     # set mu to point to  the component of the system that corresponds
 !     # to velocity in the direction of this slice, mv to the orthogonal
@@ -75,11 +86,15 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apd
 !     # split the jump in q at each interface into waves
 
 !     # find a1 and a2, the coefficients of the 2 eigenvectors:
+
+! #ifdef CUDA
+!     !$cuf kernel do(1) <<<*, *>>>
+! #endif
     do i = 2-mbc, mx+mbc
-        delta(1) = ql(1,i) - qr(1,i-1)
-        delta(2) = ql(mu,i) - qr(mu,i-1)
-        a1 = (-delta(1) + zz*delta(2)) / (2.d0*zz)
-        a2 = (delta(1) + zz*delta(2)) / (2.d0*zz)
+        delta1 = ql(1,i) - qr(1,i-1)
+        delta2 = ql(mu,i) - qr(mu,i-1)
+        a1 = (-delta1 + zz*delta2) / (2.d0*zz)
+        a2 = (delta1 + zz*delta2) / (2.d0*zz)
     
     !        # Compute the waves.
     
@@ -99,11 +114,9 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apd
 !     # compute the leftgoing and rightgoing flux differences:
 !     # Note s(i,1) < 0   and   s(i,2) > 0.
 
-    ! forall (m=1:meqn,  i=2-mbc: mx+mbc)
-    ! amdq(m,i) = s(1,i)*wave(m,1,i)
-    ! apdq(m,i) = s(2,i)*wave(m,2,i)
-    ! end forall
-
+! #ifdef CUDA
+!     !$cuf kernel do(1) <<<*, *>>>
+! #endif
     do i = 2-mbc, mx+mbc
         do m = 1,meqn
         amdq(m,i) = s(1,i)*wave(m,1,i)
@@ -112,4 +125,5 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apd
     enddo
 
     return
-    end subroutine rpn2
+end subroutine rpn2
+

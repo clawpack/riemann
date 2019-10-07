@@ -1,26 +1,26 @@
-c======================================================================
+!======================================================================
        subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,
      &                 ql,qr,auxl,auxr,fwave,s,amdq,apdq)
-c======================================================================
-c
-c Solves normal Riemann problems for the 2D SHALLOW WATER equations
-c     with topography:
-c     #        h_t + (hu)_x + (hv)_y = 0                           #
-c     #        (hu)_t + (hu^2 + 0.5gh^2)_x + (huv)_y = -ghb_x      #
-c     #        (hv)_t + (huv)_x + (hv^2 + 0.5gh^2)_y = -ghb_y      #
+!======================================================================
+!
+! Solves normal Riemann problems for the 2D SHALLOW WATER equations
+!     with topography:
+!     #        h_t + (hu)_x + (hv)_y = 0                           #
+!     #        (hu)_t + (hu^2 + 0.5gh^2)_x + (huv)_y = -ghb_x      #
+!     #        (hv)_t + (huv)_x + (hv^2 + 0.5gh^2)_y = -ghb_y      #
 
-c On input, ql contains the state vector at the left edge of each cell
-c     qr contains the state vector at the right edge of each cell
-c
-c This data is along a slice in the x-direction if ixy=1
-c     or the y-direction if ixy=2.
+! On input, ql contains the state vector at the left edge of each cell
+!     qr contains the state vector at the right edge of each cell
+!
+! This data is along a slice in the x-direction if ixy=1
+!     or the y-direction if ixy=2.
 
-c  Note that the i'th Riemann problem has left state qr(i-1,:)
-c     and right state ql(i,:)
-c  From the basic clawpack routines, this routine is called with
-c     ql = qr
-c
-c
+!  Note that the i'th Riemann problem has left state qr(i-1,:)
+!     and right state ql(i,:)
+!  From the basic clawpack routines, this routine is called with
+!     ql = qr
+!
+!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !                                                                           !
 !      # This Riemann solver is for the shallow water equations.            !
@@ -88,7 +88,7 @@ c
                  fwave(3,mw,i)=0.d0
          enddo
 
-c        !set normal direction
+!        !set normal direction
          if (ixy.eq.1) then
             mu=2
             nv=3
@@ -164,8 +164,9 @@ c        !set normal direction
             call riemanntype(hL,hL,uL,-uL,hstar,s1m,s2m,
      &                                  rare1,rare2,1,drytol,g)
             hstartest=max(hL,hstar)
+            ! hL+bL < bR && hstar+bL < bR, so water can't overtop right cell (move into right cell)
             if (hstartest+bL.lt.bR) then !right state should become ghost values that mirror left for wall problem
-c                bR=hstartest+bL
+!                bR=hstartest+bL
                wall(2)=0.d0
                wall(3)=0.d0
                hR=hL
@@ -174,15 +175,18 @@ c                bR=hstartest+bL
                phiR=phiL
                uR=-uL
                vR=vL
-            elseif (hL+bL.lt.bR) then
+            ! hL+bL < bR && hstar+bL > bR, so we set bR to the water level in the left cell
+            ! so that water can possibly overtop the right cell (move into the right cell)
+            elseif (hL+bL.lt.bR) then 
                bR=hL+bL
+           ! hL+bL > bR || hstar+bL > bR, don't have to do anything about bR 
             endif
          elseif (hL.le.drytol) then ! right surface is lower than left topo
             call riemanntype(hR,hR,-uR,uR,hstar,s1m,s2m,
      &                                  rare1,rare2,1,drytol,g)
             hstartest=max(hR,hstar)
             if (hstartest+bR.lt.bL) then  !left state should become ghost values that mirror right
-c               bL=hstartest+bR
+!               bL=hstartest+bR
                wall(1)=0.d0
                wall(2)=0.d0
                hL=hR
@@ -217,16 +221,16 @@ c               bL=hstartest+bR
      &        huR,hvL,hvR,bL,bR,uL,uR,vL,vR,phiL,phiR,pL,pR,sE1,sE2,
      &                                    drytol,g,rho,sw,fw)
 
-C          call riemann_ssqfwave(maxiter,meqn,mwaves,hL,hR,huL,huR,
-C      &     hvL,hvR,bL,bR,uL,uR,vL,vR,phiL,phiR,pL,pR,sE1,sE2,drytol,g,
-C      &     rho,sw,fw)
+!          call riemann_ssqfwave(maxiter,meqn,mwaves,hL,hR,huL,huR,
+!      &     hvL,hvR,bL,bR,uL,uR,vL,vR,phiL,phiR,pL,pR,sE1,sE2,drytol,g,
+!      &     rho,sw,fw)
 
-C          call riemann_fwave(meqn,mwaves,hL,hR,huL,huR,hvL,hvR,
-C      &      bL,bR,uL,uR,vL,vR,phiL,phiR,pL,pR,sE1,sE2,drytol,g,rho,sw,
-C      &      fw)
+!          call riemann_fwave(meqn,mwaves,hL,hR,huL,huR,hvL,hvR,
+!      &      bL,bR,uL,uR,vL,vR,phiL,phiR,pL,pR,sE1,sE2,drytol,g,rho,sw,
+!      &      fw)
 
-c        !eliminate ghost fluxes for wall
-         do mw=1,3
+!        !eliminate ghost fluxes for wall
+         do mw=1,mwaves
             sw(mw)=sw(mw)*wall(mw)
 
                fw(1,mw)=fw(1,mw)*wall(mw) 
@@ -247,7 +251,7 @@ c        !eliminate ghost fluxes for wall
       enddo
 
 
-c==========Capacity for mapping from latitude longitude to physical space====
+!==========Capacity for mapping from latitude longitude to physical space====
         if (mcapa.gt.0) then
          do i=2-mbc,mx+mbc
           if (ixy.eq.1) then
@@ -257,10 +261,10 @@ c==========Capacity for mapping from latitude longitude to physical space====
           endif
 
           do mw=1,mwaves
-c             if (s(mw,i) .gt. 316.d0) then
-c               # shouldn't happen unless h > 10 km!
-c                write(6,*) 'speed > 316: i,mw,s(mw,i): ',i,mw,s(mw,i)
-c                endif
+!             if (s(mw,i) .gt. 316.d0) then
+!               # shouldn't happen unless h > 10 km!
+!                write(6,*) 'speed > 316: i,mw,s(mw,i): ',i,mw,s(mw,i)
+!                endif
                s(mw,i)=dxdc*s(mw,i)
                fwave(1,mw,i)=dxdc*fwave(1,mw,i)
                fwave(2,mw,i)=dxdc*fwave(2,mw,i)
@@ -269,12 +273,12 @@ c                endif
          enddo
         endif
 
-c===============================================================================
+!===============================================================================
 
 
-c============= compute fluctuations=============================================
-         amdq(1:3,:) = 0.d0
-         apdq(1:3,:) = 0.d0
+!============= compute fluctuations=============================================
+         amdq(1:mwaves,:) = 0.d0
+         apdq(1:mwaves,:) = 0.d0
          do i=2-mbc,mx+mbc
             do  mw=1,mwaves
                if (s(mw,i) < 0.d0) then

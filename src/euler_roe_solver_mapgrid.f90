@@ -8,10 +8,12 @@
     double precision :: gamma, gamma1
     integer :: m, p, mu, mv, ixy, i, j, k, info
 
-    common /param/ gamma, gamma1
+    common /cparam/ gamma, gamma1
 
 
     info = 0
+
+    gamma1 = gamma - 1.d0
 
 !     # These are used even in the mapped case, but ixy is
 !     # always set to 1;  rotation matrix rot does switches

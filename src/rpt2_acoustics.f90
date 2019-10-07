@@ -1,6 +1,11 @@
 !   =====================================================
 subroutine rpt2(ixy,imp,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,aux1,aux2,aux3,asdq,bmasdq,bpasdq)
 !   =====================================================
+
+!   # density, bulk modulus, and sound speed, and impedence of medium:
+!   # (should be set in setprob.f)
+    use setprob_module, only: rho,bulk,cc,zz
+
     implicit double precision (a-h,o-z)
 
 !     # Riemann solver in the transverse direction for the acoustics equations.
@@ -12,10 +17,6 @@ subroutine rpt2(ixy,imp,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,aux1,aux2,aux3,asdq,b
     dimension   asdq(meqn, 1-mbc:maxm+mbc)
     dimension bmasdq(meqn, 1-mbc:maxm+mbc)
     dimension bpasdq(meqn, 1-mbc:maxm+mbc)
-
-!     # density, bulk modulus, and sound speed, and impedence of medium:
-!     # (should be set in setprob.f)
-    common /cparam/ rho,bulk,cc,zz
 
 
     if (ixy == 1) then
