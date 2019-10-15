@@ -17,7 +17,6 @@ from . import acoustics_1D_py
 from . import burgers_1D_py
 from . import shallow_1D_py
 from . import euler_1D_py
-from . import mhd_1D_py
 from . import nonlinear_elasticity_1D_py
 from . import static
 
@@ -26,6 +25,7 @@ from . import acoustics_variable_1D_constants
 from . import advection_1D_constants
 from . import burgers_1D_constants
 from . import euler_with_efix_1D_constants
+from . import mhd_1D_constants
 from . import nonlinear_elasticity_fwave_1D_constants
 from . import reactive_euler_with_efix_1D_constants
 from . import shallow_roe_with_efix_1D_constants

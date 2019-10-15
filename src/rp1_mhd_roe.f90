@@ -54,7 +54,7 @@ subroutine rp1(maxmx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 
     logical efix
 
-    common /param/ gamma,gamma1
+    common /param/ gamma, gamma1
 
     ! TODO
     ! dimension wave(1-mbc:maxmx+mbc, meqn, mwaves)
