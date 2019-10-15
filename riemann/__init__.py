@@ -17,6 +17,7 @@ from . import acoustics_1D_py
 from . import burgers_1D_py
 from . import shallow_1D_py
 from . import euler_1D_py
+from . import mhd_1D_py
 from . import nonlinear_elasticity_1D_py
 from . import static
 
@@ -61,6 +62,7 @@ try:
     from . import burgers_1D
     from . import euler_with_efix_1D
     from . import euler_hlle_1D
+    from . import mhd_roe_1D
     from . import nonlinear_elasticity_fwave_1D
     from . import reactive_euler_with_efix_1D
     from . import shallow_hlle_1D
