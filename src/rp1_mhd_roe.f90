@@ -31,8 +31,8 @@ subroutine rp1(maxmx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 ! where A is the Roe matrix.
 ! An entropy fix can also be incorporated into the flux differences.
 !
-! Note that the i'th Riemann problem has left state qr(i-1,:)
-!                                    and right state ql(i,:)
+! Note that the i'th Riemann problem has left state qr(:, i-1)
+!                                    and right state ql(:, i)
 ! From the basic clawpack routine step1, rp is called with ql = qr = q.
 
 
@@ -45,26 +45,18 @@ subroutine rp1(maxmx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
     double precision, dimension(meqn, 1-mbc:maxmx+mbc),         intent(out) :: amdq, apdq
     double precision, dimension(mwaves, 1-mbc:maxmx+mbc),       intent(out) :: s
 
-    double precision, dimension(8)   :: fl, fr, df
-    double precision, dimension(4)   :: eigl, eigr
-    double precision, dimension(7)   :: stmp
-    double precision, dimension(8,7) :: rr
-    double precision, dimension(7,8) :: rl
-    double precision, dimension(7)   :: alpha, beta
+    ! meqn == 8, mwaves == 7
+    double precision, dimension(meqn)        :: fl, fr, df
+    double precision, dimension(4)           :: eigl, eigr
+    double precision, dimension(mwaves)      :: stmp
+    double precision, dimension(meqn,mwaves) :: rr
+    double precision, dimension(mwaves,meqn) :: rl
+    double precision, dimension(mwaves)      :: alpha, beta
 
     logical efix
 
     common /param/ gamma, gamma1
 
-    ! TODO
-    ! dimension wave(1-mbc:maxmx+mbc, meqn, mwaves)
-    ! dimension    s(1-mbc:maxmx+mbc, mwaves)
-    ! dimension   ql(1-mbc:maxmx+mbc, meqn)
-    ! dimension   qr(1-mbc:maxmx+mbc, meqn)
-    ! dimension  apdq(1-mbc:maxmx+mbc, meqn)
-    ! dimension  amdq(1-mbc:maxmx+mbc, meqn)
-    ! dimension  auxl(1-mbc:maxmx+mbc, *)
-    ! dimension  auxr(1-mbc:maxmx+mbc, *)
 
     ! use entropy fix for transonic rarefactions
     data efix /.true./
@@ -83,11 +75,11 @@ subroutine rp1(maxmx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
     endif
 
     do i = 2-mbc, mx+mbc
-        ! Left and Right states
+        ! Left and right states
         rhol = qr(1, i-1)
         rhor = ql(1, i  )
 
-        if(rhol <= 1.d-15 .or. rhor <= 1.d-15) then
+        if (rhol <= 1.d-15 .or. isnan(rhol) .or. rhor <= 1.d-15 .or. isnan(rhor)) then
             print*, ' '
             print*, ' ERROR in RPN:  rhol = ', rhol
             print*, ' ERROR in RPN:  rhor = ', rhor
@@ -111,9 +103,17 @@ subroutine rp1(maxmx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
         B1r = ql(mb1, i  )
         B2r = ql(mb2, i  )
         B3r = ql(8,   i  )
-        pr  = gamma1 * (Er - 0.5d0 * rhor * (u1r**2 + u2r**2 + u3r**2) -0.5d0 * (B1r**2 + B2r**2 + B3r**2))
+        pr  = gamma1 * (Er - 0.5d0 * rhor * (u1r**2 + u2r**2 + u3r**2) - 0.5d0 * (B1r**2 + B2r**2 + B3r**2))
 
-        !Average states
+        if (pl <= 1.d-15 .or. isnan(pl) .or. pr <= 1.d-15 .or. isnan(pr)) then
+            print*, ' '
+            print*, ' ERROR in RPN:  pl = ', pl
+            print*, ' ERROR in RPN:  pr = ', pr
+            print*, ' '
+            stop
+        endif
+
+        ! Average states
         rho = 0.5d0 * (rhol + rhor)
         u1  = 0.5d0 * (u1l + u1r)
         u2  = 0.5d0 * (u2l + u2r)
@@ -131,7 +131,7 @@ subroutine rp1(maxmx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
         enddo
 
         ! Wave Speeds
-        do mm = 1, 7
+        do mm = 1, mwaves
             stmp(mm) = 0.d0
         enddo
         call set_wave_spd(rhol, u1l, u2l, u3l, pl, B1l, B2l, B3l, gamma, stmp)
@@ -145,8 +145,8 @@ subroutine rp1(maxmx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
         eigr(3) = stmp(5)
         eigr(4) = stmp(7)
         call set_wave_spd(rho, u1, u2, u3, p, B1, B2, B3, gamma, stmp)
-        do m1=1,7
-          s(i,m1) = stmp(m1)
+        do m1 = 1, mwaves
+          s(m1, i) = stmp(m1)
         enddo
 
         ! Right Eigenvectors (row,column)
@@ -159,11 +159,11 @@ subroutine rp1(maxmx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
         do m1 = 1, mwaves
             beta(m1) = 0.d0
             do m2 = 1, meqn
-                beta(m1) = beta(m1) + rl(m1,m2) * df(m2)
+                beta(m1) = beta(m1) + rl(m1, m2) * df(m2)
             enddo
 
-            if (dabs(s(i,m1)) > 1.d-15) then
-                alpha(m1) = beta(m1) / s(i,m1)
+            if (dabs(s(m1, i)) > 1.d-15) then
+                alpha(m1) = beta(m1) / s(m1, i)
             else
                 s(m1, i)  = 0.d0
                 alpha(m1) = 0.d0
@@ -202,9 +202,9 @@ subroutine rp1(maxmx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
                 apdq(m1, i) = 0.d0
 
                 do m2 = 1, mwaves
-                    if (s(i,m2) < -1.d-15) then
+                    if (s(m2, i) < -1.d-15) then
                         amdq(m1, i) = amdq(m1, i) + s(m2, i) * wave(m1, m2, i)
-                    elseif (s(i,m2) > 1.d-15) then
+                    elseif (s(m2, i) > 1.d-15) then
                         apdq(m1, i) = apdq(m1, i) + s(m2, i) * wave(m1, m2, i)
                     else
                         if (dabs(beta(m2)) > 1.d-15) then
@@ -214,8 +214,8 @@ subroutine rp1(maxmx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
                             print*, ' beta(m2) = ', beta(m2)
                             read*
                         endif
-                        amdq(i,m1) = amdq(i,m1) + 0.5d0*beta(m2)*rr(m1,m2)
-                        apdq(i,m1) = apdq(i,m1) + 0.5d0*beta(m2)*rr(m1,m2)
+                        amdq(m1, i) = amdq(m1, i) + 0.5d0*beta(m2)*rr(m1,m2)
+                        apdq(m1, i) = apdq(m1, i) + 0.5d0*beta(m2)*rr(m1,m2)
                     endif
                 enddo
             enddo
@@ -232,8 +232,8 @@ subroutine rp1(maxmx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
                 else
                     qs = (df(m1) + sl * qr(m1, i-1) - sr * ql(m1, i)) / (sl - sr)
 
-                    amdq(i,m1) = sl * (qs - qr(m1, i-1))
-                    apdq(i,m1) = sr * (ql(m1, i) - qs)
+                    amdq(m1, i) = sl * (qs - qr(m1, i-1))
+                    apdq(m1, i) = sr * (ql(m1, i) - qs)
                 endif
 
                 do m2 = 1, mwaves
@@ -297,7 +297,7 @@ subroutine set_left_eig(mu1, mu2, mb1, mb2, rho, u1, u2, u3, p, B1, B2, B3, gamm
         beta3 = B3 / dsqrt(B2*B2 + B3*B3)
     endif
 
-    if ( (dabs(B2) + dabs(B3)) <= 1.d-15 .and. dabs(a2 - B1*B1/rho) <=1.d-15 ) then
+    if ( (dabs(B2) + dabs(B3)) <= 1.d-15 .and. dabs(a2 - B1*B1/rho) <= 1.d-15 ) then
         alphaf = 1.d0
         alphas = 1.d0
     else
@@ -403,7 +403,7 @@ subroutine set_rght_eig(mu1, mu2, mb1, mb2, rho, u1, u2, u3, p, B1, B2, B3, gamm
     cf = dsqrt(0.5d0 * ( d + dsqrt(d**2 - 4.d0*a2*B1*B1/rho)))
     cs = dsqrt(0.5d0 * ( d - dsqrt(d**2 - 4.d0*a2*B1*B1/rho)))
 
-    beta1 = dsign(1.d0,B1)
+    beta1 = dsign(1.d0, B1)
     if ( (dabs(B2) + dabs(B3)) <= 1.d-15 ) then
         beta2 = 1.d0 / dsqrt(2.d0)
         beta3 = 1.d0 / dsqrt(2.d0)
@@ -416,8 +416,8 @@ subroutine set_rght_eig(mu1, mu2, mb1, mb2, rho, u1, u2, u3, p, B1, B2, B3, gamm
         alphaf = 1.d0
         alphas = 1.d0
     else
-        alphaf = dsqrt(dabs(cf*cf - ca*ca))/dsqrt(dabs(cf*cf-cs*cs))
-        alphas = dsqrt(dabs(cf*cf - a2))/dsqrt(dabs(cf*cf-cs*cs))
+        alphaf = dsqrt(dabs(cf*cf - ca*ca)) / dsqrt(dabs(cf*cf-cs*cs))
+        alphas = dsqrt(dabs(cf*cf - a2)) / dsqrt(dabs(cf*cf-cs*cs))
     endif
 
     g1 = gamma - 1.d0
