@@ -55,7 +55,7 @@ subroutine rp1(maxmx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 
     logical efix
 
-    common /param/ gamma, gamma1
+    common /cparam/ gamma, gamma1
 
 
     ! use entropy fix for transonic rarefactions
