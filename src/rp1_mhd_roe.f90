@@ -86,12 +86,19 @@ subroutine rp1(maxmx, meqn, mwaves, maux, mbc, mx, ql, qr, auxl, auxr, wave, s, 
         rhol = qr(1, i-1)
         rhor = ql(1, i  )
 
-        if (rhol <= 1.d-15 .or. isnan(rhol) .or. rhor <= 1.d-15 .or. isnan(rhor)) then
+        ! There is an issue with uninitialized states at the far left and right ghost cells for sharpclaw.
+        ! David Ketcheson will open an issue in pyclaw
+        if (i > 3-mbc .and. i < mx+mbc-1 .and. (rhol <= 1.d-15 .or. isnan(rhol) .or. rhor <= 1.d-15 .or. isnan(rhor))) then
             print*, ' '
             print*, ' ERROR in RPN:  rhol = ', rhol
             print*, ' ERROR in RPN:  rhor = ', rhor
             print*, '                Cell = ', i
-            print*, '                mbc  = ', mbc
+            print*, '             maxmx   = ', maxmx
+            print*, '             meqn    = ', meqn
+            print*, '             mwaves  = ', mwaves
+            print*, '             maux    = ', maux
+            print*, '             mbc     = ', mbc
+            print*, '             mx      = ', mx
             print*, ' '
             stop
         endif
@@ -114,10 +121,17 @@ subroutine rp1(maxmx, meqn, mwaves, maux, mbc, mx, ql, qr, auxl, auxr, wave, s, 
         B3r = ql(8,   i  )
         pr  = gamma1 * (Er - 0.5d0 * rhor * (u1r**2 + u2r**2 + u3r**2) - 0.5d0 * (B1r**2 + B2r**2 + B3r**2))
 
-        if (pl <= 1.d-15 .or. isnan(pl) .or. pr <= 1.d-15 .or. isnan(pr)) then
+        if (i > 3-mbc .and. i < mx+mbc-1 .and. (pl <= 1.d-15 .or. isnan(pl) .or. pr <= 1.d-15 .or. isnan(pr))) then
             print*, ' '
             print*, ' ERROR in RPN:  pl = ', pl
             print*, ' ERROR in RPN:  pr = ', pr
+            print*, '                Cell = ', i
+            print*, '             maxmx   = ', maxmx
+            print*, '             meqn    = ', meqn
+            print*, '             mwaves  = ', mwaves
+            print*, '             maux    = ', maux
+            print*, '             mbc     = ', mbc
+            print*, '             mx      = ', mx
             print*, ' '
             stop
         endif
