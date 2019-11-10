@@ -1,5 +1,5 @@
 !=========================================================
-subroutine rp1(maxmx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
+subroutine rp1(maxmx, meqn, mwaves, maux, mbc, mx, ql, qr, auxl, auxr, wave, s, amdq, apdq)
 !=========================================================
 !
 ! Roe-solver for the 1D ideal MHD equations
@@ -36,9 +36,9 @@ subroutine rp1(maxmx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 ! From the basic clawpack routine step1, rp is called with ql = qr = q.
 
 
-    implicit double precision (a-h,o-z)
+    implicit none
 
-    integer, intent(in) :: maxmx, meqn, mwaves, mbc, mx, maux
+    integer, intent(in) :: maxmx, meqn, mwaves, maux, mbc, mx
     double precision, dimension(meqn, 1-mbc:maxmx+mbc),         intent(in)  :: ql, qr
     double precision, dimension(maux, 1-mbc:maxmx+mbc),         intent(in)  :: auxl, auxr
     double precision, dimension(meqn, mwaves, 1-mbc:maxmx+mbc), intent(out) :: wave
@@ -52,6 +52,13 @@ subroutine rp1(maxmx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
     double precision, dimension(meqn,mwaves) :: rr
     double precision, dimension(mwaves,meqn) :: rl
     double precision, dimension(mwaves)      :: alpha, beta
+
+    integer ixy, i, mu1, mu2, mb1, mb2, m1, m2, mm, mflag
+    double precision gamma, gamma1
+    double precision rho, rhol, rhor, u1, u1l, u1r, u2, u2l, u2r, u3, u3l, u3r, El, Er, p, pl, pr
+    double precision B1, B1l, B1r, B2, B2l, B2r, B3, B3l, B3r
+    double precision sl, sr, qs
+
 
     logical efix
 
@@ -83,6 +90,8 @@ subroutine rp1(maxmx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
             print*, ' '
             print*, ' ERROR in RPN:  rhol = ', rhol
             print*, ' ERROR in RPN:  rhor = ', rhor
+            print*, '                Cell = ', i
+            print*, '                mbc  = ', mbc
             print*, ' '
             stop
         endif
@@ -277,8 +286,11 @@ end
 subroutine set_left_eig(mu1, mu2, mb1, mb2, rho, u1, u2, u3, p, B1, B2, B3, gamma, rl)
 !=========================================================
 
-    implicit double precision (a-h,o-z)
+    implicit none
+    integer, intent(in) :: mu1, mu2, mb1, mb2
+    double precision, intent(in) :: rho, u1, u2, u3, p, B1, B2, B3, gamma
     double precision, dimension(7,8), intent(out) :: rl
+    double precision a2, a, d, ca, cf, cs, beta1, beta2, beta3, alphaf, alphas, g1, g2, um2, th1, th2
 
     a2 = gamma * p / rho
     a = dsqrt(a2)
@@ -392,8 +404,11 @@ end
 subroutine set_rght_eig(mu1, mu2, mb1, mb2, rho, u1, u2, u3, p, B1, B2, B3, gamma, rr)
 !=========================================================
 
-    implicit double precision (a-h,o-z)
+    implicit none
+    integer, intent(in) :: mu1, mu2, mb1, mb2
+    double precision, intent(in) :: rho, u1, u2, u3, p, B1, B2, B3, gamma
     double precision, dimension(8,7), intent(out) :: rr
+    double precision a2, a, d, ca, cf, cs, beta1, beta2, beta3, alphaf, alphas, g1, g2, hmf, hpf, hms, hps
 
     a2 = gamma * p / rho
     a = dsqrt(a2)
@@ -502,11 +517,13 @@ end
 
 
 !=========================================================
-subroutine set_wave_spd(rho,u1,u2,u3,p,B1,B2,B3,gamma,s)
+subroutine set_wave_spd(rho, u1, u2, u3, p, B1, B2, B3, gamma, s)
 !=========================================================
 
-    implicit double precision (a-h,o-z)
+    implicit none
+    double precision, intent(in) :: rho, u1, u2, u3, p, B1, B2, B3, gamma
     double precision, dimension(7), intent(out) :: s
+    double precision  a2, d, ca, cf, cs
 
     a2 = gamma * p / rho
     d = a2 + (B1**2 + B2**2 + B3**2) / rho
