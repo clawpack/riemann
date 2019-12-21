@@ -86,15 +86,15 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
 
 !        # impedances:
         zi = auxl(1,i)*auxl(2,i)
-        zim = auxl(1,i-1)*auxl(2,i-1)
+        zim = auxr(1,i-1)*auxr(2,i-1)
 
 !       # sound speed
         ci = auxl(2,i)
-        cim = auxl(2,i-1)
+        cim = auxr(2,i-1)
 
 !       # density
         rhoi = auxl(1,i)
-        rhoim = auxl(1,i-1)
+        rhoim = auxr(1,i-1)
 
 !       # bulk modulus
         bulki = rhoi*ci**2
