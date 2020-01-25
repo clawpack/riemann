@@ -24,6 +24,7 @@ from . import acoustics_1D_constants
 from . import acoustics_variable_1D_constants
 from . import advection_1D_constants
 from . import burgers_1D_constants
+from . import cubic_1D_constants
 from . import euler_with_efix_1D_constants
 from . import mhd_1D_constants
 from . import nonlinear_elasticity_fwave_1D_constants
@@ -60,6 +61,7 @@ try:
     from . import advection_1D
     from . import advection_1D_ptwise
     from . import burgers_1D
+    from . import cubic_1D
     from . import euler_with_efix_1D
     from . import euler_hlle_1D
     from . import mhd_roe_1D
