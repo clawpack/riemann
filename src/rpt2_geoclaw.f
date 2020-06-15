@@ -180,8 +180,8 @@ c============= compute fluctuations==========================================
 
           
          ! initialize all components to 0:
-         bmasdq(:,:) = 0.d0
-         bpasdq(:,:) = 0.d0
+         bmasdq(:,i) = 0.d0
+         bpasdq(:,i) = 0.d0
                
             do  mw=1,3
                if ((abs(s(mw)) > 0.d0) .and. 
