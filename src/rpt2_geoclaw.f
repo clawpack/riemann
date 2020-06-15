@@ -36,7 +36,7 @@
       double precision  beta(mwaves)
       double precision  abs_tol
       double precision  hl,hr,hul,hur,hvl,hvr,vl,vr,ul,ur,bl,br
-      double precision  uhat,vhat,hhat,roe1,roe3,s1,s2,s3,s1l,s3r
+      double precision  ulr,hlr
       double precision  delf1,delf2,delf3,dxdcd,dxdcu
       double precision  dxdcm,dxdcp,topo1,topo3,eta
 
@@ -97,16 +97,10 @@
             eta = qr(1,i-1)  + aux2(1,i-1)
             topo1 = aux1(1,i-1)
             topo3 = aux3(1,i-1)
-c            s1 = vl-sqrt(g*hl)
-c            s3 = vl+sqrt(g*hl)
-c            s2 = 0.5d0*(s1+s3)
        else
             eta = ql(1,i) + aux2(1,i)
             topo1 = aux1(1,i)
             topo3 = aux3(1,i)
-c            s1 = vr-sqrt(g*hr)
-c            s3 = vr+sqrt(g*hr)
-c            s2 = 0.5d0*(s1+s3)
        endif
        if (eta.lt.max(topo1,topo3)) go to 90
 
@@ -146,15 +140,15 @@ c=====Determine some speeds necessary for the Jacobian=================
                 s(1) = vl-dsqrt(g*hl)
                 s(2) = vl
                 s(3) = vl+dsqrt(g*hl)
-                uhat = ul
-                hhat = hl
+                ulr = ul
+                hlr = hl
             else
                 ! asdq is rightgoing, use q from cell i:
                 s(1) = vr-dsqrt(g*hr)
                 s(2) = vr
                 s(3) = vr+dsqrt(g*hr)
-                uhat = ur
-                hhat = hr
+                ulr = ur
+                hlr = hr
             endif
 
 c=======================Determine asdq decomposition (beta)============
@@ -162,24 +156,24 @@ c=======================Determine asdq decomposition (beta)============
          delf2=asdq(mu,i)
          delf3=asdq(mv, i)
 
-         ! fixed bug in beta(2): uhat in place of s(2)
-         beta(1) = (s3*delf1/(s3-s1))-(delf3/(s3-s1))
-         beta(2) = -uhat*delf1 + delf2
-         beta(3) = (delf3/(s3-s1))-(s1*delf1/(s3-s1))
+         ! fixed bug in beta(2): ulr in place of s(2)=vlr
+         beta(1) = (s(3)*delf1 - delf3) / (s(3) - s(1))
+         beta(2) = -ulr*delf1 + delf2
+         beta(3) = (delf3 - s(1)*delf1) / (s(3) - s(1))
 c======================End =================================================
 
 c=====================Set-up eigenvectors===================================
          r(1,1) = 1.d0
-         r(2,1) = uhat    ! fixed bug, uhat not s2
-         r(3,1) = s1
+         r(2,1) = ulr    ! fixed bug, ulr not s(2)=vlr
+         r(3,1) = s(1)
 
          r(1,2) = 0.d0
          r(2,2) = 1.d0
          r(3,2) = 0.d0
 
          r(1,3) = 1.d0
-         r(2,3) = uhat    ! fixed bug, uhat not s2
-         r(3,3) = s3
+         r(2,3) = ulr    ! fixed bug, ulr not s(2)=vlr
+         r(3,3) = s(3)
 c============================================================================
 90      continue
 c============= compute fluctuations==========================================
@@ -191,7 +185,7 @@ c============= compute fluctuations==========================================
                
             do  mw=1,3
                if ((abs(s(mw)) > 0.d0) .and. 
-     &             (abs(s(mw)) < 0.001d0*dsqrt(g*hhat))) then
+     &             (abs(s(mw)) < 0.001d0*dsqrt(g*hlr))) then
                  ! split correction symmetrically if nearly zero
                  ! Note wave drops out if s(mw)==0 exactly, so no need to split
                  bmasdq(1,i) =bmasdq(1,i) +
