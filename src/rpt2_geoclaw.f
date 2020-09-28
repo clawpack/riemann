@@ -10,7 +10,7 @@
 !     Riemann solver in the transverse direction using 
 !     Jacobian matrix from left cell (if imp==1) or right cell (if imp==2).
 !
-!     Note this has been modified from the version used in v5.7.0 and
+!     Note this has been modified from the version used in v5.7.x and
 !     earlier, where Roe averages based on ql and qr were used, which
 !     is not correct.  In addition:
 !      - a bug in the second component of the eigenvectors was fixed.
@@ -122,7 +122,7 @@
 c=====Determine some speeds necessary for the Jacobian=================
 
             
-            ! In v5.7.0 and prior versions,
+            ! In v5.7.x and prior versions,
             ! we used left right states to define Roe averages,
             ! which is consistent with those used in rpn2.
             ! But now we are computing upgoing, downgoing waves either in
@@ -137,6 +137,7 @@ c=====Determine some speeds necessary for the Jacobian=================
 
             if (imp == 1) then
                 ! asdq is leftgoing, use q from cell i-1:
+                if (hl <= tol) go to 90
                 s(1) = vl-dsqrt(g*hl)
                 s(2) = vl
                 s(3) = vl+dsqrt(g*hl)
@@ -144,6 +145,7 @@ c=====Determine some speeds necessary for the Jacobian=================
                 hlr = hl
             else
                 ! asdq is rightgoing, use q from cell i:
+                if (hr <= tol) go to 90
                 s(1) = vr-dsqrt(g*hr)
                 s(2) = vr
                 s(3) = vr+dsqrt(g*hr)
