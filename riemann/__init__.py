@@ -60,6 +60,7 @@ try:
     from . import acoustics_1D_ptwise
     from . import advection_1D
     from . import advection_1D_ptwise
+    from . import advection_color_1D
     from . import burgers_1D
     from . import cubic_1D
     from . import euler_with_efix_1D
