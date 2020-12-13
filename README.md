@@ -18,7 +18,7 @@ files are named rpn2_elasticity.f90 and rpt2_elasticity.f90.  Then you should:
 ```
 import vc_elasticity_2D
 ```
-2. Add 'vc_elasticity' to two_d_riemann in src/python/riemann/setup.py.
+2. Add 'vc_elasticity' to two_d_riemann in clawpack/riemann/riemann/setup.py.
 3. Add appropriate entries for num_eqn and num_waves in clawpack/riemann/riemann/static.py.
 
 If you are adding a Python solver, then you should have a vc_elasticity_2D_py.py 
