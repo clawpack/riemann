@@ -36,28 +36,39 @@ subroutine rp1(maxmx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
         u_r = ql(2,i  ) / ql(1,i  )
         c_l = dsqrt(grav*h_l)
         c_r = dsqrt(grav*h_r)
-
-        ! Roe averages
-        hsqrt_l = dsqrt(qr(1,i-1))
-        hsqrt_r = dsqrt(ql(1,i))
-        h_hat = 0.5*(h_l + h_r)
-        u_hat = (hsqrt_l*u_l + hsqrt_r*u_r) / (hsqrt_l + hsqrt_r)
-        c_hat = dsqrt(grav*h_hat)
-
-        s1 = min(u_l - c_l, u_hat - c_hat)
-        s2 = max(u_r + c_r, u_hat + c_hat)
-
-        ! Middle state
-        h_m = (ql(2,i) - qr(2,i-1) - s2*h_r + s1*h_l) / (s1-s2)
-        hu_m = (ql(2,i)*(u_r-s2) - qr(2,i-1)*(u_l-s1) + 0.5*grav*(h_r**2-h_l**2)) / (s1-s2)
-
-        wave(1,1,i) = h_m - h_l
-        wave(2,1,i) = hu_m - qr(2,i-1)
-        s(1,i) = s1
+            
+        if (h_l<1.e-14 .AND. h_r<1.e-14) then
+            wave(1,1,i) =0.
+            wave(2,1,i) =0.
+            s(1,i) = 0.
     
-        wave(1,2,i) = h_r - h_m
-        wave(2,2,i) = ql(2,i) - hu_m
-        s(2,i) = s2
+            wave(1,2,i) = 0.
+            wave(2,2,i) = 0.
+            s(2,i) = 0.
+            
+        else
+            ! Roe averages
+            hsqrt_l = dsqrt(qr(1,i-1))
+            hsqrt_r = dsqrt(ql(1,i))
+            h_hat = 0.5*(h_l + h_r)
+            u_hat = (hsqrt_l*u_l + hsqrt_r*u_r) / (hsqrt_l + hsqrt_r)
+            c_hat = dsqrt(grav*h_hat)
+
+            s1 = min(u_l - c_l, u_hat - c_hat)
+            s2 = max(u_r + c_r, u_hat + c_hat)
+
+            ! Middle state
+            h_m = (ql(2,i) - qr(2,i-1) - s2*h_r + s1*h_l) / (s1-s2)
+            hu_m = (ql(2,i)*(u_r-s2) - qr(2,i-1)*(u_l-s1) + 0.5*grav*(h_r**2-h_l**2)) / (s1-s2)
+               
+            wave(1,1,i) = h_m - h_l
+            wave(2,1,i) = hu_m - qr(2,i-1)
+            s(1,i) = s1
+    
+            wave(1,2,i) = h_r - h_m
+            wave(2,2,i) = ql(2,i) - hu_m
+            s(2,i) = s2
+        end if
 
     end do 
 
