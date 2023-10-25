@@ -58,7 +58,7 @@ subroutine rp1(maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq)
 
 !     # split the jump in q at each interface into waves
 
-    do 20 i = 2-mbc, mx+mbc
+    do i = 2-mbc, mx+mbc
         rhoi = auxl(1,i)
         rhoim = auxr(1,i-1)
         epsi = ql(1,i)
@@ -104,17 +104,18 @@ subroutine rp1(maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq)
         fwave(2,2,i) = b2*(-zi)
         s(2,i) = ci
 
-    20 END DO
+    end do
 
 
 !     # compute the leftgoing and rightgoing fluctuations:
 !     # Note s(1,i) < 0   and   s(2,i) > 0.
 
-    do 220 m=1,meqn
-        do 220 i = 2-mbc, mx+mbc
+    do m=1,meqn
+        do i = 2-mbc, mx+mbc
             amdq(m,i) = fwave(m,1,i)
             apdq(m,i) = fwave(m,2,i)
-    220 END DO
+        end do
+    end do
 
     return
     end subroutine rp1

@@ -42,9 +42,9 @@ subroutine rpt2(ixy,imp,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,aux1,aux2,aux3,asdq,b
         Ejp=aux3(2,ix)
 
     ! linearity of the material
-        linearity_matjm=aux1(3,ix)
-        linearity_matj=aux2(3,ix)
-        linearity_matjp=aux3(3,ix)
+        linearity_matjm = nint(aux1(3,ix))
+        linearity_matj  = nint(aux2(3,ix))
+        linearity_matjp = nint(aux3(3,ix))
 
     ! eps (strain) at different rows
         epsjm=aux1(4,ix)

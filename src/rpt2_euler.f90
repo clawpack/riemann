@@ -91,15 +91,16 @@ subroutine rpt2(ixy,imp,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,aux1,aux2,aux3,asdq,b
 !
 !           # compute the flux differences bmasdq and bpasdq
 !
-            do 30 m=1,meqn
+            do m=1,meqn
                bmasdq(m,i) = 0.d0
                bpasdq(m,i) = 0.d0
-               do 30 mw=1,3
+               do mw=1,3
                   bmasdq(m,i) = bmasdq(m,i) &
                               + dmin1(sb(mw), 0.d0) * waveb(m,mw)
                   bpasdq(m,i) = bpasdq(m,i) &
                               + dmax1(sb(mw), 0.d0) * waveb(m,mw)
-   30             continue
+                end do
+            end do
 !                 
    20       continue
 !

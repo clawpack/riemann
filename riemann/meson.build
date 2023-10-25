@@ -139,10 +139,15 @@ foreach suffix, names: riemann_ptwise
       ext_srcs += srcdir / sep.join(prefix, 'ptwise.f90')
       ext_srcs += srcdir / sep.join(prefix, name, 'ptwise.f90')
     endforeach
+    f2py_srcs = custom_target(
+      command: [f2py, ext_name],
+      input: ext_srcs,
+      output: [ext_name + 'module.c', ext_name + '-f2pywrappers.f'],
+    )
     py.extension_module(
-      ext_name, ext_srcs,
+      ext_name, [ext_srcs, f2py_srcs],
       incdir_f2py / 'fortranobject.c',
-      include_directories: incdir_numpy,
+      include_directories: inc_np,
       dependencies : py_dep,
       subdir: pkg_dir,
       install : true
@@ -157,10 +162,15 @@ foreach suffix, names: riemann
     foreach prefix: prefixes[suffix]
       ext_srcs += srcdir / sep.join(prefix, name + '.f90')
     endforeach
+    f2py_srcs = custom_target(
+      command: [f2py, ext_name],
+      input: ext_srcs,
+      output: [ext_name + 'module.c', ext_name + '-f2pywrappers.f'],
+    )
     py.extension_module(
-      ext_name, ext_srcs,
+      ext_name, [ext_srcs, f2py_srcs],
       incdir_f2py / 'fortranobject.c',
-      include_directories: incdir_numpy,
+      include_directories: inc_np,
       dependencies : py_dep,
       subdir: pkg_dir,
       install : true
@@ -204,10 +214,15 @@ foreach name, sources: special_extensions
   foreach src: sources
     ext_srcs += srcdir / src
   endforeach
+  f2py_srcs = custom_target(
+    command: [f2py, ext_name],
+    input: ext_srcs,
+    output: [ext_name + 'module.c', ext_name + '-f2pywrappers.f'],
+  )
   py.extension_module(
-    ext_name, ext_srcs,
+    ext_name, [ext_srcs, f2py_srcs],
     incdir_f2py / 'fortranobject.c',
-    include_directories: incdir_numpy,
+    include_directories: inc_np,
     dependencies : py_dep,
     subdir: pkg_dir,
     install : true

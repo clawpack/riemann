@@ -66,8 +66,8 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
         urhoim=qr(2,i-1)
         vrhoim=qr(3,i-1)
     ! linearity of material (for cell i and for cell im)
-        linearity_mati=auxl(3,i)
-        linearity_matim=auxr(3,i-1)
+        linearity_mati = nint(auxl(3,i))
+        linearity_matim = nint(auxr(3,i-1))
     ! sigma
         sigmai=sigma(epsi,Ei,linearity_mati)
         sigmaim=sigma(epsim,Eim,linearity_matim)
