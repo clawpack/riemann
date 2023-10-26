@@ -168,19 +168,20 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apd
 !     # amdq = SUM s*wave   over left-going waves
 !     # apdq = SUM s*wave   over right-going waves
 !
-      do 100 m=1,meqn
-         do 100 i=2-mbc, mx+mbc
+      do m=1,meqn
+         do i=2-mbc, mx+mbc
             amdq(m,i) = 0.d0
             apdq(m,i) = 0.d0
-            do 90 mw=1,mwaves
+            do mw=1,mwaves
                if (s(mw,i) .lt. 0.d0) then
                    amdq(m,i) = amdq(m,i) + s(mw,i)*wave(m,mw,i)
                  else
                    apdq(m,i) = apdq(m,i) + s(mw,i)*wave(m,mw,i)
                  endif
-   90          continue
-  100       continue
-      go to 900     
+            end do
+        end do
+    end do
+    go to 900     
 !
 !-----------------------------------------------------
 !
@@ -279,15 +280,16 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apd
 !     # compute the rightgoing flux differences:
 !     # df = SUM s*wave   is the total flux difference and apdq = df - amdq
 !
-      do 220 m=1,meqn
-         do 220 i = 2-mbc, mx+mbc
+    do m=1,meqn
+        do i = 2-mbc, mx+mbc
             df = 0.d0
-            do 210 mw=1,mwaves
+            do mw=1,mwaves
                df = df + s(mw,i)*wave(m,mw,i)
-  210          continue
+            end do
             apdq(m,i) = df - amdq(m,i)
-  220       continue
-!
+        end do
+    end do
+
   900 continue
       return
       end

@@ -103,18 +103,19 @@ subroutine rp1(maxmx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 !     # amdq = SUM s*wave   over left-going waves
 !     # apdq = SUM s*wave   over right-going waves
 
-    do 100 m=1,3
-        do 100 i=2-mbc, mx+mbc
+    do m=1,3
+        do i=2-mbc, mx+mbc
             amdq(m,i) = 0.d0
             apdq(m,i) = 0.d0
-            do 90 mw=1,mwaves
+            do mw=1,mwaves
                 if (s(mw,i) < 0.d0) then
                     amdq(m,i) = amdq(m,i) + s(mw,i)*wave(m,mw,i)
                 else
                     apdq(m,i) = apdq(m,i) + s(mw,i)*wave(m,mw,i)
                 endif
-            90 END DO
-    100 END DO
+            end do
+        end do
+    end do
     go to 900
 
 !-----------------------------------------------------
@@ -209,15 +210,15 @@ subroutine rp1(maxmx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 !     # compute the rightgoing flux differences:
 !     # df = SUM s*wave   is the total flux difference and apdq = df - amdq
 
-    do 220 m=1,3
-        do 220 i = 2-mbc, mx+mbc
+    do m=1,3
+        do i = 2-mbc, mx+mbc
             df = 0.d0
-            do 210 mw=1,mwaves
+            do mw=1,mwaves
                 df = df + s(mw,i)*wave(m,mw,i)
-            210 END DO
+            end do
             apdq(m,i) = df - amdq(m,i)
-    220 END DO
-
+        end do
+    end do
 
 
     900 continue
