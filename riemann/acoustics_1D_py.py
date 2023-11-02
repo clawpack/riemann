@@ -33,8 +33,6 @@ to calculate the impedence :math:`= Z` and speed of sound `= c`.
 #                     http://www.opensource.org/licenses/
 # ============================================================================
 
-from __future__ import absolute_import
-from six.moves import range
 num_eqn = 2
 num_waves = 2
 

@@ -28,9 +28,7 @@ Unless otherwise noted, the ideal gas equation of state is used:
     E = (\gamma - 1) \left (E - \frac{1}{2}\rho u^2 \right)
 """
 
-from __future__ import absolute_import
 import numpy as np
-from six.moves import range
 
 num_eqn = 3
 

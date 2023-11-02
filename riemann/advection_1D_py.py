@@ -20,7 +20,6 @@ Basic advection Riemann solvers of the form (1d)
 # ============================================================================
 
 # Riemann solver constants
-from __future__ import absolute_import
 num_eqn = 1
 num_waves = 1
 

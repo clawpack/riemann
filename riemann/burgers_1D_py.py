@@ -17,7 +17,6 @@ Riemann solvers for Burgers equation
 #                     http://www.opensource.org/licenses/
 # ============================================================================
 
-from __future__ import absolute_import
 num_eqn = 1
 num_waves = 1
 

@@ -11,7 +11,6 @@ switching mpld3.show() to mpld3.display()
 """
 
 
-from __future__ import absolute_import
 import numpy as np
 import jinja2
 import json

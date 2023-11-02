@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-from __future__ import print_function
 from matplotlib import animation
 from clawpack.visclaw.JSAnimation import IPython_display
 from IPython.display import display
@@ -8,7 +6,6 @@ import sympy
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
-from six.moves import range
 
 
 sympy.init_printing(use_latex='mathjax')
