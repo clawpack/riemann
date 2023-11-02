@@ -8,10 +8,7 @@ Python scripts.  The constants that are read and written include:
 - names/indices of q fields
 - names/indices of aux fields
 """
-from __future__ import absolute_import
-from __future__ import print_function
 import os
-from six.moves import zip
 
 for filename in os.listdir('.'):
     # Only process normal Riemann solver files

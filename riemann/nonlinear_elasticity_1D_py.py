@@ -27,9 +27,7 @@ By setting problem_data['stress_relation'] = 'quadratic' one can use instead
 For the latter relation, K_2 is stored in a third aux entry (aux[2,:]).
 """
 
-from __future__ import absolute_import
 import numpy as np
-from six.moves import range
 
 strain = 0
 momentum = 1

@@ -26,9 +26,7 @@ and :math:`h` is the water column height, :math:`u` the velocity and :math:`g`
 is the gravitational acceleration.
 """
 
-from __future__ import absolute_import
 import numpy as np
-from six.moves import range
 
 num_eqn = 2
 num_waves = 2
