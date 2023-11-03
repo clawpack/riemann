@@ -25,23 +25,28 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apd
 !                                    and right state ql(i,:)
 ! From the basic clawpack routines, this routine is called with ql = qr
 
-    
-        implicit double precision (a-h,o-z)
-        
-        dimension wave(meqn, mwaves, 1-mbc:maxm+mbc)
-        dimension    s(mwaves, 1-mbc:maxm+mbc)
-        dimension   ql(meqn, 1-mbc:maxm+mbc)
-        dimension   qr(meqn, 1-mbc:maxm+mbc)
-        dimension  apdq(meqn, 1-mbc:maxm+mbc)
-        dimension  amdq(meqn, 1-mbc:maxm+mbc)
-        logical efix
+    implicit none
+
+    integer, intent(in) :: ixy, maxm, meqn, mwaves, maux, mbc, mx
+    real(kind=8), intent(in) :: ql(meqn,1-mbc:maxm+mbc)
+    real(kind=8), intent(in) :: qr(meqn,1-mbc:maxm+mbc)
+    real(kind=8), intent(in) :: auxl(maux,1-mbc:maxm+mbc)
+    real(kind=8), intent(in) :: auxr(maux,1-mbc:maxm+mbc)
+
+    real(kind=8), intent(out) :: s(mwaves,1-mbc:maxm+mbc)
+    real(kind=8), intent(out) :: wave(meqn, mwaves,1-mbc:maxm+mbc)
+    real(kind=8), intent(out) :: amdq(meqn,1-mbc:maxm+mbc)
+    real(kind=8), intent(out) :: apdq(meqn,1-mbc:maxm+mbc)
+
+    integer :: i
+    logical efix
         
 !     # x- and y- Riemann problems are identical, so it doesn't matter if
 !     # ixy=1 or 2.
 
         efix = .true.
 
-        do 10 i = 2-mbc, mx+mbc
+        do i = 2-mbc, mx+mbc
 !        # wave is jump in q, speed comes from R-H condition:
             wave(1,1,i) = ql(1,i) - qr(1,i-1)
             s(1,i) = 0.5d0*(qr(1,i-1) + ql(1,i))
@@ -58,7 +63,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apd
                     apdq(1,i) =   0.5d0 * ql(1,i)**2
                 end if
             end if
-        10 continue
+        end do
         
     return
     end subroutine rpn2

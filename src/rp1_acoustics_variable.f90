@@ -36,20 +36,21 @@ subroutine rp1(maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 ! From the basic clawpack routines, this routine is called with ql = qr
 
 
-    implicit double precision (a-h,o-z)
+    implicit none
 
-    dimension auxl(maux, 1-mbc:maxm+mbc)
-    dimension auxr(maux, 1-mbc:maxm+mbc)
-    dimension wave(meqn, mwaves, 1-mbc:maxm+mbc)
-    dimension    s(mwaves, 1-mbc:maxm+mbc)
-    dimension   ql(meqn, 1-mbc:maxm+mbc)
-    dimension   qr(meqn, 1-mbc:maxm+mbc)
-    dimension apdq(meqn, 1-mbc:maxm+mbc)
-    dimension amdq(meqn, 1-mbc:maxm+mbc)
+    integer, intent(in) :: maxm, meqn, mwaves, maux, mbc, mx
+    real(kind=8), intent(in) :: ql(meqn, 1-mbc:mx+mbc)
+    real(kind=8), intent(in) :: qr(meqn, 1-mbc:mx+mbc)
+    real(kind=8), intent(in) :: auxl(maux, 1-mbc:maxm+mbc)
+    real(kind=8), intent(in) :: auxr(maux, 1-mbc:maxm+mbc)
+    real(kind=8), intent(out) :: wave(meqn, mwaves, 1-mbc:maxm+mbc)
+    real(kind=8), intent(out) :: s(mwaves, 1-mbc:maxm+mbc)
+    real(kind=8), intent(out) :: apdq(meqn, 1-mbc:maxm+mbc)
+    real(kind=8), intent(out) :: amdq(meqn, 1-mbc:maxm+mbc)
 
-!    local arrays
-!    ------------
-    dimension delta(2)
+    real(kind=8) :: delta(2)
+    real(kind=8) :: zi, zim, a1, a2
+    integer :: i, m
 
 
     ! split the jump in q at each interface into waves
