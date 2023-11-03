@@ -24,7 +24,6 @@ one_d_riemann = ['acoustics',
                  'shallow_hlle',
                  'shallow_roe_with_efix',
                  'shallow_bathymetry_fwave',
-                 'sw_aug',
                  'shallow_roe_tracer']
 
 two_d_ptwise_riemann = ['acoustics']
@@ -37,7 +36,6 @@ two_d_riemann = ['acoustics',
                  'psystem',
                  'shallow_roe_with_efix',
                  'shallow_bathymetry_fwave',
-                 'sw_aug',
                  'shallow_sphere',
                  'vc_acoustics',
                  'vc_advection',
