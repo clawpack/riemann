@@ -12,16 +12,19 @@ subroutine rp1(maxmx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 ! Conserved quantities:
 !       1 q
     
-    implicit double precision (a-h,o-z)
+    implicit none
 
-    integer :: maxmx, meqn, mwaves, mbc, mx
-        
-    double precision :: ql(meqn,1-mbc:maxmx+mbc)
-    double precision :: qr(meqn,1-mbc:maxmx+mbc)
-    double precision :: s(mwaves, 1-mbc:maxmx+mbc)
-    double precision :: wave(meqn, mwaves, 1-mbc:maxmx+mbc)
-    double precision :: amdq(meqn, 1-mbc:maxmx+mbc)
-    double precision :: apdq(meqn, 1-mbc:maxmx+mbc)
+    integer, intent(in) :: maxmx, meqn, mwaves, maux, mbc, mx
+    real(kind=8), intent(in) :: ql(meqn,1-mbc:maxmx+mbc)
+    real(kind=8), intent(in) :: qr(meqn,1-mbc:maxmx+mbc)
+    real(kind=8), intent(in) :: auxl(maux,1-mbc:maxmx+mbc)
+    real(kind=8), intent(in) :: auxr(maux,1-mbc:maxmx+mbc)
+
+    real(kind=8), intent(out) :: s(mwaves,1-mbc:maxmx+mbc)
+    real(kind=8), intent(out) :: wave(meqn, mwaves,1-mbc:maxmx+mbc)
+    real(kind=8), intent(out) :: amdq(meqn,1-mbc:maxmx+mbc)
+    real(kind=8), intent(out) :: apdq(meqn,1-mbc:maxmx+mbc)
+
     integer :: i
     logical :: efix
  

@@ -23,14 +23,18 @@ subroutine rp1(maxmx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 !                                    and right state ql(:, i)
 ! From the basic clawpack routine step1, rp is called with ql = qr = q.
 
-    implicit none
+     implicit none
 
     integer, intent(in) :: maxmx, meqn, mwaves, maux, mbc, mx
-    double precision, dimension(meqn, 1-mbc:maxmx+mbc),         intent(in)  :: ql, qr
-    double precision, dimension(maux, 1-mbc:maxmx+mbc),         intent(in)  :: auxl, auxr
-    double precision, dimension(meqn, mwaves, 1-mbc:maxmx+mbc), intent(out) :: wave
-    double precision, dimension(meqn, 1-mbc:maxmx+mbc),         intent(out) :: amdq, apdq
-    double precision, dimension(mwaves, 1-mbc:maxmx+mbc),       intent(out) :: s
+    real(kind=8), intent(in) :: ql(meqn,1-mbc:maxmx+mbc)
+    real(kind=8), intent(in) :: qr(meqn,1-mbc:maxmx+mbc)
+    real(kind=8), intent(in) :: auxl(maux,1-mbc:maxmx+mbc)
+    real(kind=8), intent(in) :: auxr(maux,1-mbc:maxmx+mbc)
+
+    real(kind=8), intent(out) :: s(mwaves,1-mbc:maxmx+mbc)
+    real(kind=8), intent(out) :: wave(meqn, mwaves,1-mbc:maxmx+mbc)
+    real(kind=8), intent(out) :: amdq(meqn,1-mbc:maxmx+mbc)
+    real(kind=8), intent(out) :: apdq(meqn,1-mbc:maxmx+mbc)
 
     integer :: i
 
