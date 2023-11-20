@@ -25,7 +25,7 @@ energy and :math:`p` is the pressure.
 Unless otherwise noted, the ideal gas equation of state is used:
 
 .. math::
-    E = (\gamma - 1) \left (E - \frac{1}{2}\rho u^2 \right)
+    p = (\gamma - 1) \left (E - \frac{1}{2}\rho u^2 \right)
 """
 
 import numpy as np
