@@ -84,6 +84,7 @@ riemann_1D = [
   'euler_hlle',
   'mhd_roe',
   'nonlinear_elasticity_fwave',
+  'psystem_fwave',
   'reactive_euler_with_efix',
   'shallow_hlle',
   'shallow_roe_with_efix',
