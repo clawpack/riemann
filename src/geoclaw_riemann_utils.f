@@ -265,6 +265,8 @@ c        !solve for beta(k) using Cramers Rule=================
 
       enddo ! end iteration on Riemann problem
 
+      fw(:,:) = 0.d0  ! initialize before setting some waves
+
       do mw=1,mwaves
          sw(mw)=lambda(mw)
          fw(1,mw)=beta(mw)*r(2,mw)
