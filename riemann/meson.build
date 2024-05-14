@@ -149,7 +149,6 @@ foreach suffix, names: riemann_ptwise
       ext_name, [ext_srcs, f2py_srcs],
       incdir_f2py / 'fortranobject.c',
       include_directories: inc_np,
-      dependencies : py_dep,
       subdir: pkg_dir,
       install : true
     )
@@ -172,7 +171,6 @@ foreach suffix, names: riemann
       ext_name, [ext_srcs, f2py_srcs],
       incdir_f2py / 'fortranobject.c',
       include_directories: inc_np,
-      dependencies : py_dep,
       subdir: pkg_dir,
       install : true
     )
@@ -224,7 +222,6 @@ foreach name, sources: special_extensions
     ext_name, [ext_srcs, f2py_srcs],
     incdir_f2py / 'fortranobject.c',
     include_directories: inc_np,
-    dependencies : py_dep,
     subdir: pkg_dir,
     install : true
   )
