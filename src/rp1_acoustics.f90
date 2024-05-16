@@ -29,23 +29,23 @@ subroutine rp1(maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 ! From the basic clawpack routines, this routine is called with ql = qr
 
 
-    implicit double precision (a-h,o-z)
+    implicit none
 
-    dimension wave(meqn, mwaves, 1-mbc:maxm+mbc)
-    dimension    s(mwaves,1-mbc:maxm+mbc)
-    dimension   ql(meqn, 1-mbc:maxm+mbc)
-    dimension   qr(meqn, 1-mbc:maxm+mbc)
-    dimension apdq(meqn, 1-mbc:maxm+mbc)
-    dimension amdq(meqn, 1-mbc:maxm+mbc)
+    integer, intent(in) :: maxm, meqn, mwaves, mbc, mx, maux
+    real(kind=8), intent(in) :: ql(meqn, 1-mbc:maxm+mbc),qr(meqn, 1-mbc:maxm+mbc)
 
-!     local arrays
-!     ------------
-    dimension delta(2)
+    real(kind=8), intent(out)  :: wave(meqn, mwaves, 1-mbc:maxm+mbc)
+    real(kind=8), intent(out) :: s(mwaves,1-mbc:maxm+mbc)
+    real(kind=8), intent(out) :: apdq(meqn, 1-mbc:maxm+mbc), amdq(meqn, 1-mbc:maxm+mbc)
 
-!     # density, bulk modulus, and sound speed, and impedence of medium:
-!     # (should be set in setprob.f)
+    real(kind=8) :: delta(2)
+    real(kind=8) :: rho, bulk, cc, zz
+    real(kind=8) :: a1, a2, auxl, auxr
+    integer :: i, m
+
+    ! density, bulk modulus, and sound speed, and impedence of medium:
+    ! (should be set in setprob.f)
     common /cparam/ rho,bulk,cc,zz
-
 
 !     # split the jump in q at each interface into waves
 

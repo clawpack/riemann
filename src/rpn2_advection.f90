@@ -31,17 +31,22 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apd
 ! From the basic clawpack routines, this routine is called with ql = qr
 ! maux=0 and aux arrays are unused in this example.
 
+    implicit none
 
-    implicit double precision (a-h,o-z)
+    integer, intent(in) :: ixy, maxm, meqn, mwaves, maux, mbc, mx
+    real(kind=8), intent(in) :: ql(meqn,1-mbc:maxm+mbc)
+    real(kind=8), intent(in) :: qr(meqn,1-mbc:maxm+mbc)
+    real(kind=8), intent(in) :: auxl(maux,1-mbc:maxm+mbc)
+    real(kind=8), intent(in) :: auxr(maux,1-mbc:maxm+mbc)
+
+    real(kind=8), intent(out) :: s(mwaves,1-mbc:maxm+mbc)
+    real(kind=8), intent(out) :: wave(meqn, mwaves,1-mbc:maxm+mbc)
+    real(kind=8), intent(out) :: amdq(meqn,1-mbc:maxm+mbc)
+    real(kind=8), intent(out) :: apdq(meqn,1-mbc:maxm+mbc)
+
+    real(kind=8) :: u, v
+    integer :: i
     common /cparam/ u,v
-
-    dimension wave(meqn, mwaves, 1-mbc:maxm+mbc)
-    dimension    s(mwaves, 1-mbc:maxm+mbc)
-    dimension   ql(meqn, 1-mbc:maxm+mbc)
-    dimension   qr(meqn, 1-mbc:maxm+mbc)
-    dimension  apdq(meqn, 1-mbc:maxm+mbc)
-    dimension  amdq(meqn, 1-mbc:maxm+mbc)
-
 
 !$$$      do 30 i = 2-mbc, mx+mbc-1
     do 30 i = 2-mbc, mx+mbc
