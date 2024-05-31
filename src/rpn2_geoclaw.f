@@ -65,14 +65,11 @@ c
       double precision hstar,hstartest,hstarHLL,sLtest,sRtest
       double precision tw,dxdc
 
-      logical :: debug
-
       logical rare1,rare2
 
       ! In case there is no pressure forcing
       pL = 0.d0
       pR = 0.d0
-      debug = .false.
       
       ! initialize all components to 0
       fw(:,:) = 0.d0
@@ -289,17 +286,6 @@ c============= compute fluctuations=============================================
                endif
             enddo
          enddo
-
-         if (debug) then
-          do i=2-mbc,mx+mbc
-               do m=1,meqn
-                   write(51,151) m,i,amdq(m,i),apdq(m,i)
-                   write(51,152) fwave(m,1,i),fwave(m,2,i),fwave(m,3,i)
- 151               format("+++ ampdq ",2i4,2e25.15)
- 152               format("+++ fwave ",8x,3e25.15)
-               enddo
-           enddo
-           endif
 
       return
       end subroutine
