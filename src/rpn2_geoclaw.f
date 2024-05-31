@@ -9,6 +9,13 @@ c     #        h_t + (hu)_x + (hv)_y = 0                           #
 c     #        (hu)_t + (hu^2 + 0.5gh^2)_x + (huv)_y = -ghb_x      #
 c     #        (hv)_t + (huv)_x + (hv^2 + 0.5gh^2)_y = -ghb_y      #
 
+c Modified in v5.10.1 to also work for Boussinesq equations in which q has
+c two additional components. They are used to store momentum corrections
+c that come from solving an elliptic system, for ease of interpolation to
+c ghost cells to provide BCs on finer levels.  These components q(4:5,:)
+c are not modified in the shallow water step and so the waves and
+c fluctuations are initialized to have zeros in these components.
+
 c On input, ql contains the state vector at the left edge of each cell
 c     qr contains the state vector at the right edge of each cell
 c
