@@ -127,7 +127,7 @@ subroutine rpn2(ixy, maxm, num_eqn, num_waves, num_aux, num_ghost, &
         ! Fluctuations - could probably rewrite this to be a masking operation
         ! instead...
         do k=1, num_waves
-            if (s(k, i) < 1.0e-14) then
+            if (s(k, i) < -1.0e-14) then
                 amdq(:, i) = amdq(:, i) + fwave(:, k, i)
             elseif (s(k, i) > 1.0e-14) then
                 apdq(:, i) = apdq(:, i) + fwave(:, k, i)
