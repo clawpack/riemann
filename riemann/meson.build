@@ -111,7 +111,7 @@ riemann_2D = [
 riemann_3D = [
   'vc_acoustics',
   'euler',
-  'euler_mapgrid'
+  'euler_mapgrid',
   'burgers',
   'vc_advection',
 ]
