@@ -15,17 +15,21 @@ subroutine rp1(maxmx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 
     implicit none
 
-    integer, intent(in) :: maxmx, meqn, mwaves, mbc, mx, maux
-    double precision, dimension(meqn,1-mbc:maxmx+mbc), intent(in) :: ql, qr
-    double precision, dimension(maux,1-mbc:maxmx+mbc), intent(in) :: auxl, auxr
-    double precision, dimension(meqn, mwaves, 1-mbc:maxmx+mbc), intent(out) :: wave
-    double precision, dimension(meqn, 1-mbc:maxmx+mbc), intent(out) :: amdq, apdq
-    double precision, dimension(mwaves, 1-mbc:maxmx+mbc), intent(out) :: s
+    integer, intent(in) :: maxmx, meqn, mwaves, maux, mbc, mx
+    real(kind=8), intent(in) :: ql(meqn,1-mbc:maxmx+mbc)
+    real(kind=8), intent(in) :: qr(meqn,1-mbc:maxmx+mbc)
+    real(kind=8), intent(in) :: auxl(maux,1-mbc:maxmx+mbc)
+    real(kind=8), intent(in) :: auxr(maux,1-mbc:maxmx+mbc)
 
-    double precision :: u_l, u_r, c_l, c_r, u_hat, c_hat
-    double precision :: p_l, p_r, H_l, H_r, rhsqrt_l, rhsqrt_r
-    double precision :: rhsq2, H_hat, gamma, gamma1, E_l, E_r
-    double precision :: rho_m, rhou_m, E_m, s1, s2
+    real(kind=8), intent(out) :: s(mwaves,1-mbc:maxmx+mbc)
+    real(kind=8), intent(out) :: wave(meqn, mwaves,1-mbc:maxmx+mbc)
+    real(kind=8), intent(out) :: amdq(meqn,1-mbc:maxmx+mbc)
+    real(kind=8), intent(out) :: apdq(meqn,1-mbc:maxmx+mbc)
+
+    real(kind=8) :: u_l, u_r, c_l, c_r, u_hat, c_hat
+    real(kind=8) :: p_l, p_r, H_l, H_r, rhsqrt_l, rhsqrt_r
+    real(kind=8) :: rhsq2, H_hat, gamma, gamma1, E_l, E_r
+    real(kind=8) :: rho_m, rhou_m, E_m, s1, s2
     integer :: m, i, mw
 
     common /cparam/  gamma

@@ -24,21 +24,28 @@ subroutine rp1(maxmx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 !                                    and right state ql(:,i)
 ! From the basic clawpack routine step1, rp is called with ql = qr = q.
 
+    implicit none
 
-    implicit double precision (a-h,o-z)
-    dimension   ql(meqn,1-mbc:maxmx+mbc)
-    dimension   qr(meqn,1-mbc:maxmx+mbc)
-    dimension    s(mwaves,1-mbc:maxmx+mbc)
-    dimension wave(meqn, mwaves,1-mbc:maxmx+mbc)
-    dimension amdq(meqn,1-mbc:maxmx+mbc)
-    dimension apdq(meqn,1-mbc:maxmx+mbc)
+    integer, intent(in) :: maxmx, meqn, mwaves, maux, mbc, mx
+    real(kind=8), intent(in) :: ql(meqn,1-mbc:maxmx+mbc)
+    real(kind=8), intent(in) :: qr(meqn,1-mbc:maxmx+mbc)
+    real(kind=8), intent(in) :: auxl(maux,1-mbc:maxmx+mbc)
+    real(kind=8), intent(in) :: auxr(maux,1-mbc:maxmx+mbc)
 
-!     # local storage
-!     ---------------
-    dimension delta(3)
-    dimension u(1-mbc:maxmx+mbc),enth(1-mbc:maxmx+mbc)
-    dimension a(1-mbc:maxmx+mbc)
+    real(kind=8), intent(out) :: s(mwaves,1-mbc:maxmx+mbc)
+    real(kind=8), intent(out) :: wave(meqn, mwaves,1-mbc:maxmx+mbc)
+    real(kind=8), intent(out) :: amdq(meqn,1-mbc:maxmx+mbc)
+    real(kind=8), intent(out) :: apdq(meqn,1-mbc:maxmx+mbc)
+
+    real(kind=8) delta(3)
+    real(kind=8) u(1-mbc:maxmx+mbc),enth(1-mbc:maxmx+mbc)
+    real(kind=8) a(1-mbc:maxmx+mbc)
     logical :: efix
+    real(kind=8) :: gamma, gamma1, rhsqrtl, rhsqrtr, pl, pr, rhsq2, a1, a2, a3
+    real(kind=8) :: rhoim1, pim1, cim1, s0, rho1, rhou1, en1, p1, c1, s1, sfract
+    real(kind=8) :: rhoi, pi, ci, s3, rho2, rhou2, en2, p2, c2, s2, df
+    integer :: i, m, mw
+
     common /cparam/  gamma
 
     data efix /.true./    !# use entropy fix for transonic rarefactions

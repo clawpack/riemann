@@ -1,5 +1,5 @@
 ! =====================================================
-subroutine rp1(maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq)
+subroutine rp1(maxmx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq)
 ! =====================================================
 
 ! This version uses interleaved arrays.
@@ -44,18 +44,23 @@ subroutine rp1(maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq)
 ! From the basic clawpack routines, this routine is called with ql = qr
 
 
-    implicit double precision (a-h,o-z)
+    implicit none
 
-    dimension auxl(maux,1-mbc:maxm+mbc)
-    dimension auxr(maux,1-mbc:maxm+mbc)
-    dimension fwave(meqn,mwaves,1-mbc:maxm+mbc)
-    dimension    s(mwaves,1-mbc:maxm+mbc)
-    dimension   ql(meqn,1-mbc:maxm+mbc)
-    dimension   qr(meqn,1-mbc:maxm+mbc)
-    dimension apdq(meqn,1-mbc:maxm+mbc)
-    dimension amdq(meqn,1-mbc:maxm+mbc)
+    integer, intent(in) :: maxmx, meqn, mwaves, maux, mbc, mx
+    real(kind=8), intent(in) :: ql(meqn,1-mbc:maxmx+mbc)
+    real(kind=8), intent(in) :: qr(meqn,1-mbc:maxmx+mbc)
+    real(kind=8), intent(in) :: auxl(maux,1-mbc:maxmx+mbc)
+    real(kind=8), intent(in) :: auxr(maux,1-mbc:maxmx+mbc)
 
+    real(kind=8), intent(out) :: s(mwaves,1-mbc:maxmx+mbc)
+    real(kind=8), intent(out) :: fwave(meqn, mwaves,1-mbc:maxmx+mbc)
+    real(kind=8), intent(out) :: amdq(meqn,1-mbc:maxmx+mbc)
+    real(kind=8), intent(out) :: apdq(meqn,1-mbc:maxmx+mbc)
 
+    integer :: i, m
+    real(kind=8) :: rhoi, rhoim, epsi, epsim, urhoi, urhoim
+    real(kind=8) :: bulki, bulkim, ci, cim, zi, zim, du, dsig, b1, b2
+    real(kind=8) :: sigma, sigmap
 !     # split the jump in q at each interface into waves
 
     do i = 2-mbc, mx+mbc
@@ -124,7 +129,10 @@ subroutine rp1(maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq)
 !     --------------------------------------------
     double precision function sigma(eps,i,coefA,coefB)
 !     --------------------------------------------
-    implicit double precision (a-h,o-z)
+    implicit none
+
+    real(kind=8) :: eps, coefA, coefB
+    integer :: i
 
 !     # stress-strain relation in ith cell
 
@@ -156,7 +164,10 @@ subroutine rp1(maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq)
 !     --------------------------------------------
     double precision function sigmap(eps,i,coefA,coefB)
 !     --------------------------------------------
-    implicit double precision (a-h,o-z)
+    implicit none
+
+    real(kind=8) :: eps, coefA, coefB
+    integer :: i
 
 !     # derivative of stress-strain relation in ith cell
 
