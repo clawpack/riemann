@@ -50,6 +50,7 @@ from . import vc_acoustics_3D_constants
 from . import euler_3D_constants
 from . import burgers_3D_constants
 from . import vc_advection_3D_constants
+from . import euler_mapgrid_3D
 
 
 try:
@@ -99,6 +100,7 @@ try:
     from . import euler_3D
     from . import burgers_3D
     from . import vc_advection_3D
+    from . import euler_mapgrid_3D
 except ImportError as e:
     import traceback
     print("********************************************************************")
