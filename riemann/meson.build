@@ -111,6 +111,7 @@ riemann_2D = [
 riemann_3D = [
   'vc_acoustics',
   'euler',
+  'euler_mapgrid',
   'burgers',
   'vc_advection',
 ]
@@ -226,3 +227,24 @@ foreach name, sources: special_extensions
     install : true
   )
 endforeach
+
+ext_name = 'mappedGrid'
+ext_srcs = [
+  srcdir / 'euler3d_mappedGrid.f90',
+]
+f2py_srcs = custom_target(
+  'f2py_mappedGrid',
+  command: [f2py, ext_name],
+  input: ext_srcs,
+  output: [ext_name + 'module.c', ext_name + '-f2pywrappers2.f90'],
+  build_by_default: true,
+)
+
+py.extension_module(
+  ext_name, [ext_srcs, f2py_srcs],
+  incdir_f2py / 'fortranobject.c',
+  include_directories: inc_np,
+  dependencies : py_dep,
+  subdir: pkg_dir,
+  install : true
+)
