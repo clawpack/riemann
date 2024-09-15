@@ -23,17 +23,25 @@ subroutine rp1(maxmx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 !                                    and right state ql(i,:)
 ! From the basic clawpack routine step1, rp is called with ql = qr = q.
 
+    implicit none
+    !Input
+    integer, intent(in) :: maxmx, meqn, mwaves, maux, mbc, mx
+    double precision, intent(in) ::   ql( meqn,1-mbc:maxmx+mbc)
+    double precision, intent(in) ::   qr( meqn,1-mbc:maxmx+mbc)
+    double precision, intent(in) :: auxl(maux,1-mbc:maxmx+mbc)
+    double precision, intent(in) :: auxr(maux,1-mbc:maxmx+mbc)
+    
+    double precision, intent(out) ::   amdq( meqn,1-mbc:maxmx+mbc)
+    double precision, intent(out) ::   apdq( meqn,1-mbc:maxmx+mbc)
+    double precision, intent(out) ::    s(mwaves,1-mbc:maxmx+mbc)
+    double precision, intent(out) :: wave(meqn, mwaves,1-mbc:maxmx+mbc)
 
-    implicit double precision (a-h,o-z)
-    double precision ::   ql( meqn,1-mbc:maxmx+mbc)
-    double precision ::   qr( meqn,1-mbc:maxmx+mbc)
-    double precision ::   amdq( meqn,1-mbc:maxmx+mbc)
-    double precision ::   apdq( meqn,1-mbc:maxmx+mbc)
-    double precision ::    s(mwaves,1-mbc:maxmx+mbc)
-    double precision :: wave(meqn, mwaves,1-mbc:maxmx+mbc)
+    !Local
+    double precision :: u
+    integer :: i
     common /cparam/ u
 
-    do 30 i=2-mbc,mx+mbc
+    do i=2-mbc,mx+mbc
     
     !        # Compute the wave and speed
 !       # (speed negative because we are going backward in time)
@@ -42,7 +50,7 @@ subroutine rp1(maxmx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
         s(1,i) = -u
         amdq(1,i) = dmin1(s(1,i), 0.d0) * wave(1,1,i)
         apdq(1,i) = dmax1(s(1,i), 0.d0) * wave(1,1,i)
-    30 END DO
+    END DO
 
     return
     end subroutine rp1

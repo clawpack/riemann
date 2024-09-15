@@ -42,15 +42,43 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
 !                                    and right state ql(i,:)
 ! From the basic clawpack routines, this routine is called with ql = qr
 
-    implicit double precision (a-h,o-z)
-    dimension fwave(meqn,mwaves,1-mbc:maxm+mbc)
-    dimension    s(mwaves,1-mbc:maxm+mbc)
-    dimension   ql(meqn,1-mbc:maxm+mbc)
-    dimension   qr(meqn,1-mbc:maxm+mbc)
-    dimension apdq(meqn,1-mbc:maxm+mbc)
-    dimension amdq(meqn,1-mbc:maxm+mbc)
-    dimension auxl(maux,1-mbc:maxm+mbc)
-    dimension auxr(maux,1-mbc:maxm+mbc)
+    implicit none
+
+    ! Input
+    integer, intent(in) :: ixy, maxm, meqn, mwaves, maux, mbc, mx
+    real(kind=8), dimension(meqn, 1-mbc:maxm+mbc), intent(in) :: ql, qr
+    real(kind=8), dimension(maux, 1-mbc:maxm+mbc), intent(in) :: auxl, auxr
+
+    !Output
+    real(kind=8), intent(out) :: fwave(meqn, mwaves, 1-mbc:maxm+mbc)
+    real(kind=8), intent(out) :: s(mwaves, 1-mbc:maxm+mbc)
+    real(kind=8), dimension(meqn, 1-mbc:maxm+mbc), intent(out) :: apdq, amdq
+
+    !Local
+    integer :: i
+    real(kind=8) :: epsi, urhoi, vrhoi, epsim, urhoim, vrhoim
+    real(kind=8) :: sigmai, sigmaim, sigmapi, sigmapim
+    real(kind=8) :: pim, pi, Eim, Ei
+    integer :: linearity_mati, linearity_matim
+    real(kind=8) :: r11, r13
+    real(kind=8) :: dF1, dF2, dF3
+    real(kind=8) :: beta1, beta3
+
+    interface
+        function sigma(eps,E,linearity_mat)
+            implicit none
+            integer, intent(in) :: linearity_mat
+            real(kind=8), intent(in) :: eps, E
+            real(kind=8) :: sigma
+        end function
+        function sigmap(eps,E,linearity_mat)
+            implicit none
+            integer, intent(in) :: linearity_mat
+            real(kind=8), intent(in) :: eps, E
+            real(kind=8) :: sigmap
+        end function
+    end interface
+
           
     do 10 i=2-mbc,mx+mbc
     ! material properties
@@ -90,11 +118,11 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
             beta3=(-dF1+r11*dF2)/(r11-r13)
         ! compute f-waves
             fwave(1,1,i)=beta1*r11
-            fwave(2,1,i)=beta1*1
-            fwave(3,1,i)=beta1*0
+            fwave(2,1,i)=beta1*1.0d0
+            fwave(3,1,i)=beta1*0.0d0
             fwave(1,2,i)=beta3*r13
-            fwave(2,2,i)=beta3*1
-            fwave(3,2,i)=beta3*0
+            fwave(2,2,i)=beta3*1.0d0
+            fwave(3,2,i)=beta3*0.0d0
         else                   !y direction
         ! compute jump in flux
             dF1=-(vrhoi/pi-vrhoim/pim)
@@ -104,11 +132,11 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
             beta3=(-dF1+r11*dF3)/(r11-r13)
         ! compute f-waves
             fwave(1,1,i)=beta1*r11
-            fwave(2,1,i)=beta1*0
-            fwave(3,1,i)=beta1*1
+            fwave(2,1,i)=beta1*0.0d0
+            fwave(3,1,i)=beta1*1.0d0
             fwave(1,2,i)=beta3*r13
-            fwave(2,2,i)=beta3*0
-            fwave(3,2,i)=beta3*1
+            fwave(2,2,i)=beta3*0.0d0
+            fwave(3,2,i)=beta3*1.0d0
         endif
     ! computation of the fluctuations
         amdq(1,i)=fwave(1,1,i)
@@ -124,33 +152,41 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
     end subroutine rpn2
 
     double precision function sigma(eps,E,linearity_mat)
-!     Returns the flux sigma for a given
-!     eps, E and depending the linearity of the material
-    implicit double precision (a-h,o-z)
-    beta=5
-    select case (linearity_mat)
-    case (1)
-    sigma=E*eps
-    case (2)
-    sigma=dexp(E*eps)-1
-    case (3)
-    sigma=0.1*E*eps+beta*eps**3*E**3
-    end select
-    return
+    !Returns the flux sigma for a given
+    !eps, E and depending the linearity of the material
+        implicit none
+        !Input
+        integer, intent(in) :: linearity_mat
+        real(kind=8), intent(in) :: eps, E
+        real(kind=8) :: beta
+        beta=5.d0
+        select case (linearity_mat)
+        case (1)
+        sigma=E*eps
+        case (2)
+        sigma=dexp(E*eps)-1
+        case (3)
+        sigma=0.1*E*eps+beta*eps**3*E**3
+        end select
+        return
     END function
 
     double precision function sigmap(eps,E,linearity_mat)
-    implicit double precision (a-h,o-z)
-! Returns the derivative of sigma wrt eps for a given
-!     eps, E and depending the linearity of the material
-    beta=5
-    select case (linearity_mat)
-    case (1)
-    sigmap=E
-    case (2)
-    sigmap=E*dexp(E*eps)
-    case (3)
-    sigmap=0.1*E+3*beta*eps**2*E**3
-    end select
-    return
+    ! Returns the derivative of sigma wrt eps for a given
+    !     eps, E and depending the linearity of the material
+        implicit none
+        !Input
+        integer, intent(in) :: linearity_mat
+        real(kind=8), intent(in) :: eps, E
+        real(kind=8) :: beta
+        beta=5.d0
+        select case (linearity_mat)
+        case (1)
+        sigmap=E
+        case (2)
+        sigmap=E*dexp(E*eps)
+        case (3)
+        sigmap=0.1*E+3*beta*eps**2*E**3
+        end select
+        return
     END function

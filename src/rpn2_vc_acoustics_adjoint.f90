@@ -39,20 +39,24 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
 !     #                                    and right state ql(i,:)
 !     # From the basic clawpack routines, this routine is called with ql = qr
 
-    implicit double precision (a-h,o-z)
+    implicit none
+    !Input
+    integer, intent(in) :: ixy, maxm, meqn, mwaves, maux, mbc, mx
+    real(kind=8), dimension(meqn, 1-mbc:maxm+mbc), intent(in) :: ql, qr
+    real(kind=8), dimension(maux, 1-mbc:maxm+mbc), intent(in) :: auxl, auxr
 
-    dimension fwave(meqn, mwaves, 1-mbc:maxm+mbc)
-    dimension    s(mwaves, 1-mbc:maxm+mbc)
-    dimension   ql(meqn, 1-mbc:maxm+mbc)
-    dimension   qr(meqn, 1-mbc:maxm+mbc)
-    dimension apdq(meqn, 1-mbc:maxm+mbc)
-    dimension amdq(meqn, 1-mbc:maxm+mbc)
-    dimension auxl(maux, 1-mbc:maxm+mbc)
-    dimension auxr(maux, 1-mbc:maxm+mbc)
+    !Output
+    real(kind=8), intent(out) :: fwave(meqn, mwaves, 1-mbc:maxm+mbc) 
+    real(kind=8), intent(out) :: s(mwaves, 1-mbc:maxm+mbc)
+    real(kind=8), dimension(meqn, 1-mbc:maxm+mbc), intent(out) :: apdq, amdq
+
+    !Local
+    integer :: i, m, mu, mv
+    real(kind=8) :: zi, zim, ci, cim, rhoi, rhoim, bulki, bulkim, beta1, beta2
+    real(kind=8) :: delta(3)
 
 !     local arrays
 !     ------------
-    dimension delta(3)
 
 !     # set mu to point to  the component of the system that corresponds
 !     # to velocity in the direction of this slice, mv to the orthogonal
