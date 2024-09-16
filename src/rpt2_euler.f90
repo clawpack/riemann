@@ -1,7 +1,6 @@
 ! =====================================================
 subroutine rpt2(ixy,imp,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,aux1,aux2,aux3,asdq,bmasdq,bpasdq)
 ! =====================================================
-      implicit double precision (a-h,o-z)
 !
 !     # Riemann solver in the transverse direction for the Euler equations.
 !     # Split asdq (= A^* \Delta q, where * = + or -)
@@ -11,19 +10,26 @@ subroutine rpt2(ixy,imp,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,aux1,aux2,aux3,asdq,b
 !     # Uses Roe averages and other quantities which were 
 !     # computed in rpn2eu and stored in the common block comroe.
 !
-      dimension     ql(meqn, 1-mbc:maxm+mbc)
-      dimension     qr(meqn, 1-mbc:maxm+mbc)
-      dimension   asdq(meqn, 1-mbc:maxm+mbc)
-      dimension bmasdq(meqn, 1-mbc:maxm+mbc)
-      dimension bpasdq(meqn, 1-mbc:maxm+mbc)
+      implicit none
+      !Input
+      integer, intent(in)  :: ixy,imp,maxm,meqn,mwaves,maux,mbc,mx
+      double precision, dimension(meqn,1-mbc:maxm+mbc), intent(in) :: ql,qr
+      double precision, dimension(maux,1-mbc:maxm+mbc), intent(in) :: aux1,aux2,aux3
+      double precision, dimension(meqn,1-mbc:maxm+mbc), intent(in) :: asdq
+
+      !Output
+      double precision, dimension(meqn,1-mbc:maxm+mbc), intent(out) :: bmasdq,bpasdq
+
+      !Local
+      integer :: i,m,mu,mv,mw
+      double precision :: waveb(4,3),sb(3)
+      integer, parameter :: maxm2 = 1800 !# assumes at most 200x200 grid with mbc=2
+      double precision, dimension(-6:maxm2+7) :: u2v2,u,v,enth,a,g1a2,euv
+      double precision :: rhsqrtl,rhsqrtr,pl,pr,rhsq2
+      double precision :: gamma,gamma1,a1,a2,a3,a4
 !
       common /cparam/  gamma
-      dimension waveb(4,3),sb(3)
-      parameter (maxm2 = 1800)  !# assumes at most 200x200 grid with mbc=2
-!
-      double precision u2v2(-6:maxm2+7), &
-            u(-6:maxm2+7),v(-6:maxm2+7),enth(-6:maxm2+7),a(-6:maxm2+7), &
-            g1a2(-6:maxm2+7),euv(-6:maxm2+7) 
+
 
       if (mbc > 7 .OR. maxm2 < maxm) then
          write(6,*) 'need to increase maxm2 or 7 in rpn'
