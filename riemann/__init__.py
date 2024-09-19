@@ -50,6 +50,7 @@ from . import vc_acoustics_3D_constants
 from . import euler_3D_constants
 from . import burgers_3D_constants
 from . import vc_advection_3D_constants
+from . import euler_mapgrid_3D
 
 
 try:
@@ -65,12 +66,12 @@ try:
     from . import euler_hlle_1D
     from . import mhd_roe_1D
     from . import nonlinear_elasticity_fwave_1D
+    from . import psystem_fwave_1D
     from . import reactive_euler_with_efix_1D
     from . import shallow_hlle_1D
     from . import shallow_roe_with_efix_1D
     from . import shallow_bathymetry_fwave_1D
     from . import shallow_roe_tracer_1D
-    #from . import sw_aug_1D
     from . import traffic_1D
     from . import traffic_vc_1D
     from . import traffic_vc_fwave_1D
@@ -99,6 +100,7 @@ try:
     from . import euler_3D
     from . import burgers_3D
     from . import vc_advection_3D
+    from . import euler_mapgrid_3D
 except ImportError as e:
     import traceback
     print("********************************************************************")

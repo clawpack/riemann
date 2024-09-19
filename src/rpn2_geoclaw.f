@@ -9,6 +9,13 @@ c     #        h_t + (hu)_x + (hv)_y = 0                           #
 c     #        (hu)_t + (hu^2 + 0.5gh^2)_x + (huv)_y = -ghb_x      #
 c     #        (hv)_t + (huv)_x + (hv^2 + 0.5gh^2)_y = -ghb_y      #
 
+c Modified in v5.10.1 to also work for Boussinesq equations in which q has
+c two additional components. They are used to store momentum corrections
+c that come from solving an elliptic system, for ease of interpolation to
+c ghost cells to provide BCs on finer levels.  These components q(4:5,:)
+c are not modified in the shallow water step and so the waves and
+c fluctuations are initialized to have zeros in these components.
+
 c On input, ql contains the state vector at the left edge of each cell
 c     qr contains the state vector at the right edge of each cell
 c
@@ -56,7 +63,7 @@ c
       !local only
       integer m,i,mw,maxiter,mu,nv
       double precision wall(3)
-      double precision fw(3,3)
+      double precision fw(meqn,3)
       double precision sw(3)
 
       double precision hR,hL,huR,huL,uR,uL,hvR,hvL,vR,vL,phiR,phiL,pL,pR
@@ -70,6 +77,13 @@ c
       ! In case there is no pressure forcing
       pL = 0.d0
       pR = 0.d0
+      
+      ! initialize all components to 0
+      fw(:,:) = 0.d0
+      fwave(:,:,:) = 0.d0
+      s(:,:) = 0.d0
+      amdq(:,:) = 0.d0
+      apdq(:,:) = 0.d0
 
       !loop through Riemann problems at each grid cell
       do i=2-mbc,mx+mbc
@@ -80,13 +94,6 @@ c
             write(*,*) 'Negative input: hl,hr,i=',qr(1,i-1),ql(1,i),i
          endif
 
-         !Initialize Riemann problem for grid interface
-         do mw=1,mwaves
-              s(mw,i)=0.d0
-                 fwave(1,mw,i)=0.d0
-                 fwave(2,mw,i)=0.d0
-                 fwave(3,mw,i)=0.d0
-         enddo
 
 c        !set normal direction
          if (ixy.eq.1) then
@@ -213,7 +220,7 @@ c               bL=hstartest+bR
 
          maxiter = 1
 
-         call riemann_aug_JCP(maxiter,3,3,hL,hR,huL,
+         call riemann_aug_JCP(maxiter,meqn,mwaves,hL,hR,huL,
      &        huR,hvL,hvR,bL,bR,uL,uR,vL,vR,phiL,phiR,pL,pR,sE1,sE2,
      &                                    drytol,g,rho,sw,fw)
 
@@ -273,8 +280,7 @@ c===============================================================================
 
 
 c============= compute fluctuations=============================================
-         amdq(1:3,:) = 0.d0
-         apdq(1:3,:) = 0.d0
+
          do i=2-mbc,mx+mbc
             do  mw=1,mwaves
                if (s(mw,i) < 0.d0) then
@@ -287,14 +293,6 @@ c============= compute fluctuations=============================================
                endif
             enddo
          enddo
-!--       do i=2-mbc,mx+mbc
-!--            do m=1,meqn
-!--                write(51,151) m,i,amdq(m,i),apdq(m,i)
-!--                write(51,152) fwave(m,1,i),fwave(m,2,i),fwave(m,3,i)
-!--151             format("++3 ampdq ",2i4,2e25.15)
-!--152             format("++3 fwave ",8x,3e25.15)
-!--            enddo
-!--        enddo
 
       return
       end subroutine

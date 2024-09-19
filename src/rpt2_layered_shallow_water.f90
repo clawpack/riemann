@@ -268,9 +268,9 @@ subroutine rpt2_single_layer(ixy,imp,ql,qr,aux1,aux2,aux3,asdq,bmasdq,bpasdq)
     real(kind=8), intent(in out) :: bmasdq(meqn)
     real(kind=8), intent(in out) :: bpasdq(meqn)
     ! Since we need two values of aux, 1 = i-1 and 2 = i
-    real(kind=8), intent(in) :: aux1(2,3)
-    real(kind=8), intent(in) :: aux2(2,3)
-    real(kind=8), intent(in) :: aux3(2,3)
+    real(kind=8), intent(in) :: aux1(3,2)
+    real(kind=8), intent(in) :: aux2(3,2)
+    real(kind=8), intent(in) :: aux3(3,2)
 
     real(kind=8) :: s(3)
     real(kind=8) :: r(3,3)

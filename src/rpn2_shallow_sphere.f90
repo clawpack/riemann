@@ -54,26 +54,34 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apd
 ! From the basic clawpack routines, this routine is called with ql = qr
 
 
-    implicit double precision (a-h,o-z)
+    implicit none
+    !Input
+    integer, intent(in) :: ixy, maxm, meqn, mwaves, maux, mbc, mx
+    real(kind=8), dimension(meqn, 1-mbc:maxm+mbc), intent(in) :: ql, qr
+    real(kind=8), dimension(maux, 1-mbc:maxm+mbc), intent(in) :: auxl, auxr
 
-    dimension wave(meqn, mwaves,1-mbc:maxm+mbc)
-    dimension    s(mwaves, 1-mbc:maxm+mbc)
-    dimension   ql(meqn, 1-mbc:maxm+mbc)
-    dimension   qr(meqn, 1-mbc:maxm+mbc)
-    dimension  apdq(meqn, 1-mbc:maxm+mbc)
-    dimension  amdq(meqn, 1-mbc:maxm+mbc)
-    dimension auxl(maux, 1-mbc:maxm+mbc)
-    dimension auxr(maux, 1-mbc:maxm+mbc)
+    !Output
+    real(kind=8), intent(out) :: wave(meqn, mwaves, 1-mbc:maxm+mbc)
+    real(kind=8), intent(out) :: s(mwaves, 1-mbc:maxm+mbc)
+    real(kind=8), dimension(meqn, 1-mbc:maxm+mbc), intent(out) :: apdq, amdq
 
-!     local arrays
-!     ------------
-    dimension delta(3)
+    !Local
+    integer :: i, mw, ioff
+    real(kind=8) :: enx, eny, enz, etx, ety, etz
+    real(kind=8) :: gamma, hunl, hunr, hutl, hutr, hsqr, hsql, hsq
+    real(kind=8) :: hl, hr, delta(3), a1, a2, a3, amn, apn
+    real(kind=8) :: df, erx, ery, erz, sfract
+    real(kind=8) :: h1, hu1, s1, h3, hu3, s3, s0, s03
+    real(kind=8) :: him1, h3m1
+    real(kind=8) :: g, sw !Not sure about sw, it is not used anywhere
+    real(kind=8) :: dtcom, dxcom, dycom, tcom
+    integer :: icom, jcom, m
+    real(kind=8) :: dy, hi
+    real(kind=8), dimension(1-mbc:maxm+mbc) :: u, v, a, h
+    integer, parameter :: maxm2 = 1800
     logical :: efix
 
-    parameter (maxm2 = 1800)
     common /sw/  g
-    dimension u(1-mbc:maxm+mbc),v(1-mbc:maxm+mbc),a(1-mbc:maxm+mbc), &
-    h(1-mbc:maxm+mbc)
     common /comxyt/ dtcom,dxcom,dycom,tcom,icom,jcom
 
     data efix /.true./    !# use entropy fix for transonic rarefactions

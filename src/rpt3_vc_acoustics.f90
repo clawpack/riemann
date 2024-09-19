@@ -57,15 +57,21 @@ subroutine rpt3(ixyz,icoor,imp,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,aux1,aux2,aux3
 !     #                z-like direction
 
 
-    implicit real*8(a-h,o-z)
-    dimension     ql(meqn,1-mbc:maxm+mbc)
-    dimension     qr(meqn,1-mbc:maxm+mbc)
-    dimension   asdq(meqn,1-mbc:maxm+mbc)
-    dimension bmasdq(meqn,1-mbc:maxm+mbc)
-    dimension bpasdq(meqn,1-mbc:maxm+mbc)
-    dimension   aux1(maux,1-mbc:maxm+mbc,3)
-    dimension   aux2(maux,1-mbc:maxm+mbc,3)
-    dimension   aux3(maux,1-mbc:maxm+mbc,3)
+    ! implicit real*8(a-h,o-z)
+    implicit none
+    !Input
+    integer, intent(in)  :: ixyz,icoor,imp,maxm,meqn,mwaves,maux,mbc,mx
+    double precision, dimension(meqn,1-mbc:maxm+mbc), intent(in) :: ql,qr
+    double precision, dimension(maux,1-mbc:maxm+mbc,3), intent(in) :: aux1,aux2,aux3
+    double precision, dimension(meqn,1-mbc:maxm+mbc), intent(in) :: asdq
+
+    !Output
+    double precision, dimension(meqn,1-mbc:maxm+mbc), intent(out) :: bmasdq,bpasdq
+
+    !Local
+    integer :: i,i1,iuvw
+    double precision :: zm,zz,zp,cm,c,cp,a1,a2
+
 
 
 !     # set iuvw = 2,3,4, depending on which component of q represents

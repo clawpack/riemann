@@ -14,17 +14,33 @@ subroutine rpt2(ixy,imp,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,aux1,aux2,aux3,asdq,b
 !     # into down-going flux difference bmasdq (= B^- A^* \Delta q)
 !     #    and up-going flux difference bpasdq (= B^+ A^* \Delta q)
 
+    implicit none
+    !Input 
+    integer, intent(in)  :: ixy,imp,maxm,meqn,mwaves,maux,mbc,mx
+    double precision, dimension(meqn,1-mbc:maxm+mbc), intent(in) :: ql,qr
+    double precision, dimension(maux,1-mbc:maxm+mbc), intent(in) :: aux1,aux2,aux3
+    double precision, dimension(meqn,1-mbc:maxm+mbc), intent(in) :: asdq
 
-    implicit double precision (a-h,o-z)
-    dimension     ql(meqn,1-mbc:maxm+mbc)
-    dimension     qr(meqn,1-mbc:maxm+mbc)
-    dimension   asdq(meqn,1-mbc:maxm+mbc)
-    dimension bmasdq(meqn,1-mbc:maxm+mbc)
-    dimension bpasdq(meqn,1-mbc:maxm+mbc)
-    dimension   aux1(maux,1-mbc:maxm+mbc)
-    dimension   aux2(maux,1-mbc:maxm+mbc)
-    dimension   aux3(maux,1-mbc:maxm+mbc)
-    dimension s (2,1-mbc:maxm+mbc)
+    !Output
+    double precision, dimension(meqn,1-mbc:maxm+mbc), intent(out) :: bmasdq,bpasdq
+
+    !Local
+    integer :: i,ix
+    double precision :: pjm,pj,pjp,Ejm,Ej,Ejp
+    double precision :: epsjm,epsj,epsjp
+    double precision :: sigmapjm,sigmapj,sigmapjp
+    double precision :: r11,r13, gamma1,gamma3
+    integer :: linearity_matjm,linearity_matj,linearity_matjp
+    double precision :: s(2,1-mbc:maxm+mbc)
+
+    interface
+        function sigmap(eps,E,linearity_mat)
+            implicit none
+            integer, intent(in) :: linearity_mat
+            real(kind=8), intent(in) :: eps, E
+            real(kind=8) :: sigmap
+        end function
+    end interface
 
     do 10 i = 2-mbc, mx+mbc
         if (imp == 1) then !left going fluctuation

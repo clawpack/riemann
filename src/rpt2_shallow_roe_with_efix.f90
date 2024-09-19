@@ -1,7 +1,6 @@
 ! =====================================================
 subroutine rpt2(ixy,imp,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,aux1,aux2,aux3,asdq,bmasdq,bpasdq)
 ! =====================================================
-    implicit double precision (a-h,o-z)
 
 !     # Riemann solver in the transverse direction for the shallow water
 !     equations .
@@ -9,21 +8,28 @@ subroutine rpt2(ixy,imp,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,aux1,aux2,aux3,asdq,b
 !     # into down-going flux difference bmasdq (= B^- A^* \Delta q)
 !     #    and up-going flux difference bpasdq (= B^+ A^* \Delta q)
 
-    dimension     ql(meqn, 1-mbc:maxm+mbc)
-    dimension     qr(meqn, 1-mbc:maxm+mbc)
-    dimension   asdq(meqn, 1-mbc:maxm+mbc)
-    dimension bmasdq(meqn, 1-mbc:maxm+mbc)
-    dimension bpasdq(meqn, 1-mbc:maxm+mbc)
+    implicit none
+    !Input
+    integer, intent(in)  :: ixy,imp,maxm,meqn,mwaves,maux,mbc,mx
+    double precision, dimension(meqn,1-mbc:maxm+mbc), intent(in) :: ql,qr
+    double precision, dimension(maux,1-mbc:maxm+mbc), intent(in) :: aux1,aux2,aux3
+    double precision, dimension(meqn,1-mbc:maxm+mbc), intent(in) :: asdq
 
-    dimension waveb(3,3),sb(3)
+    !Output
+    double precision, dimension(meqn,1-mbc:maxm+mbc), intent(out) :: bmasdq,bpasdq
+
+    !Local
+    integer :: i,m,mw,mu,mv
+    double precision :: hsqrtl,hsqrtr,hsq2,a1,a2,a3
+    integer, parameter :: maxm2 = 1800
+    !   # Roe averages quantities of each interface
+    double precision, dimension(-6:maxm2+7) :: u,v,a,h
+    double precision :: waveb(3,3),sb(3)
+    double precision :: grav
 
 !   # grav must be set elsewhere
     common /cparam/ grav
 
-!   # Roe averages quantities of each interface
-    parameter (maxm2 = 1800)
-    double precision u(-6:maxm2+7),v(-6:maxm2+7),a(-6:maxm2+7), &
-                     h(-6:maxm2+7)
 
     if (ixy == 1) then
         mu = 2

@@ -1,7 +1,6 @@
 ! =====================================================
 subroutine rpt2(ixy,imp,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,aux1,aux2,aux3,asdq,bmasdq,bpasdq)
 ! =====================================================
-    implicit double precision (a-h,o-z)
 
 !     # Riemann solver in the transverse direction for the shallow water
 !     # equations  on a quadrilateral grid.
@@ -10,27 +9,32 @@ subroutine rpt2(ixy,imp,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,aux1,aux2,aux3,asdq,b
 !     # into down-going flux difference bmasdq (= B^- A^* \Delta q)
 !     #    and up-going flux difference bpasdq (= B^+ A^* \Delta q)
 
-    dimension     ql(meqn, 1-mbc:maxm+mbc)
-    dimension     qr(meqn, 1-mbc:maxm+mbc)
-    dimension   asdq(meqn, 1-mbc:maxm+mbc)
-    dimension bmasdq(meqn, 1-mbc:maxm+mbc)
-    dimension bpasdq(meqn, 1-mbc:maxm+mbc)
-    dimension   aux1(maux, 1-mbc:maxm+mbc)
-    dimension   aux2(maux, 1-mbc:maxm+mbc)
-    dimension   aux3(maux, 1-mbc:maxm+mbc)
+    implicit none
+    !Input
+    integer, intent(in) :: ixy, imp, maxm, meqn, mwaves, maux, mbc, mx
+    real(kind=8), dimension(meqn, 1-mbc:maxm+mbc), intent(in) :: ql, qr
+    real(kind=8), dimension(maux, 1-mbc:maxm+mbc), intent(in) :: aux1, aux2, aux3
+    real(kind=8), dimension(meqn, 1-mbc:maxm+mbc), intent(in) :: asdq
 
-!      parameter (maxm2 = 1002)  !# assumes at most 1000x1000 grid with mbc=2
-    dimension u(1-mbc:maxm+mbc),v(1-mbc:maxm+mbc),a(1-mbc:maxm+mbc), &
-    h(1-mbc:maxm+mbc)
-    dimension wave(meqn, mwaves, 1-mbc:maxm+mbc)
-    dimension    s(3, 1-mbc:maxm+mbc)
-    dimension enx(1-mbc:maxm+mbc), eny(1-mbc:maxm+mbc), &
-    enz(1-mbc:maxm+mbc)
-    dimension etx(1-mbc:maxm+mbc), ety(1-mbc:maxm+mbc), &
-    etz(1-mbc:maxm+mbc)
-    dimension gamma(1-mbc:maxm+mbc)
-         
-    dimension delta(4)
+    !Output
+    real(kind=8), dimension(meqn, 1-mbc:maxm+mbc), intent(out) :: bmasdq, bpasdq
+
+    !Local
+    integer :: i, i1, ioff, ix1, ixm1
+    real(kind=8) :: dx
+    real(kind=8) :: a1, a2, a3
+    real(kind=8), dimension(1-mbc:maxm+mbc) :: h, u, v, a
+    real(kind=8) :: wave(meqn, mwaves, 1-mbc:maxm+mbc)
+    real(kind=8) :: s(3, 1-mbc:maxm+mbc)
+    real(kind=8), dimension(1-mbc:maxm+mbc) :: enx, eny, enz, etx, ety, etz
+    real(kind=8) :: gamma(1-mbc:maxm+mbc)
+    real(kind=8) :: delta(4)
+    real(kind=8) :: sw, g
+    real(kind=8) :: dtcom, dxcom, dycom, tcom
+    real(kind=8) :: erx, ery, erz, bn
+    integer :: icom, jcom, m, mw
+
+
     common /sw/  g
     common /comxyt/ dtcom,dxcom,dycom,tcom,icom,jcom
 

@@ -12,7 +12,7 @@ When adding a new Riemann solver, in addition to adding the normal and
 (optionally) transverse solver code files in src/, you should do the following
 in order to ensure the new solver is importable in PyClaw.  To make things
 concrete, suppose you are committing a 2D elasticity solver, so your Fortran 
-files are named `rpn2_elasticity.f90` and `rpt2_elasticity.f90`.  Then you should:
+files are named `rpn2_vc_elasticity.f90` and `rpt2_vc_elasticity.f90`.  Then you should:
 
 1. Add the following to `clawpack/riemann/riemann/__init__.py`:
 ```

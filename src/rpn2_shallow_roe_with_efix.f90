@@ -36,28 +36,32 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apd
 ! This Riemann solver differs from the original clawpack Riemann solver
 ! for the interleaved indices
 
-    implicit double precision (a-h,o-z)
+    implicit none
+    !Input
+    integer, intent(in) :: ixy, maxm, meqn, mwaves, maux, mbc, mx
+    real(kind=8), dimension(meqn, 1-mbc:maxm+mbc), intent(in) :: ql, qr
+    real(kind=8), dimension(maux, 1-mbc:maxm+mbc), intent(in) :: auxl, auxr
 
-    dimension   ql(meqn,           1-mbc:maxm+mbc)
-    dimension   qr(meqn,           1-mbc:maxm+mbc)
-    dimension    s(mwaves,         1-mbc:maxm+mbc)
-    dimension wave(meqn,   mwaves, 1-mbc:maxm+mbc)
-    dimension  apdq(meqn,          1-mbc:maxm+mbc)
-    dimension  amdq(meqn,          1-mbc:maxm+mbc)
+    !Output
+    real(kind=8), intent(out) :: wave(meqn, mwaves, 1-mbc:maxm+mbc)
+    real(kind=8), intent(out) :: s(mwaves, 1-mbc:maxm+mbc)
+    real(kind=8), dimension(meqn, 1-mbc:maxm+mbc), intent(out) :: apdq, amdq
+
+    !Local
+    integer :: i, m, mu, mv, mw
+    integer, parameter :: maxm2 = 1800
+    real(kind=8) :: grav, hsqrtl, hsqrtr, hsq2, him1, s0, h1, hu1, s1, sfract
+    real(kind=8) :: hi, s03, h3, hu3, s3, df
+    real(kind=8) :: delta(3), a1, a2, a3
+    logical :: efix
 
 !   # Gravity constant set in the shallow1D.py or setprob.f90 file
     common /cparam/ grav
 
 !   # Roe averages quantities of each interface
-    parameter (maxm2 = 1800)
-    double precision u(-6:maxm2+7),v(-6:maxm2+7),a(-6:maxm2+7), &
+    double precision :: u(-6:maxm2+7),v(-6:maxm2+7),a(-6:maxm2+7), &
                      h(-6:maxm2+7)
 
-
-!   local arrays
-!   ------------
-    dimension delta(3)
-    logical :: efix
 
     data efix /.true./    !# Use entropy fix for transonic rarefactions
 

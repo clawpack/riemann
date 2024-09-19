@@ -84,6 +84,7 @@ riemann_1D = [
   'euler_hlle',
   'mhd_roe',
   'nonlinear_elasticity_fwave',
+  'psystem_fwave',
   'reactive_euler_with_efix',
   'shallow_hlle',
   'shallow_roe_with_efix',
@@ -110,6 +111,7 @@ riemann_2D = [
 riemann_3D = [
   'vc_acoustics',
   'euler',
+  'euler_mapgrid',
   'burgers',
   'vc_advection',
 ]
@@ -148,7 +150,6 @@ foreach suffix, names: riemann_ptwise
       ext_name, [ext_srcs, f2py_srcs],
       incdir_f2py / 'fortranobject.c',
       include_directories: inc_np,
-      dependencies : py_dep,
       subdir: pkg_dir,
       install : true
     )
@@ -171,7 +172,6 @@ foreach suffix, names: riemann
       ext_name, [ext_srcs, f2py_srcs],
       incdir_f2py / 'fortranobject.c',
       include_directories: inc_np,
-      dependencies : py_dep,
       subdir: pkg_dir,
       install : true
     )
@@ -223,8 +223,28 @@ foreach name, sources: special_extensions
     ext_name, [ext_srcs, f2py_srcs],
     incdir_f2py / 'fortranobject.c',
     include_directories: inc_np,
-    dependencies : py_dep,
     subdir: pkg_dir,
     install : true
   )
 endforeach
+
+ext_name = 'mappedGrid'
+ext_srcs = [
+  srcdir / 'euler3d_mappedGrid.f90',
+]
+f2py_srcs = custom_target(
+  'f2py_mappedGrid',
+  command: [f2py, ext_name],
+  input: ext_srcs,
+  output: [ext_name + 'module.c', ext_name + '-f2pywrappers2.f90'],
+  build_by_default: true,
+)
+
+py.extension_module(
+  ext_name, [ext_srcs, f2py_srcs],
+  incdir_f2py / 'fortranobject.c',
+  include_directories: inc_np,
+  dependencies : py_dep,
+  subdir: pkg_dir,
+  install : true
+)
