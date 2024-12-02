@@ -90,6 +90,7 @@ riemann_1D = [
   'shallow_roe_with_efix',
   'shallow_bathymetry_fwave',
   'shallow_roe_tracer',
+  'sw_aug',
 ]
 
 riemann_2D = [
