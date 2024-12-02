@@ -26,9 +26,8 @@ subroutine rp1(maxm, num_eqn, num_waves, num_aux, num_ghost, &
 
       implicit none
 
-      real(kind=8) :: grav, g
-      real(kind=8), parameter :: drytol = 1.e-14
-      common /cparam/ grav
+      real(kind=8) :: grav, g, dry_tolerance, drytol
+      common /cparam/ grav, dry_tolerance
 
       integer, intent(in) :: maxm,num_eqn,num_aux,num_waves,num_ghost,num_cells
 
@@ -54,6 +53,7 @@ subroutine rp1(maxm, num_eqn, num_waves, num_aux, num_ghost, &
       real(kind=8) hstar,hstartest,hstarHLL,sLtest,sRtest
 
       g = grav
+      drytol = dry_tolerance
 
       !loop through Riemann problems at each grid cell
       do i=2-num_ghost,num_cells+num_ghost
