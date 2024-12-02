@@ -8,26 +8,29 @@ subroutine rp1(maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq)
 !     # auxl(1,i) should contain the impedance Z in cell i
 !     # auxl(2,i) should contain the sound speed c in cell i
 
-    implicit double precision (a-h,o-z)
+    implicit none
 
-    dimension auxl(maux, 1-mbc:maxm+mbc)
-    dimension auxr(maux, 1-mbc:maxm+mbc)
-    dimension fwave(meqn, mwaves, 1-mbc:maxm+mbc)
-    dimension    s(mwaves, 1-mbc:maxm+mbc)
-    dimension   ql(meqn, 1-mbc:maxm+mbc)
-    dimension   qr(meqn, 1-mbc:maxm+mbc)
-    dimension apdq(meqn, 1-mbc:maxm+mbc)
-    dimension amdq(meqn, 1-mbc:maxm+mbc)
+    !Input
+    integer, intent(in) :: maxm, meqn, mwaves, maux, mbc, mx
+    double precision, intent(in) :: ql(meqn, 1-mbc:maxm+mbc)
+    double precision, intent(in) :: qr(meqn, 1-mbc:maxm+mbc)
+    double precision, intent(in) :: auxl(maux, 1-mbc:maxm+mbc)
+    double precision, intent(in) :: auxr(maux, 1-mbc:maxm+mbc)
 
-!     local arrays
-!     ------------
-    dimension delta(2)
+    double precision, intent(out) :: fwave(meqn, mwaves, 1-mbc:maxm+mbc)
+    double precision, intent(out) :: s(mwaves, 1-mbc:maxm+mbc)
+    double precision, intent(out) :: amdq(meqn, 1-mbc:maxm+mbc)
+    double precision, intent(out) :: apdq(meqn, 1-mbc:maxm+mbc)
 
+    !Local
+    integer :: i, m
+    double precision :: zi, zim, ci, cim, rhoi, rhoim, bulki, bulkim, beta1, beta2
+    double precision :: delta(2)
 
 !   # split the jump in f(q) at each interface into f-waves
 
 !   # find a1 and a2, the coefficients of the 2 eigenvectors:
-    do 20 i = 2-mbc, mx+mbc
+    do i = 2-mbc, mx+mbc
 !       # material properties
         zi = auxl(1,i)
         zim = auxr(1,i-1)
@@ -55,17 +58,18 @@ subroutine rp1(maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq)
         fwave(2,2,i) = -beta2*zi
         s(2,i) = ci
     
-    20 END DO
+    END DO
 
 !     # compute the leftgoing and rightgoing fluctuations:
 !     # Note s(1,i) < 0   and   s(2,i) > 0.
 
 !   # f-wave spitting, so do not multiply by wave speeds:
-    do 220 m=1,meqn
-        do 220 i = 2-mbc, mx+mbc
+    do m=1,meqn
+        do i = 2-mbc, mx+mbc
             amdq(m,i) = fwave(m,1,i)
             apdq(m,i) = fwave(m,2,i)
-    220 END DO
+        end do
+    END DO
 
     return
     end subroutine rp1

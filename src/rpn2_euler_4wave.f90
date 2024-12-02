@@ -34,27 +34,45 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apd
 ! From the basic clawpack routines, this routine is called with ql = qr
 !
 !
-      implicit double precision (a-h,o-z)
-!
-      dimension wave(meqn, mwaves, 1-mbc:maxm+mbc)
-      dimension    s(mwaves, 1-mbc:maxm+mbc)
-      dimension   ql(meqn,1-mbc:maxm+mbc)
-      dimension   qr(meqn,1-mbc:maxm+mbc)
-      dimension  apdq(meqn, 1-mbc:maxm+mbc)
-      dimension  amdq(meqn, 1-mbc:maxm+mbc)
-!
+    implicit none
+    !Input
+    integer, intent(in) :: ixy, maxm, meqn, mwaves, maux, mbc, mx
+    double precision, intent(in) :: ql(meqn, 1-mbc:maxm+mbc)
+    double precision, intent(in) :: qr(meqn, 1-mbc:maxm+mbc)
+    double precision, intent(in) :: auxl(maux, 1-mbc:maxm+mbc)
+    double precision, intent(in) :: auxr(maux, 1-mbc:maxm+mbc)
+
+    double precision, intent(out) :: wave(meqn, mwaves, 1-mbc:maxm+mbc)
+    double precision, intent(out) :: s(mwaves, 1-mbc:maxm+mbc)
+    double precision, intent(out) :: amdq(meqn, 1-mbc:maxm+mbc)
+    double precision, intent(out) :: apdq(meqn, 1-mbc:maxm+mbc)
+
+    !Local
+    integer :: i, m, mu, mv, mw
+    integer, parameter :: maxm2 = 1800
+    double precision :: delta(4)
+    logical :: efix
+    double precision :: gamma, gamma1
+    double precision :: u2v2(-6:maxm2+7), u(-6:maxm2+7), v(-6:maxm2+7)
+    double precision :: enth(-6:maxm2+7), a(-6:maxm2+7), g1a2(-6:maxm2+7)
+    double precision :: euv(-6:maxm2+7)
+    double precision :: rhsqrtl, rhsqrtr, pl, pr, rhsq2, a2, a3, a1, a4
+    double precision :: s0, s1, s2, s3, sfract
+    double precision :: rhoim1, pim1, cim1, rho1, rhou1, rhov1, en1, p1, c1
+    double precision :: rhoi, pi, ci, rho2, rhou2, rhov2, en2, p2, c2
+    double precision :: df
+
+
 !     local arrays -- common block comroe is passed to rpt2eu
 !     ------------
-      parameter (maxm2 = 1800)  !# assumes at most 200x200 grid with mbc=2
-      dimension delta(4)
-      logical efix
+      ! parameter (maxm2 = 1800)  !# assumes at most 200x200 grid with mbc=2
+      ! dimension delta(4)
+      ! logical efix
       common /cparam/  gamma
 !
       data efix /.true./    !# use entropy fix for transonic rarefactions
 
-      double precision u2v2(-6:maxm2+7), &
-            u(-6:maxm2+7),v(-6:maxm2+7),enth(-6:maxm2+7),a(-6:maxm2+7), &
-            g1a2(-6:maxm2+7),euv(-6:maxm2+7) 
+
 !
       if (mbc > 7 .OR. maxm2 < maxm) then
          write(6,*) 'need to increase maxm2 or 7 in rpn'

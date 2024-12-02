@@ -1,7 +1,6 @@
 ! =====================================================
 subroutine rpt2(ixy,imp,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,aux1,aux2,aux3,asdq,bmasdq,bpasdq)
 ! =====================================================
-      implicit double precision (a-h,o-z)
 !
 !     # Riemann solver in the transverse direction for the elastic equations
 !     # with varying material properties 
@@ -32,14 +31,24 @@ subroutine rpt2(ixy,imp,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,aux1,aux2,aux3,asdq,b
 !
 !     # imp=1  means  asdq=amdq,    imp=2 means asdq=apdq
 !
-      dimension     ql(meqn, 1-mbc:maxm+mbc)
-      dimension     qr(meqn, 1-mbc:maxm+mbc)
-      dimension   asdq(meqn, 1-mbc:maxm+mbc)
-      dimension bmasdq(meqn, 1-mbc:maxm+mbc)
-      dimension bpasdq(meqn, 1-mbc:maxm+mbc)
-      dimension   aux1(maux, 1-mbc:maxm+mbc)
-      dimension   aux2(maux, 1-mbc:maxm+mbc)
-      dimension   aux3(maux, 1-mbc:maxm+mbc)
+      implicit none
+      !Input
+      integer, intent(in)  :: ixy,imp,maxm,meqn,mwaves,maux,mbc,mx
+      double precision, dimension(meqn,1-mbc:maxm+mbc), intent(in) :: ql,qr
+      double precision, dimension(maux,1-mbc:maxm+mbc), intent(in) :: aux1,aux2,aux3
+      double precision, dimension(meqn,1-mbc:maxm+mbc), intent(in) :: asdq
+
+      !Output
+      double precision, dimension(meqn,1-mbc:maxm+mbc), intent(out) :: bmasdq,bpasdq
+
+      !Local
+      integer :: i,i1,ksig11,ksig22,ku,kv
+      double precision :: a1,a2,a3,a4
+      double precision :: alamm,alam,alamp,amum,amu,amup,bulkm,bulk,bulkp
+      double precision :: cpm,cp,cpp,csm,cs,csp
+      double precision :: dsig11,dsig22,dsig12,du,dv
+      double precision :: det
+
 !
 !
 !

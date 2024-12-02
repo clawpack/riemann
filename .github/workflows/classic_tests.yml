@@ -1,0 +1,66 @@
+name: Test Riemann solvers with Classic Clawpack tests
+
+on:
+  push:
+    branches: [ "implicit_none" ]
+  pull_request:
+    branches: [ "implicit_none" ]
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CLAW: ${{ github.workspace }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install gfortran
+
+        python -m pip install --upgrade pip
+        pip install 'numpy<2.0'
+        pip install matplotlib #Some imports require matplotlib
+        pip install scipy #To not skip tests
+        pip install nose
+        pip install flake8 meson-python ninja pytest 
+
+    - name: Checkout Clawpack
+      uses: actions/checkout@v4.1.5
+      with:
+        repository: clawpack/clawpack
+        submodules: true
+
+    - name: Checkout Classic branch
+      uses: actions/checkout@v4.1.5
+      with:
+        repository: clawpack/classic  #
+        path: classic
+        ref: master
+    
+    - name: Checkout implicit_none from this repo
+      uses: actions/checkout@v4.1.5
+      with:
+        repository: ${{ github.repository }}
+        path: ${{ env.CLAW }}/riemann
+        ref: implicit_none
+
+    - name: Install Clawpack
+      run: |
+        cd ${CLAW}
+        pip install --no-build-isolation --editable .
+
+    - name: Test with pytest
+      run: |
+        cd ${CLAW}/classic
+        pytest tests

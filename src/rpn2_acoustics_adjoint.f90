@@ -25,20 +25,24 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
 
 !     # aux arrays not used in this solver.
 
-    implicit double precision (a-h,o-z)
+    implicit none
+    !Input
+    integer, intent(in) :: ixy, maxm, meqn, mwaves, maux, mbc, mx
+    real(kind=8), dimension(meqn, 1-mbc:maxm+mbc), intent(in) :: ql, qr
+    real(kind=8), dimension(maux, 1-mbc:maxm+mbc), intent(in) :: auxl, auxr
 
-    dimension fwave(meqn, mwaves, 1-mbc:maxm+mbc)
-    dimension    s(mwaves, 1-mbc:maxm+mbc)
-    dimension   ql(meqn, 1-mbc:maxm+mbc)
-    dimension   qr(meqn, 1-mbc:maxm+mbc)
-    dimension apdq(meqn, 1-mbc:maxm+mbc)
-    dimension amdq(meqn, 1-mbc:maxm+mbc)
-    dimension auxl(maux, 1-mbc:maxm+mbc)
-    dimension auxr(maux, 1-mbc:maxm+mbc)
+    !Output
+    real(kind=8), intent(out) :: fwave(meqn, mwaves, 1-mbc:maxm+mbc)
+    real(kind=8), intent(out) :: s(mwaves, 1-mbc:maxm+mbc)
+    real(kind=8), dimension(meqn, 1-mbc:maxm+mbc), intent(out) :: apdq, amdq
 
-!     local arrays
-!     ------------
-    dimension delta(3)
+    !Local
+    integer :: i, m, mu, mv
+    real(kind=8) :: rho, bulk, cc, zz
+    real(kind=8) :: rhoi, bulki, beta1, beta2
+    real(kind=8) :: delta(3)
+    
+
 
 !     # density, bulk modulus, and sound speed, and impedence of medium:
 !     # (should be set in setprob.f)

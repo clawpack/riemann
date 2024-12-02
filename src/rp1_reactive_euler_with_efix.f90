@@ -26,20 +26,27 @@ subroutine rp1(maxmx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 !                                    and right state ql(:,i)
 ! From the basic clawpack routine step1, rp is called with ql = qr = q.
 
+    implicit none
 
-    implicit double precision (a-h,o-z)
-    dimension   ql(meqn,1-mbc:maxmx+mbc)
-    dimension   qr(meqn,1-mbc:maxmx+mbc)
-    dimension    s(mwaves,1-mbc:maxmx+mbc)
-    dimension wave(meqn, mwaves,1-mbc:maxmx+mbc)
-    dimension amdq(meqn,1-mbc:maxmx+mbc)
-    dimension apdq(meqn,1-mbc:maxmx+mbc)
+    integer, intent(in) :: maxmx, meqn, mwaves, maux, mbc, mx
+    real(kind=8), intent(in) :: ql(meqn,1-mbc:maxmx+mbc)
+    real(kind=8), intent(in) :: qr(meqn,1-mbc:maxmx+mbc)
+    real(kind=8), intent(in) :: auxl(maux,1-mbc:maxmx+mbc)
+    real(kind=8), intent(in) :: auxr(maux,1-mbc:maxmx+mbc)
 
-!     # local storage
-!     ---------------
-    dimension delta(meqn)
-    dimension u(1-mbc:maxmx+mbc),enth(1-mbc:maxmx+mbc)
-    dimension a(1-mbc:maxmx+mbc)
+    real(kind=8), intent(out) :: s(mwaves,1-mbc:maxmx+mbc)
+    real(kind=8), intent(out) :: wave(meqn, mwaves,1-mbc:maxmx+mbc)
+    real(kind=8), intent(out) :: amdq(meqn,1-mbc:maxmx+mbc)
+    real(kind=8), intent(out) :: apdq(meqn,1-mbc:maxmx+mbc)
+
+    real(kind=8) :: delta(meqn), gamma, gamma1, qheat
+    real(kind=8) :: u(1-mbc:maxmx+mbc),enth(1-mbc:maxmx+mbc)
+    real(kind=8) :: a(1-mbc:maxmx+mbc)
+    real(kind=8) :: a1, a2, a3, df, s0, s1, s2, s3, sfract
+    real(kind=8) :: rhoim1, pim1, cim1, rho1, rhou1, en1, qlam1, p1, c1
+    real(kind=8) :: rhoi, pi, ci, rho2, rhou2, en2, qlam2, p2, c2
+    real(kind=8) :: rhsqrtl, rhsqrtr, rhsq2, pl, pr
+    integer :: i, m, mw
     logical :: efix
     common /cparam/  gamma, qheat
 
