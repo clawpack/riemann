@@ -25,20 +25,26 @@ subroutine rp1(maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq)
 
 !     # aux arrays not used in this solver.
 
-    implicit double precision (a-h,o-z)
+    implicit none
 
-    dimension fwave(meqn, mwaves, 1-mbc:maxm+mbc)
-    dimension    s(mwaves, 1-mbc:maxm+mbc)
-    dimension   ql(meqn, 1-mbc:maxm+mbc)
-    dimension   qr(meqn, 1-mbc:maxm+mbc)
-    dimension apdq(meqn, 1-mbc:maxm+mbc)
-    dimension amdq(meqn, 1-mbc:maxm+mbc)
-    dimension auxl(maux, 1-mbc:maxm+mbc)
-    dimension auxr(maux, 1-mbc:maxm+mbc)
+    !Input
+    integer, intent(in) :: maxm, meqn, mwaves, maux, mbc, mx
+    double precision, intent(in) :: ql(meqn, 1-mbc:maxm+mbc)
+    double precision, intent(in) :: qr(meqn, 1-mbc:maxm+mbc)
+    double precision, intent(in) :: auxl(maux, 1-mbc:maxm+mbc)
+    double precision, intent(in) :: auxr(maux, 1-mbc:maxm+mbc)
 
-!     local arrays
-!     ------------
-    dimension delta(2)
+    double precision, intent(out) :: fwave(meqn, mwaves, 1-mbc:maxm+mbc)
+    double precision, intent(out) :: s(mwaves, 1-mbc:maxm+mbc)
+    double precision, intent(out) :: amdq(meqn, 1-mbc:maxm+mbc)
+    double precision, intent(out) :: apdq(meqn, 1-mbc:maxm+mbc)
+
+    !local
+    integer :: i, m
+    double precision :: rhoi, bulki, beta1, beta2
+    double precision :: rho, bulk, cc, zz
+    double precision, dimension(2) :: delta
+
 
 !     # density, bulk modulus, and sound speed, and impedence of medium:
 !     # (should be set in setprob.f)
@@ -47,7 +53,7 @@ subroutine rp1(maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq)
 !     # split the jump in f(q) at each interface into waves
 
 !     # find b1 and b2, the coefficients of the 2 eigenvectors:
-    do 20 i = 2-mbc, mx+mbc
+    do i = 2-mbc, mx+mbc
 !       # material properties
         rhoi = zz/cc
         bulki = rhoi*cc**2
@@ -70,7 +76,7 @@ subroutine rp1(maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq)
         fwave(2,2,i) = -beta2*zz
         s(2,i) = cc
     
-    20 END DO
+    END DO
 
 
 !     # compute the leftgoing and rightgoing flux differences:
