@@ -279,11 +279,11 @@ c        !solve for beta(k) using Cramers Rule=================
       fw(3,3)=fw(3,3)*vR
       fw(3,2) = (hR*uR*vR - hL*uL*vL - fw(3,1)- fw(3,3))
  
-      hustar_interface = huL + fw(1,1)   ! = huR - fw(1,3)
+      !hustar_interface = huL + fw(1,1)   ! = huR - fw(1,3)
       ! testing for dry middle state
-      if (hustar_interface <= 0.0d0) then
-          fw(3,2) = 0.d0
-        end if
+      !if (hustar_interface <= 0.0d0) then
+      !    fw(3,2) = 0.d0
+      !end if
 
 
       return
