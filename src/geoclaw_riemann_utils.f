@@ -48,8 +48,8 @@ c-----------------------------------------------------------------------
       delh = hR-hL
       delhu = huR-huL
       delphi = phiR-phiL
-      delb = bR-bL
-      delP = pR - pL
+      delb = bR-bL + pR/(rho*g) - pL/(rho*g)
+      delP = 0.d0! pR - pL (modified to treat delb and delp/rho g exactly the same)
       delnorm = delh**2 + delphi**2
 
       call riemanntype(hL,hR,uL,uR,hm,s1m,s2m,rare1,rare2,
