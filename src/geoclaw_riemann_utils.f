@@ -188,7 +188,7 @@ c        !find bounds in case of critical state resonance, or negative states
          endif
 
 c        ! adjust deldelh for well-balancing of atmospheric pressure difference 
-         deldelh = deldelh - delP/(rho*g)
+c         !deldelh = deldelh - delP/(rho*g) !delp now = 0.0
 
 c        !find jump in phi, deldelphi
          if (sonic) then
@@ -199,7 +199,7 @@ c        !find jump in phi, deldelphi
 c        !find bounds in case of critical state resonance, or negative states
          deldelphi=min(deldelphi,g*max(-hLstar*delb,-hRstar*delb))
          deldelphi=max(deldelphi,g*min(-hLstar*delb,-hRstar*delb))
-         deldelphi = deldelphi - hbar * delp / rho
+         !deldelphi = deldelphi - hbar * delp / rho !delp=0.d0
 
          del(1)=delh-deldelh
          del(2)=delhu
