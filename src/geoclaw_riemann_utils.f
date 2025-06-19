@@ -48,8 +48,8 @@ c-----------------------------------------------------------------------
       delh = hR-hL
       delhu = huR-huL
       delphi = phiR-phiL
-      delb = bR-bL
-      delP = pR - pL
+      delb = bR-bL + pR/(rho*g) - pL/(rho*g)
+      delP = 0.d0! pR - pL (modified to treat delb and delp/rho g exactly the same)
       delnorm = delh**2 + delphi**2
 
       call riemanntype(hL,hR,uL,uR,hm,s1m,s2m,rare1,rare2,
@@ -188,7 +188,7 @@ c        !find bounds in case of critical state resonance, or negative states
          endif
 
 c        ! adjust deldelh for well-balancing of atmospheric pressure difference 
-         deldelh = deldelh - delP/(rho*g)
+c         !deldelh = deldelh - delP/(rho*g) !delp now = 0.0
 
 c        !find jump in phi, deldelphi
          if (sonic) then
@@ -199,7 +199,7 @@ c        !find jump in phi, deldelphi
 c        !find bounds in case of critical state resonance, or negative states
          deldelphi=min(deldelphi,g*max(-hLstar*delb,-hRstar*delb))
          deldelphi=max(deldelphi,g*min(-hLstar*delb,-hRstar*delb))
-         deldelphi = deldelphi - hbar * delp / rho
+         !deldelphi = deldelphi - hbar * delp / rho !delp=0.d0
 
          del(1)=delh-deldelh
          del(2)=delhu
@@ -277,14 +277,13 @@ c        !solve for beta(k) using Cramers Rule=================
       ! MODIFIED from 5.3.1 version
       fw(3,1)=fw(3,1)*vL
       fw(3,3)=fw(3,3)*vR
-      fw(3,2)= 0.d0
+      fw(3,2) = (hR*uR*vR - hL*uL*vL - fw(3,1)- fw(3,3))
  
-      hustar_interface = huL + fw(1,1)   ! = huR - fw(1,3)
-      if (hustar_interface <= 0.0d0) then
-          fw(3,1) = fw(3,1) + (hR*uR*vR - hL*uL*vL - fw(3,1)- fw(3,3))
-        else
-          fw(3,3) = fw(3,3) + (hR*uR*vR - hL*uL*vL - fw(3,1)- fw(3,3))
-        end if
+      !hustar_interface = huL + fw(1,1)   ! = huR - fw(1,3)
+      ! testing for dry middle state
+      !if (hustar_interface <= 0.0d0) then
+      !    fw(3,2) = 0.d0
+      !end if
 
 
       return

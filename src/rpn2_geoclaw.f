@@ -22,7 +22,7 @@ c
 c This data is along a slice in the x-direction if ixy=1
 c     or the y-direction if ixy=2.
 
-c  Note that the i'th Riemann problem has left state qr(i-1,:)
+c  Note that the i-th Riemann problem has left state qr(i-1,:)
 c     and right state ql(i,:)
 c  From the basic clawpack routines, this routine is called with
 c     ql = qr
@@ -265,7 +265,7 @@ c==========Capacity for mapping from latitude longitude to physical space====
 
           do mw=1,mwaves
 c             if (s(mw,i) .gt. 316.d0) then
-c               # shouldn't happen unless h > 10 km!
+c               # should not happen unless h > 10 km!
 c                write(6,*) 'speed > 316: i,mw,s(mw,i): ',i,mw,s(mw,i)
 c                endif
                s(mw,i)=dxdc*s(mw,i)
@@ -283,9 +283,9 @@ c============= compute fluctuations=============================================
 
          do i=2-mbc,mx+mbc
             do  mw=1,mwaves
-               if (s(mw,i) < 0.d0) then
+               if (s(mw,i) < -1.d-14) then
                      amdq(1:3,i) = amdq(1:3,i) + fwave(1:3,mw,i)
-               else if (s(mw,i) > 0.d0) then
+               else if (s(mw,i) > 1.d-14) then
                   apdq(1:3,i)  = apdq(1:3,i) + fwave(1:3,mw,i)
                else
                  amdq(1:3,i) = amdq(1:3,i) + 0.5d0 * fwave(1:3,mw,i)
