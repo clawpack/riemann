@@ -32,6 +32,8 @@ from . import shallow_roe_tracer_1D_constants
 from . import traffic_1D_constants
 from . import traffic_vc_1D_constants
 from . import traffic_vc_tracer_1D_constants
+from . import traffic_vc_1D_py
+from . import hughes_1D_py
 from . import acoustics_2D_constants
 from . import acoustics_mapped_2D_constants
 from . import advection_2D_constants
