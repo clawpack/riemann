@@ -1,5 +1,12 @@
 # Riemann Solver Repository
 
+See the main [clawpack/clawpack repository](https://github.com/clawpack/clawpack)
+ README for more links.  
+
+See the [Documentation](https://www.clawpack.org/)
+for more details and installation instructions.
+
+
 This repository is a centralized location for all Clawpack-compatible Riemann
 solvers.  If you have developed a Riemann solver that is not already here,
 please send it to us or issue a pull request.  The format for Riemann solvers
@@ -30,3 +37,6 @@ you should do:
 from vc_elasticity_2D_py import vc_elasticity_2D
 ```
 2. Add appropriate entries for `num_eqn` and `num_waves` in `clawpack/riemann/riemann/static.py`.
+
+**Links**
+ - [Documentation for Riemann solvers](https://www.clawpack.org/contents.html#riemann)
