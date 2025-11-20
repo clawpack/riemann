@@ -31,7 +31,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
 ! f-wave approach is considered. This consists in decomposing the flux
 ! difference (assuming it's continuous) using the eigenvectors of the
 ! jacobian matrices of the flux vectors (in each spatial direction).
-! This is convinient for variable coefficient PDEs.
+! This is convenient for variable coefficient PDEs.
 
 ! On output, fwave contains the f-waves,
 !            s the speeds,

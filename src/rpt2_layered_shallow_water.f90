@@ -45,7 +45,7 @@ subroutine rpt2(ixy,imp,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,aux1,aux2,aux3,asdq,b
     double precision, dimension(meqn,1-mbc:maxm+mbc), intent(inout) :: asdq
     double precision, dimension(maux,1-mbc:maxm+mbc), intent(in) :: aux1,aux2,aux3
     
-    ! Ouput
+    ! Output
     double precision, dimension(meqn,1-mbc:maxm+mbc), intent(out) :: bmasdq,bpasdq
     
     ! Local storage
@@ -67,7 +67,7 @@ subroutine rpt2(ixy,imp,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,aux1,aux2,aux3,asdq,b
     double precision :: h(2),hu(2),hv(2),u(2),v(2),h_hat(2),gamma
     double precision :: alpha(4)
     
-    ! Output array intializations
+    ! Output array initializations
     bmasdq = 0.d0
     bpasdq = 0.d0
 

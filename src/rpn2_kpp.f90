@@ -2,7 +2,7 @@
 subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
 ! =====================================================
 
-! Aproximate Riemann solver for the nonlinear KPP system:
+! Approximate Riemann solver for the nonlinear KPP system:
 
 ! q_t + sin(q)_x + cos(q)_y = 0
 

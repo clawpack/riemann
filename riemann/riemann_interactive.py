@@ -230,7 +230,7 @@ class PPlaneNLPlugin(plugins.PluginBase):
             
             for (var ii=0; ii <2*iter; ii++){
                 var xx = q1.data[ii][0];
-                // Calculate plot solution for 1 charactersitic (shock or rarefaction)
+                // Calculate plot solution for 1 characteristic (shock or rarefaction)
                 if (shock1) {
                     if (xx <= s1){ qsol1[ii] = hl; qsol2[ii] = hul;}
                     else { qsol1[ii] = hm; qsol2[ii] = hum;}
@@ -244,7 +244,7 @@ class PPlaneNLPlugin(plugins.PluginBase):
                         qsol2[ii] = m2*(xx - s1b[0]) + hul;}
                     else { qsol1[ii] = hm; qsol2[ii] = hum;}
                 }
-                // Calculate plot solution for 2 charactersitic (shock or rarefaction)
+                // Calculate plot solution for 2 characteristic (shock or rarefaction)
                 if (shock2) {
                     if (xx > s2) {qsol1[ii] = hr; qsol2[ii] = hur;}
                 }
@@ -277,7 +277,7 @@ class PPlaneNLPlugin(plugins.PluginBase):
               .attr("transform", "translate(" + [xx + 0.7*offx, yy + 0.7*offy] + ")");
         }
         
-        // Functon to update xt-plane
+        // Function to update xt-plane
         function update_xtplane() {
          // Calculate shcok speeds from R-H conditions
          var lam1 = (humfinal - hul)/(hmfinal - hl);   
@@ -425,7 +425,7 @@ class PPlaneNLPlugin(plugins.PluginBase):
               // Move marker
               qlm.elements().transition().duration(1)
                   .attr("transform", "translate(" + [d3.event.x + offx, d3.event.y + offy] + ")");     
-              // Re-calculate inital left variables when dragging 
+              // Re-calculate initial left variables when dragging
               hl = obj.offsets[0][0];
               hul = obj.offsets[0][1];
               
@@ -473,7 +473,7 @@ class PPlaneNLPlugin(plugins.PluginBase):
               // Move marker
               qrm.elements().transition().duration(1)
                   .attr("transform", "translate(" + [d3.event.x + offx, d3.event.y + offy] + ")");
-              // Re-calculate inital right variables when dragging
+              // Re-calculate initial right variables when dragging
               hr = obj.offsets[1][0];
               hur = obj.offsets[1][1];
               
@@ -772,7 +772,7 @@ def shallow_water(ql=np.array([3.0, 5.0]), qr=np.array([3.0, -5.0]), g=1.0, time
     axsol[1].grid(alpha=0.1,color='k', linestyle='--')
 
 
-    # Remove defult mpld3 plugins
+    # Remove default mpld3 plugins
     plugins.clear(fig)
 
     # Call mpld3 custom PPLane plugin to interact with plot
@@ -1048,13 +1048,13 @@ def linear_phase_plane(ql=np.array([-2.0, 2.0]),qr=np.array([0.0, 3.0]),
     ax[0].set_xlabel(title1)
     ax[0].set_ylabel(title2)
 
-    # Remove defult mpld3 plugins
+    # Remove default mpld3 plugins
     plugins.clear(fig)
 
     # Create solutionl line with six points where solution should be
     ctleft = laml*time
     ctright = lamr*time
-    domain = max(domain,abs(ctleft)+1,abs(ctright)+1) # Readjust xdomain if necessarry
+    domain = max(domain,abs(ctleft)+1,abs(ctright)+1) # Readjust xdomain if necessary
     xsol = np.array([-domain,ctleft,ctleft,ctright,ctright,domain])
     qsol1 = 1*xsol
     qsol1[0:2] = ql[0]

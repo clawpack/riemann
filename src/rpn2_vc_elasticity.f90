@@ -88,7 +88,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apd
 
     ! note that notation for u and v reflects assumption that the 
     ! Riemann problems are in the x-direction with u in the normal
-    ! direciton and v in the orthogonal direcion, but with the above
+    ! direction and v in the orthogonal direction, but with the above
     ! definitions of ku and kv the routine also works with ixy=2
 
     ! split the jump in q at each interface into waves

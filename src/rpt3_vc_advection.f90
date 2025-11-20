@@ -78,7 +78,7 @@ subroutine rpt3(ixyz,icoor,imp,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,aux1,aux2,aux3
             bmasdq(1,i) = dmin1(aux2(iuvw,i1,2), 0.d0)*asdq(1,i)
             bpasdq(1,i) = dmax1(aux3(iuvw,i1,2), 0.d0)*asdq(1,i)
         else !! icoor == 3  !! transverse dir. is z-like direction
-            !! quanities split into cmasdq and cpasdq
+            !! quantities split into cmasdq and cpasdq
             bmasdq(1,i) = dmin1(aux2(iuvw,i1,2),0.d0)*asdq(1,i)
             bpasdq(1,i) = dmax1(aux2(iuvw,i1,3),0.d0)*asdq(1,i)
         endif

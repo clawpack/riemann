@@ -22,7 +22,7 @@ subroutine rpt2_ptwise(ixy, imp, num_eqn, num_aux, num_waves, q_l, q_r,      &
     real(kind=8) :: a(2)
 
     ! Common block
-    ! density, bulk modulus, and sound speed, and impedence of medium:
+    ! density, bulk modulus, and sound speed, and impedance of medium:
     real(kind=8) :: rho, bulk, cc, zz
     common /cparam/ rho, bulk, cc, zz
     

@@ -21,7 +21,7 @@ subroutine rpt2(ixy,imp,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,aux1,aux2,aux3,asdq,b
     double precision :: rho,bulk,cc,zz
     
 
-!     # density, bulk modulus, and sound speed, and impedence of medium:
+!     # density, bulk modulus, and sound speed, and impedance of medium:
 !     # (should be set in setprob.f)
     common /cparam/ rho,bulk,cc,zz
 

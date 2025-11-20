@@ -20,7 +20,7 @@ and the coefficient matrix is
     \end{matrix} \right ]
 
 The parameters :math:`\rho =` density and :math:`K =` bulk modulus are used
-to calculate the impedence :math:`= Z` and speed of sound `= c`.
+to calculate the impedance :math:`= Z` and speed of sound `= c`.
 
 :Authors:
     Kyle T. Mandli (2009-02-03): Initial version
@@ -41,7 +41,7 @@ def acoustics_1D(q_l,q_r,aux_l,aux_r,problem_data):
     Basic 1d acoustics riemann solver, with interleaved arrays
     
     *problem_data* is expected to contain -
-     - *zz* - (float) Impedence
+     - *zz* - (float) Impedance
      - *cc* - (float) Speed of sound
     
     See :ref:`pyclaw_rp` for more details.

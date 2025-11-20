@@ -1,5 +1,5 @@
 ! ============================================================================
-!  Reimann Solver for the two-layer shallow water equations
+!  Riemann Solver for the two-layer shallow water equations
 ! ============================================================================
 !
 ! Parameter Specification
@@ -131,7 +131,7 @@ subroutine rp1(maxmx,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,apdq)
         w_r = auxl(2,i)      
             
         ! ====================================================================
-        ! Solve Single layer problem seperately
+        ! Solve Single layer problem separately
         if (dry_state_r(2).and.dry_state_l(2)) then
             call single_layer_eigen(h_l,h_r,u_l,u_r,b_l,b_r, &
                               &     trans_wave(i),wave_correction(i),lambda,eig_vec)
@@ -468,7 +468,7 @@ subroutine linear_eigen(h_l,h_r,u_l,u_r,b_l,b_r,            &
     alpha(3) = 0.5d0*(gamma_r-1.d0-sqrt((gamma_r-1.d0)**2+4.d0*r*gamma_r))
     alpha(4) = 0.5d0*(gamma_r-1.d0+sqrt((gamma_r-1.d0)**2+4.d0*r*gamma_r))
 
-    ! These are calculated seperately due to entropy corrections
+    ! These are calculated separately due to entropy corrections
     ! Left state speeds
     speeds(1,1) = u_l(1) - sqrt(g*h_l(1)*(1+alpha(1)))
     speeds(2,1) = u_l(2) - sqrt(g*h_l(1)*(1+alpha(2)))

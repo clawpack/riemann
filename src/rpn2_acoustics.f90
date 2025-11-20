@@ -47,7 +47,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apd
     real(kind=8) :: delta(3), a1, a2, rho, bulk, cc, zz
     integer :: i, m, mu, mv
 
-!     # density, bulk modulus, and sound speed, and impedence of medium:
+!     # density, bulk modulus, and sound speed, and impedance of medium:
 !     # (should be set in setprob.f)
     common /cparam/ rho,bulk,cc,zz
 
@@ -67,7 +67,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apd
 
 !     # note that notation for u and v reflects assumption that the
 !     # Riemann problems are in the x-direction with u in the normal
-!     # direciton and v in the orthogonal direcion, but with the above
+!     # direction and v in the orthogonal direction, but with the above
 !     # definitions of mu and mv the routine also works with ixy=2
 !     # in which case waves come from the
 !     # Riemann problems u_t + g(u)_y = 0 in the y-direction.

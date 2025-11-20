@@ -4,7 +4,7 @@ r"""
 Riemann solvers for the shallow water equations.
 
 The available solvers are:
- * Roe - Use Roe averages to caluclate the solution to the Riemann problem
+ * Roe - Use Roe averages to calculate the solution to the Riemann problem
  * HLL - Use a HLL solver
  * Exact - Use a newton iteration to calculate the exact solution to the
         Riemann problem

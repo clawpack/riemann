@@ -295,7 +295,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
             flux_v_l = v_l
             flux_v_r = v_r
 
-            ! Also intialize other flux evaluation stuff
+            ! Also initialize other flux evaluation stuff
             flux_transfer_r = 0.d0
             flux_transfer_l = 0.d0
             momentum_transfer = 0.d0
@@ -457,7 +457,7 @@ subroutine rpn2(ixy,maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,fwave,s,amdq,ap
 
                 ! Nothing to do for eigenspace evaluation
 
-                ! Flux evaulation
+                ! Flux evaluation
                 momentum_transfer(1) =  g * rho(1) * h_ave(1) * (h_r(2) - h_l(2) + b_r - b_l)
                 momentum_transfer(2) = -g * rho(1) * h_ave(1) * (h_r(2) - h_l(2)) + g * rho(2) * h_ave(2) * (b_r - b_l)
                 flux_transfer_r = g * rho(1) * h_r(1) * h_r(2)
