@@ -22,15 +22,15 @@
 !         mwaves <INTEGER> : number of waves in approximate Riemann solution (=3)
 !                            This solver ignores the zero-velocity shear waves
 !                            since they don't affect the cell updates
-!         maux <INTEGER>   : number of auxilary variables (not used)
+!         maux <INTEGER>   : number of auxiliary variables (not used)
 !         mbc <INTEGER>    : number of ghost cells at each boundary
 !         mx <INTEGER>     : number of elements in slice
 !         ql <REAL>        : state vector at left edge of each cell
 !                            Note that the i'th Riemann problem has left state qr(:,i-1)
 !         qr <REAL>        : state vector at right edge of each cell
 !                            Note that the i'th Riemann problem has right state ql(:,i)
-!         auxl <REAL>      : state of auxiliary variable on left edge of cell 
-!         auxr <REAL>      : state of auxiliary variable on right egde of cell 
+!         auxl <REAL>      : state of auxiliary variable on left edge of cell
+!         auxr <REAL>      : state of auxiliary variable on right edge of cell
 !         
 ! Outputs: 
 !          wave <REAL>     : q-wave vectors (eigenvectors of Roe matrix)

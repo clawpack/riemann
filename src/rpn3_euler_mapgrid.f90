@@ -13,7 +13,7 @@
 !       4 z_momentum
 !       5 energy
 !
-! Auxilliary Quantities:
+! Auxiliary Quantities:
 !       1  nx xface (i-1/2,j,k)
 !       2  ny xface (i-1/2,j,k)
 !       3  nz xface (i-1/2,j,k)
@@ -36,16 +36,16 @@
 !                                                    z-direction if ixyz=3.
 !         maxm <INTEGER>   : max number of grid cells (less the ghost cells)
 !         meqn <INTEGER>   : number of equations in the system (=5)
-!         mwaves <INTEGER> : nuber of waves in the system (=3)
-!         maux <INTEGER>   : number of auxilary variables (=15)
+!         mwaves <INTEGER> : number of waves in the system (=3)
+!         maux <INTEGER>   : number of auxiliary variables (=15)
 !         mbc <INTEGER>    : number of ghost cells on either end
 !         mx <INTEGER>     : number of elements
 !         ql <REAL>        : state vector at left edge of each cell
 !                            Note the i'th Riemann problem has left state qr(:,i-1)
 !         qr <REAL>        : state vector at right edge of each cell
 !                            Note the i'th Riemann problem has right state ql(:,i)
-!         auxl <REAL>      : state of auxilary variable on left egde of cell 
-!         auxr <REAL>      : state of auxilary variable on right egde of cell 
+!         auxl <REAL>      : state of auxiliary variable on left edge of cell
+!         auxr <REAL>      : state of auxiliary variable on right edge of cell
 !         
 ! Outputs: 
 !          fwave <REAL>    : f-wave vectors (eigenvectors of Roe matrix)

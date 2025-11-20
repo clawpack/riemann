@@ -56,7 +56,7 @@ subroutine rpn2_ptwise(ixy, num_eqn, num_aux, num_waves, q_l, q_r,            &
 
     ! note that notation for u and v reflects assumption that the
     ! Riemann problems are in the x-direction with u in the normal
-    ! direciton and v in the orthogonal direcion, but with the above
+    ! direction and v in the orthogonal direction, but with the above
     ! definitions of mu and mv the routine also works with ixy=2
     ! in which case waves come from the
     ! Riemann problems u_t + g(u)_y = 0 in the y-direction.

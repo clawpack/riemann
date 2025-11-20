@@ -21,8 +21,8 @@
 !         impt <INTEGER>   : index for aux arrays
 !         maxm <INTEGER>   : max number of grid cells (less the ghost cells)
 !         meqn <INTEGER>   : number of equations in the system
-!         mwaves <INTEGER> : nuber of waves in the system
-!         maux <INTEGER>   : number of auxilary equations
+!         mwaves <INTEGER> : number of waves in the system
+!         maux <INTEGER>   : number of auxiliary equations
 !         mbc <INTEGER>    : number of ghost cells on either end
 !         mx <INTEGER>     : number of elements
 !         ql <REAL>        : state vector at left edge of each cell

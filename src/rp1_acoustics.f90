@@ -43,7 +43,7 @@ subroutine rp1(maxm,meqn,mwaves,maux,mbc,mx,ql,qr,auxl,auxr,wave,s,amdq,apdq)
     real(kind=8) :: a1, a2, auxl, auxr
     integer :: i, m
 
-    ! density, bulk modulus, and sound speed, and impedence of medium:
+    ! density, bulk modulus, and sound speed, and impedance of medium:
     ! (should be set in setprob.f)
     common /cparam/ rho,bulk,cc,zz
 

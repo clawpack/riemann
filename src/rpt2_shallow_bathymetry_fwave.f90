@@ -50,7 +50,7 @@ subroutine rpt2(ixy, imp, maxm, num_eqn, num_waves, num_aux, num_ghost,   &
     real(kind=8) :: grav, dry_tolerance, sea_level
     common /cparam/ grav, dry_tolerance, sea_level
 
-    ! Deterimine direction of solve
+    ! Determine direction of solve
     if (ixy == 1) then
         normal_index = 2
         transverse_index = 3
