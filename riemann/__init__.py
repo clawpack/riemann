@@ -50,7 +50,7 @@ from . import vc_acoustics_3D_constants
 from . import euler_3D_constants
 from . import burgers_3D_constants
 from . import vc_advection_3D_constants
-from . import euler_mapgrid_3D
+from . import euler_mapgrid_3D_constants
 
 
 try:
