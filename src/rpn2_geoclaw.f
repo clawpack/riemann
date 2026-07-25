@@ -44,7 +44,7 @@ c
       use geoclaw_module, only: earth_radius, deg2rad
       use amr_module, only: mcapa
 
-      use storm_module, only: pressure_forcing, pressure_index
+      use met_forcing_module, only: pressure_forcing, pressure_index
 
       implicit none
 

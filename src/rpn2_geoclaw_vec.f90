@@ -40,7 +40,7 @@
       use geoclaw_module, only: earth_radius, deg2rad
       use amr_module, only: mcapa
 
-      use storm_module, only: pressure_forcing, pressure_index
+      use met_forcing_module, only: pressure_forcing, pressure_index
 
       implicit none
 
@@ -223,7 +223,7 @@ subroutine solve_rpn(hL, hR, huL, huR, hvL, hvR, bL, bR, pL, pR, sw1,sw2,sw3,fw1
       use geoclaw_module, only: earth_radius, deg2rad
       use amr_module, only: mcapa
 
-      use storm_module, only: pressure_forcing, pressure_index
+      use met_forcing_module, only: pressure_forcing, pressure_index
 
       implicit none
 
