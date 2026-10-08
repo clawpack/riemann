@@ -23,6 +23,7 @@ python_sources = [
   'euler_4wave_2D_constants.py',
   'euler_5wave_2D_constants.py',
   'euler_mapgrid_2D_constants.py',
+  'euler_mapgrid_3D_constants.py',
   'euler_with_efix_1D_constants.py',
   'kpp_2D_constants.py',
   'layered_shallow_water_1D_constants.py',

@@ -1,5 +1,4 @@
 from matplotlib import animation
-from clawpack.visclaw.JSAnimation import IPython_display
 from IPython.display import display
 import ipywidgets
 import sympy
