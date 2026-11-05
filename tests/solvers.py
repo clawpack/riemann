@@ -33,6 +33,7 @@ class Solver:
     jump_components: Optional[tuple] = None   # restrict sum-of-waves check
     swap: Optional[tuple] = None       # (mu, mv) normal/tangential momenta (2D)
     well_balanced: Optional[Callable] = None  # (rng, n) -> (q, aux) at rest
+    speed_bounds: Optional[Callable] = None   # (q_l, q_r, ixy) -> (s_min, s_max)
     fname: str = ""
 
     def __post_init__(self):
@@ -133,6 +134,48 @@ def f_acoustics_2d(q, ixy=1):
     return f
 
 
+# ---- HLLE wave-speed estimates ------------------------------------------
+# Einfeldt (1988): the HLLE speeds are s_1 = min(lambda_min(q_l), lambda_min(Roe))
+# and s_2 = max(lambda_max(q_r), lambda_max(Roe)), with the Roe-averaged
+# state's eigenvalues.  Sound speeds here come from the equation of state,
+# not from the Fortran.
+
+def _roe_weights(a_l, a_r):
+    w_l, w_r = np.sqrt(a_l), np.sqrt(a_r)
+    return w_l / (w_l + w_r), w_r / (w_l + w_r)
+
+
+def einfeldt_shallow(q_l, q_r, ixy=1):
+    h_l, h_r = q_l[0], q_r[0]
+    u_l, u_r = q_l[ixy] / h_l, q_r[ixy] / h_r
+    c_l, c_r = np.sqrt(GRAV * h_l), np.sqrt(GRAV * h_r)
+    a, b = _roe_weights(h_l, h_r)
+    u_hat = a * u_l + b * u_r
+    c_hat = np.sqrt(GRAV * 0.5 * (h_l + h_r))
+    return (np.minimum(u_l - c_l, u_hat - c_hat),
+            np.maximum(u_r + c_r, u_hat + c_hat))
+
+
+def einfeldt_euler(q_l, q_r, ixy=1):
+    dim = q_l.shape[0] - 2
+
+    def primitive(q):
+        rho, energy = q[0], q[dim + 1]
+        vel = q[1:dim + 1] / rho
+        p = (GAMMA - 1) * (energy - 0.5 * rho * np.sum(vel**2, axis=0))
+        return rho, vel, (energy + p) / rho, np.sqrt(GAMMA * p / rho)
+
+    rho_l, vel_l, H_l, c_l = primitive(q_l)
+    rho_r, vel_r, H_r, c_r = primitive(q_r)
+    a, b = _roe_weights(rho_l, rho_r)
+    vel_hat = a * vel_l + b * vel_r
+    H_hat = a * H_l + b * H_r
+    c_hat = np.sqrt((GAMMA - 1) * (H_hat - 0.5 * np.sum(vel_hat**2, axis=0)))
+    un_l, un_r, un_hat = vel_l[ixy - 1], vel_r[ixy - 1], vel_hat[ixy - 1]
+    return (np.minimum(un_l - c_l, un_hat - c_hat),
+            np.maximum(un_r + c_r, un_hat + c_hat))
+
+
 # ---- the registry -------------------------------------------------------
 
 SOLVERS = [
@@ -148,11 +191,11 @@ SOLVERS = [
     Solver("euler_with_efix_1D", 1, 3, 3, {"cparam": {"gamma": GAMMA}},
            euler(1), f_euler),
     Solver("euler_hlle_1D", 1, 3, 2, {"cparam": {"gamma": GAMMA}},
-           euler(1), f_euler),
+           euler(1), f_euler, speed_bounds=einfeldt_euler),
     Solver("shallow_roe_with_efix_1D", 1, 2, 2, {"cparam": {"grav": GRAV}},
            shallow(1), f_shallow),
     Solver("shallow_hlle_1D", 1, 2, 2, {"cparam": {"grav": GRAV}},
-           shallow(1), f_shallow),
+           shallow(1), f_shallow, speed_bounds=einfeldt_shallow),
     Solver("shallow_roe_tracer_1D", 1, 3, 3, {"cparam": {"grav": GRAV}},
            shallow_tracer),
     Solver("shallow_bathymetry_fwave_1D", 1, 2, 2,
@@ -169,11 +212,11 @@ SOLVERS = [
     Solver("shallow_roe_with_efix_2D", 2, 3, 3, {"cparam": {"grav": GRAV}},
            shallow(2), f_shallow, swap=(1, 2)),
     Solver("shallow_hlle_2D", 2, 3, 2, {"cparam": {"grav": GRAV}},
-           shallow(2), f_shallow, swap=(1, 2)),
+           shallow(2), f_shallow, swap=(1, 2), speed_bounds=einfeldt_shallow),
     Solver("euler_4wave_2D", 2, 4, 4, {"cparam": {"gamma": GAMMA}},
            euler(2), f_euler, swap=(1, 2)),
     Solver("euler_hlle_2D", 2, 4, 2, {"cparam": {"gamma": GAMMA}},
-           euler(2), f_euler, swap=(1, 2)),
+           euler(2), f_euler, swap=(1, 2), speed_bounds=einfeldt_euler),
     # 5 waves (4 Euler + tracer contact): matches static.py and the source;
     # euler_5wave_2D_constants.py says 4 (see README, "Known issues").
     Solver("euler_5wave_2D", 2, 5, 5, {"cparam": {"gamma": GAMMA}},

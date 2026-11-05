@@ -21,6 +21,7 @@ cd riemann && pytest tests
 | `test_fluctuations_sum_to_flux_difference` | conservation: amdq + apdq = f(q_r) − f(q_l) | LeVeque (2002) §15.3 |
 | `test_rotation_invariance` | `rpn2` with `ixy=1` and `ixy=2` agree once the momenta are swapped | rotational invariance of the equations |
 | `test_lake_at_rest_is_preserved` | still water over varying bathymetry gives zero fluctuations | George (2008) |
+| `test_hlle_speeds_match_einfeldt` | HLLE wave speeds equal the Einfeldt estimates (true left/right sound speeds and Roe-averaged speeds) | Einfeldt (1988) |
 | `test_2d_reduces_to_1d` | `rpn2` with zero tangential velocity reproduces the matching `rp1` | |
 | `test_registry_matches_static` | the test registry matches `static.py`, which PyClaw uses to size arrays | |
 | `test_constants_match_static` | `<name>_constants.py` sizes match `static.py` | |
@@ -42,6 +43,8 @@ inconsistent acoustic impedance.
 - D. S. Bale, R. J. LeVeque, S. Mitran, J. A. Rossmanith, "A wave propagation
   method for conservation laws and balance laws with spatially varying flux
   functions", *SIAM J. Sci. Comput.* 24(3), 955–978, 2002.
+- B. Einfeldt, "On Godunov-type methods for gas dynamics", *SIAM J. Numer.
+  Anal.* 25(2), 294–318, 1988.
 - D. L. George, "Augmented Riemann solvers for the shallow water equations
   over variable topography with steady states and inundation", *J. Comput.
   Phys.* 227(6), 3089–3113, 2008.
@@ -115,7 +118,8 @@ Steps:
 ## Known issues found by these tests
 
 Each issue is marked as a strict expected failure, so fixing it turns the
-test red until the mark is removed.
+test red until the mark is removed. The one exception is noted under the HLLE
+entry below.
 
 - **`auxl`/`auxr` not declared as arrays** in `rp1_acoustics.f90` and
   `rpn2_kpp.f90` (not declared at all) and in `rpn3_burgers.f90` (declared as
@@ -140,3 +144,17 @@ test red until the mark is removed.
   rarefaction and positive Roe-averaged velocity. Both still conserve.
   Which behavior is intended is a question for the maintainers, not for
   this test.
+- **Euler HLLE sound speed.** `rp1_euler_hlle.f90`, `rpn2_euler_hlle.f90`
+  and `rpn2_euler_hlle_with_walls.f90` compute the left and right sound
+  speeds as `sqrt(gamma1*H - u**2/2)` instead of
+  `sqrt(gamma1*(H - u**2/2))`; the 2D kinetic term also omits v². In
+  addition, `H_r` uses `p_l`. The Roe-averaged `c_hat` line is correct. As a
+  result:
+  - the HLLE speeds are underestimated (`test_hlle_speeds_match_einfeldt`,
+    strict, fails on every platform);
+  - when the computed c² is negative, the square root is NaN. Whether that
+    NaN reaches the output depends on how the processor evaluates
+    `MIN`/`MAX`: on x86-64 (CI) it does, on arm64 it did not. The
+    conservation, wave-sum, rotation and 1D/2D tests for these solvers
+    therefore carry a **non-strict** mark, and report XPASS where NaN
+    doesn't show through.
