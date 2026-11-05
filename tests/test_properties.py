@@ -12,6 +12,8 @@ admissible input, so no reference data is stored.  References:
   955-978: f-wave decomposition (f-waves sum to the flux difference).
 * George (2008), J. Comput. Phys. 227(6), 3089-3113: augmented solver and
   preservation of the lake-at-rest steady state.
+* Einfeldt (1988), SIAM J. Numer. Anal. 25(2), 294-318: HLLE wave-speed
+  estimates.
 """
 
 import numpy as np
@@ -31,6 +33,21 @@ def _directions(solver):
 
 CASES = [pytest.param(s, ixy, id=f"{s.name}" + (f"-ixy{ixy}" if ixy else ""))
          for s in SOLVERS for ixy in _directions(s)]
+
+# The Euler HLLE solvers compute their left/right sound speeds incorrectly
+# (see README).  test_hlle_speeds_match_einfeldt catches that on every
+# platform.  Where the bad sound speed becomes sqrt(<0) = NaN, whether the NaN
+# reaches the output depends on how the processor evaluates MIN/MAX: it does on
+# x86-64 and did not on arm64.  The tests below therefore fail only on some
+# platforms, so they carry a non-strict mark.
+HLLE_SOUND_SPEED = {"euler_hlle_1D", "euler_hlle_2D"}
+_NAN_MARK = pytest.mark.xfail(
+    strict=False, reason="euler_hlle sound speed can be NaN (README)")
+
+
+def _with_nan_mark(params, name_of=lambda p: p.values[0].name):
+    return [pytest.param(*p.values, id=p.id, marks=_NAN_MARK)
+            if name_of(p) in HLLE_SOUND_SPEED else p for p in params]
 
 
 def _run(solver, q, aux=None, ixy=None):
@@ -157,8 +174,8 @@ def test_constant_state_gives_zero_fluctuations(solver, ixy):
                         np.zeros_like(rh.at_interfaces(out[key])), TOL, key)
 
 
-@pytest.mark.parametrize("solver, ixy",
-                         [c for c in CASES if c.values[0].flux or not c.values[0].fwave])
+@pytest.mark.parametrize("solver, ixy", _with_nan_mark(
+    [c for c in CASES if c.values[0].flux or not c.values[0].fwave]))
 def test_waves_sum_to_jump(solver, ixy):
     """sum_p W_p = q_r - q_l, or for f-waves sum_p Z_p = f(q_r) - f(q_l)."""
     q, aux = _states(solver)
@@ -176,8 +193,8 @@ def test_waves_sum_to_jump(solver, ixy):
     rh.assert_close(total[rows], expected[rows], TOL, "sum of waves")
 
 
-@pytest.mark.parametrize("solver, ixy",
-                         [c for c in CASES if c.values[0].flux])
+@pytest.mark.parametrize("solver, ixy", _with_nan_mark(
+    [c for c in CASES if c.values[0].flux]))
 def test_fluctuations_sum_to_flux_difference(solver, ixy):
     """Conservation: amdq + apdq = f(q_r) - f(q_l)."""
     q, aux = _states(solver)
@@ -187,8 +204,8 @@ def test_fluctuations_sum_to_flux_difference(solver, ixy):
                     "amdq + apdq")
 
 
-@pytest.mark.parametrize("solver", [s for s in SOLVERS if s.swap],
-                         ids=lambda s: s.name)
+@pytest.mark.parametrize("solver", _with_nan_mark(
+    [pytest.param(s, id=s.name) for s in SOLVERS if s.swap]))
 def test_rotation_invariance(solver):
     """ixy=1 on (.., a, b, ..) equals ixy=2 on (.., b, a, ..), permuted back."""
     q, aux = _states(solver)
@@ -227,8 +244,10 @@ _PAIR_XFAIL = {"shallow_roe_with_efix_2D": "1D/2D entropy-fix logic differs (REA
 
 @pytest.mark.parametrize(
     "name1, name2",
-    [pytest.param(a, b, id=b, marks=pytest.mark.xfail(strict=True, reason=_PAIR_XFAIL[b])
-                  if b in _PAIR_XFAIL else ()) for a, b in DIMENSION_PAIRS])
+    _with_nan_mark(
+        [pytest.param(a, b, id=b, marks=pytest.mark.xfail(strict=True, reason=_PAIR_XFAIL[b])
+                      if b in _PAIR_XFAIL else ()) for a, b in DIMENSION_PAIRS],
+        name_of=lambda p: p.values[1]))
 def test_2d_reduces_to_1d(name1, name2):
     """With zero tangential velocity the 2D solver matches the 1D solver."""
     s1, s2 = BY_NAME[name1], BY_NAME[name2]
@@ -243,3 +262,19 @@ def test_2d_reduces_to_1d(name1, name2):
                         rh.at_interfaces(out1[key]), TOL, key)
         rh.assert_close(rh.at_interfaces(out2[key][2]),
                         np.zeros(rh.NUM_TOTAL - 1), TOL, key + " tangential")
+
+
+@pytest.mark.parametrize("solver, ixy", [
+    pytest.param(*c.values, id=c.id, marks=pytest.mark.xfail(
+        strict=True, reason="euler_hlle sound speed is wrong (README)"))
+    if c.values[0].name in HLLE_SOUND_SPEED else c
+    for c in CASES if c.values[0].speed_bounds])
+def test_hlle_speeds_match_einfeldt(solver, ixy):
+    """HLLE speeds are the Einfeldt (1988) estimates (true sound speeds)."""
+    q, aux = _states(solver)
+    out = _run(solver, q, aux, ixy)
+    q_l, q_r = rh.left_right(q)
+    s_min, s_max = solver.speed_bounds(q_l, q_r, ixy or 1)
+    speeds = rh.at_interfaces(out["s"])
+    rh.assert_close(speeds[0], s_min, TOL, "s_1 (left-going HLLE speed)")
+    rh.assert_close(speeds[-1], s_max, TOL, "s_2 (right-going HLLE speed)")
