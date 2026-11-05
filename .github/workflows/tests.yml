@@ -1,0 +1,63 @@
+name: Riemann solver tests
+
+# Property tests for the compiled solvers (see tests/README.md).  Builds the
+# clawpack meta-repo at master with this repository's commit swapped in for
+# the riemann submodule, then runs riemann/tests.
+on:
+  pull_request:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CLAW: ${{ github.workspace }}
+
+jobs:
+  property-tests:
+    name: property tests - ubuntu-latest - gcc 15 - py 3.12
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v7.1.0
+      with:
+        python-version: '3.12'
+
+    - name: Set up compilers
+      uses: fortran-lang/setup-fortran@v1.11.0
+      with:
+        compiler: gcc
+        version: 15
+
+    - name: Install python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install meson-python ninja numpy pytest
+
+    - name: Checkout Clawpack
+      uses: actions/checkout@v7.0.1
+      with:
+        repository: clawpack/clawpack
+        ref: master
+        submodules: true
+
+    - name: Checkout Riemann branch
+      uses: actions/checkout@v7.0.1
+      with:
+        path: riemann
+
+    - name: Install clawpack python
+      run: |
+        pip install --no-build-isolation --editable .
+
+    - name: Run property tests
+      run: |
+        cd ${CLAW}/riemann
+        pytest tests -v -rxs
